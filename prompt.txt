@@ -90,3 +90,4 @@ Requirement:
     - In UI Footer, Write the Year, copyright and All right preserved. Then, add in separate line: 'Developed by: Marthad Musa' with a link to: "https://www.linkedin.com/in/marthad-musa-78389039/".
     - At the End of the Project execution, Write a proper, well organized documentation in PDF Descriping the whole process.
     - Add a category and a price for each course and allow admins and teacher to determaine it.
+    - Create a 404 page for the public and private websites and allow it to manage every wrong page url's.

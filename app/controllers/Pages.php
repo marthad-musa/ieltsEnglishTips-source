@@ -28,4 +28,12 @@ class Pages extends Controller {
 
         $this->view('pages/contact', $data);
     }
+
+    public function not_found() {
+        $data = [
+            'title' => '404 - Page Not Found'
+        ];
+
+        $this->view('pages/404', $data);
+    }
 }
