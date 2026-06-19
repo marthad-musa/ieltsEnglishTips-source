@@ -1,26 +1,39 @@
 <?php
-/*
- * Base Controller
- * Loads the models and views
+
+# NameSpace  ---------------
+namespace Controller;
+# ------------|  ./NameSpace
+
+# SECURITY CHECK  ---------------
+// if (!defined("ROOT")) die ("direct script access denied!");
+// define("ABSPATH") ? "" : die();
+# ------------|  ./SECURITY CHECK
+
+/**
+ * CONTROLLER()
+ * *
+ * The Application Main Controller
+ * Every other controller will Inherit this class
  */
-class Controller {
-    // Load model
-    public function model($model) {
-        // Require model file
-        require_once '../app/models/' . $model . '.php';
+class controller {
+  /**
+   * VIEW()
+   * *
+   * Load a VIEW File
+   */
+  public function view($view,$data = []) {
+    extract($data);
 
-        // Instatiate model
-        return new $model();
+    $filename = "../app/views/".strtolower($view).".view.php";
+    if (file_exists($filename)) {
+      # ...| TRUE Block
+      require $filename;
+    } else {
+      # ...| FALSE Block
+      echo "Error! Could not find view file: ". $filename;
     }
-
-    // Load view
-    public function view($view, $data = []) {
-        // Check for view file
-        if (file_exists('../app/views/' . $view . '.php')) {
-            require_once '../app/views/' . $view . '.php';
-        } else {
-            // View does not exist
-            die('View does not exist');
-        }
-    }
+    # ---| ./IF?ELSE
+  }
+  # ---| ./VIEW()
 }
+# -----|  ./CONTROLLER()

@@ -1,74 +1,72 @@
 <?php
-/*
- * App Core Class
- * Creates URL & loads core controller
- * URL FORMAT - /controller/method/params
+
+# SECURITY CHECK  ---------------
+// if (!defined("ROOT")) die ("direct script access denied!");
+// define("ABSPATH") ? "" : die();
+# ------------|  ./SECURITY CHECK
+
+
+/**
+ * App()
+ * *
+ * Every page view in the Project will be rerouted by this Class
  */
 class App {
-    protected $currentController = 'Pages';
-    protected $currentMethod = 'index';
-    protected $params = [];
+  # -----| PROPERTIES | -----
+  protected $controller = '_404';
+  public static $page = '_404';
+  protected $method = 'index';
+  # ---| ./PROPERTIES\. | ---
 
-    public function __construct() {
-        $url = $this->getUrl();
+  # -----| CONSTRUCTOR | -----
+  function __construct() {
+    $arr = $this->getURL();
 
-        // Look in controllers for first value
-        if (isset($url[0])) {
-            if (file_exists('../app/controllers/' . ucwords($url[0]) . '.php')) {
-                // If exists, set as controller
-                $this->currentController = ucwords($url[0]);
-                // Unset 0 Index
-                unset($url[0]);
-
-                // Require the controller
-                require_once '../app/controllers/' . $this->currentController . '.php';
-                // Instantiate controller class
-                $this->currentController = new $this->currentController;
-
-                // Check for second part of url
-                if (isset($url[1])) {
-                    // Check to see if method exists in controller
-                    if (method_exists($this->currentController, $url[1])) {
-                        $this->currentMethod = $url[1];
-                        // Unset 1 index
-                        unset($url[1]);
-                    } else {
-                        // Method doesn't exist -> 404
-                        $this->load404();
-                        return;
-                    }
-                }
-            } else {
-                // Controller doesn't exist -> 404
-                $this->load404();
-                return;
-            }
-        } else {
-            // No controller specified, load default
-            require_once '../app/controllers/' . $this->currentController . '.php';
-            $this->currentController = new $this->currentController;
-        }
-
-        // Get params
-        $this->params = $url ? array_values($url) : [];
-
-        // Call a callback with array of params
-        call_user_func_array([$this->currentController, $this->currentMethod], $this->params);
+    $filename = "../app/controllers/".ucfirst($arr[0]).".php";
+    if (file_exists($filename)) {
+      # ...| TRUE Block
+      require $filename;
+      $this->controller = $arr[0];
+      self::$page = $arr[0];
+      unset($arr[0]);
+    } else {
+      # ...| FALSE Block
+      require "../app/controllers/".$this->controller.".php";
     }
+    # ---| ./IF/ELSE
 
-    private function load404() {
-        require_once '../app/controllers/Pages.php';
-        $this->currentController = new Pages();
-        $this->currentMethod = 'not_found';
-        call_user_func_array([$this->currentController, $this->currentMethod], []);
-    }
+    $mycontroller = new ("Controller\\".$this->controller)();
+    $mymethod = $arr[1] ?? $this->method;
+    $mymethod = str_replace("-", "_", $mymethod);
 
-    public function getUrl() {
-        if (isset($_GET['url'])) {
-            $url = rtrim($_GET['url'], '/');
-            $url = filter_var($url, FILTER_SANITIZE_URL);
-            $url = explode('/', $url);
-            return $url;
-        }
+    if (!empty($arr[1])) {
+      # ...| TRUE Block
+      if (method_exists($mycontroller, strtolower($mymethod))) {
+        # ...| TRUE Block
+        $this->method = strtolower($mymethod);
+        unset($arr[1]);
+      }
+      # ---| IF
     }
+    # ---| IF
+
+    $arr = array_values($arr);
+    call_user_func_array([$mycontroller, $this->method], $arr);
+  }
+  # ---| ./CONSTRUCTOR\. | ---
+
+  /**
+   * GetURL()
+   * *
+   * This Method should focus solely on getting whatevere is written in the URL
+   */
+  private function getURL() {
+    $url = $_GET['url'] ?? 'home';
+    $url = filter_var($url, FILTER_SANITIZE_URL);
+    $arr = explode("/", $url);
+    return $arr;
+  }
+  # ---| ./getURL()\. | ---
 }
+# -----| ./App()
+

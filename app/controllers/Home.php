@@ -1,0 +1,70 @@
+<?php
+
+# NameSpace  ---------------
+namespace Controller;
+# ------------|  ./NameSpace
+
+# SECURITY CHECK  ---------------
+if (!defined("ROOT")) die ("direct script access denied!");
+// define("ABSPATH") ? "" : die();
+# ------------|  ./SECURITY CHECK
+
+use \Model\Auth;
+use \Model\Slider;
+use \Model\User;
+
+/**
+ * Home()
+ * *
+ * The Home Page
+ */
+class Home extends Controller {
+  # -----| Index() | -----
+  public function index() {
+    $user_id = Auth::getId();
+
+    $user = new User();
+    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
+
+    $course = new \Model\Course();
+    $category = new \Model\Category();
+
+    $data['title'] = "Home";
+ 
+    # ...| READ ALL Courses
+    $data['rows'] = $course->where(['approved'=>0], 'desc', 10);
+
+    # ...| READ ALL Courses Order by Trending Value
+    $query = "select * from courses where approved = 0 order by trending desc limit 5";
+    $data['trending'] = $course->query($query);
+
+    if ($data['rows']) {
+      # ...| TRUE Block
+      $data['first_row'] = $data['rows'][0];
+      unset($data['rows'][0]);
+
+      $total_rows = count($data['rows']);
+      $half_rows = round($total_rows / 2);
+
+      /**
+       * Splice()
+       * *
+       * a method that split an array() acourding to it's offset
+       * and the data it removes will be excluded from the whole array.
+       */
+      $data['rows1'] = array_splice($data['rows'], 0, $half_rows);
+      $data['rows2'] = $data['rows'];
+    }
+    # ---| ./IF(Rows)
+
+    # -----| Load Slider Images | -----
+    // $slider = new Slider();
+    // $slider->order = 'asc';
+    // $data['images'] = $slider->where(['disabled'=>0]);
+    # ---| ./Load Slider Images\. | ---
+
+    $this->view('home',$data);
+  }
+  # ---| ./Index()\. | ---
+}
+# -----| ./Home()

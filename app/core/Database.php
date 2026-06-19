@@ -1,88 +1,380 @@
 <?php
-/*
- * PDO Database Class
- * Connect to database
- * Create prepared statements
- * Bind values
- * Return rows and results
+
+/**
+ * User: TECH-Tag
+ * Date: 11/01/2025
+ * Time: 03:30 PM
+ * * *
+ * @author  Marthad Musa <marthad_musa@yahoo.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
+# SECURITY CHECK  ---------------
+// if (!defined("ROOT")) die ("direct script access denied!");
+// define("ABSPATH") ? "" : die();
+# ------------|  ./SECURITY CHECK
+
+/**
+ * Class DATABASE()
+ * *
  */
 class Database {
-    private $host = DB_HOST;
-    private $user = DB_USER;
-    private $pass = DB_PASS;
-    private $dbname = DB_NAME;
+  # -----| Connect() |-----
+  private function connect() {
+    $str = DBDRIVER.":hostname=".DBHOST.";dbname=".DBNAME;
+    return new PDO($str,DBUSER,DBPASS);
+  }
+  # ---| ./Connect()\. |---
 
-    private $dbh;
-    private $stmt;
-    private $error;
+  # -----| QUERY() | -----
+  public function query($query,$data = [],$type = 'object') {
+    $con = $this->connect();
+    $stm = $con->prepare($query);
 
-    public function __construct() {
-        // Set DSN
-        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->dbname;
-        $options = array(
-            PDO::ATTR_PERSISTENT => true,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        );
-
-        // Create PDO instance
-        try {
-            $this->dbh = new PDO($dsn, $this->user, $this->pass, $options);
-        } catch (PDOException $e) {
-            $this->error = $e->getMessage();
-            echo $this->error;
+    if ($stm) {
+      # ...| TRUE Block
+      $check = $stm->execute($data);
+      if ($check) {
+        # ...| TRUE Block
+        if ($type == 'object') {
+          # ...| TRUE Block
+          $type = PDO::FETCH_OBJ;
+        } else {
+          # ...| FALSE Block
+          $type = PDO::FETCH_ASSOC;
         }
-    }
+        # ...| ./IF/ELSE($type)
 
-    // Prepare statement with query
-    public function query($sql) {
-        $this->stmt = $this->dbh->prepare($sql);
-    }
+        $result = $stm->fetchAll($type);
 
-    // Bind values
-    public function bind($param, $value, $type = null) {
-        if (is_null($type)) {
-            switch (true) {
-                case is_int($value):
-                    $type = PDO::PARAM_INT;
-                    break;
-                case is_bool($value):
-                    $type = PDO::PARAM_BOOL;
-                    break;
-                case is_null($value):
-                    $type = PDO::PARAM_NULL;
-                    break;
-                default:
-                    $type = PDO::PARAM_STR;
-            }
+        if (is_array($result) && count($result) > 0) {
+          # ...| TRUE Block | Run AfterSELECT Functions
+          if (property_exists($this,'afterSelect')) {
+            # ...| TRUE Block
+            foreach ($this->afterSelect as $func) {
+              $result = $this->$func($result);
+            } # ---| ./FOREACH(FUNCTION)
+          } # ---| ./IF(Property Exists)
+          # ---| ./AfterSELECT Functions\. |---
+
+          return $result;
         }
-
-        $this->stmt->bindValue($param, $value, $type);
+        # ---| ./IF(is_array())
+      }
+      # ---| ./IF($check)
     }
+    # ---| ./IF($stm)
 
-    // Execute the prepared statement
-    public function execute() {
-        return $this->stmt->execute();
-    }
+    return false;
+  }
+  # ---| ./QUERY()\. | ---
 
-    // Get result set as array of objects
-    public function resultSet() {
-        $this->execute();
-        return $this->stmt->fetchAll(PDO::FETCH_OBJ);
-    }
+  # -----| CREATE Tables() | -----
+  public function create_tables() {
+    /**
+     * ---------------
+     * | USERS Table |
+     * ---------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `users` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `firstname` varchar(30) NOT NULL,
+        `lastname` varchar(30) NOT NULL,
+        `email` varchar(100) NOT NULL,
+        `username` varchar(100) NOT NULL,
+        `bio` varchar(2048) NULL,
+        `company` varchar(100) NULL,
+        `job` varchar(100) NULL,
+        `country` varchar(100) NULL,
+        `address` varchar(1024) NULL,
+        `phone` varchar(12) NULL,
+        `password` varchar(255) NOT NULL,
+        `role` int(11) NOT NULL DEFAULT '1',
+        `language` varchar(4) NULL,
+        `date` date DEFAULT NULL,
+        `image` varchar(1024) NULL,
+        `twitter_link` varchar(1024) NULL,
+        `facebook_link` varchar(1024) NULL,
+        `instagram_link` varchar(1024) NULL,
+        `linkedin_link` varchar(1024) NULL,
+        KEY `firstname` (`firstname`),
+        KEY `lastname` (`lastname`),
+        KEY `email` (`email`),
+        KEY `username` (`username`),
+        KEY `bio` (`bio`),
+        KEY `company` (`company`),
+        KEY `job` (`job`),
+        KEY `country` (`country`),
+        KEY `address` (`address`),
+        KEY `role` (`role`),
+        KEY `phone` (`phone`),
+        KEY `language` (`language`),
+        KEY `date` (`date`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
 
-    // Get single record as object
-    public function single() {
-        $this->execute();
-        return $this->stmt->fetch(PDO::FETCH_OBJ);
-    }
+    $this->query($query);
 
-    // Get row count
-    public function rowCount() {
-        return $this->stmt->rowCount();
-    }
+    /**
+     * ----------------
+     * | PRICES Table |
+     * ----------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `prices` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `name` varchar(30) NOT NULL,
+        `price` decimal(10,0) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `price` (`price`),
+        KEY `disabled` (`disabled`),
+        KEY `name` (`name`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
 
-    // Get last inserted ID
-    public function lastInsertId() {
-        return $this->dbh->lastInsertId();
-    }
+    $this->query($query);
+
+    /** ---|INSERTING INTO PRICES TABLE|--- **/
+    $query = "INSERT INTO `prices` (`id`, `name`, `price`, `disabled`) VALUES (1, 'Free', '0', '0');";
+    $this->query($query);
+
+    /**
+     * --------------------
+     * | CURRENCIES Table |
+     * --------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `currencies` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `currency` varchar(20) NOT NULL,
+        `symbol` varchar(4) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /** ---|INSERTING INTO CURRENCIES TABLE|--- **/
+    $query = "INSERT INTO `currencies` (`id`, `currency`, `symbol`, `disabled`) VALUES (NULL, 'US Dollar', '$', 0), (NULL, 'EU Euro', '¥', 0)";
+    $this->query($query);
+
+    /**
+     * -------------------
+     * | LANGUAGES Table |
+     * -------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `languages` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `symbol` VARCHAR(10) NOT NULL,
+        `language` varchar(30) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /** ---|INSERTING INTO LANGUAGES TABLE|--- **/
+    $query = "INSERT INTO `languages` (`id`, `symbol`, `language`, `disabled`) VALUES (Null, 'en_US', 'English (US)', 0), (Null, 'ar_AR', 'العربية', 0), (Null, 'fr_FR', 'Français (France)', 0), (Null, 'es_ES', 'Español (España)', 0)";
+    $this->query($query);
+
+    /**
+     * -----------------------
+     * | COURSE_LEVELS Table |
+     * -----------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `course_levels` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `level` varchar(30) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /** ---|INSERTING INTO COURSE_LEVELS TABLE|--- **/
+    $query = "INSERT INTO `course_levels` (`id`, `level`, `disabled`) VALUES (NULL, 'Beginner Level', 0), (NULL, 'Intermediate Level', 0), (NULL, 'Expert Level', 0), (NULL, 'All Levels', 0)";
+    $this->query($query);
+
+    /**
+     * -----------------
+     * | COURSES Table |
+     * -----------------
+     */
+    $query = "
+      CREATE TABLE `courses` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `title` varchar(100) NOT NULL,
+        `description` text DEFAULT NULL,
+        `user_id` int(11) NOT NULL,
+        `category_id` int(11) NOT NULL,
+        `sub_category_id` int(11) DEFAULT NULL,
+        `level_id` int(11) DEFAULT NULL,
+        `language_id` int(11) DEFAULT NULL,
+        `price_id` int(11) DEFAULT NULL,
+        `promo_link` varchar(1024) DEFAULT NULL,
+        `course_image` varchar(1024) DEFAULT NULL,
+        `course_image_tmp` varchar(1024) NOT NULL,
+        `course_promo_video` varchar(1024) DEFAULT NULL,
+        `primary_subject` varchar(100) DEFAULT NULL,
+        `date` datetime DEFAULT NULL,
+        `tags` varchar(2048) DEFAULT NULL,
+        `congratulations_message` varchar(2048) DEFAULT NULL,
+        `welcome_message` varchar(2048) DEFAULT NULL,
+        `approved` tinyint(1) NOT NULL DEFAULT 0,
+        `published` tinyint(1) NOT NULL DEFAULT 0,
+        `subtitle` varchar(100) DEFAULT NULL,
+        `currency_id` int(11) DEFAULT NULL,
+        `csrf_code` varchar(32) NOT NULL,
+        `views` int(11) NOT NULL DEFAULT 0,
+        `trending` int(11) NOT NULL DEFAULT 0,
+        `slug` varchar(100) NOT NULL,
+        /* ---|Course Duration, Total Number of Students|--- */
+        /* ---|Start Date, End Date|--- */
+        KEY `primary_subject` (`primary_subject`),
+        KEY `title` (`title`),
+        KEY `user_id` (`user_id`),
+        KEY `category_id` (`category_id`),
+        KEY `sub_category_id` (`sub_category_id`),
+        KEY `level_id` (`level_id`),
+        KEY `language_id` (`language_id`),
+        KEY `price_id` (`price_id`),
+        KEY `date` (`date`),
+        KEY `approved` (`approved`),
+        KEY `published` (`published`),
+        KEY `views` (`views`),
+        KEY `trending` (`trending`),
+        KEY `slug` (`slug`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+    ";
+
+    $this->query($query);
+
+    /**
+     * -------------------
+     * | CATEGORIES Table |
+     * -------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `categories` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `category` varchar(30) NOT NULL,
+        `slug` VARCHAR(100) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `category` (`category`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /** ---|INSERTING INTO CATEGORIES TABLE|--- **/
+    // $query = "INSERT INTO `categories` (`id`, `category`, `disabled`) VALUES (NULL, 'Development', '0'), (NULL, 'Business', '0'), (NULL, 'Finance & Accounting', '0'), (NULL, 'IT & Software', '0'), (NULL, 'Office Productivity', '0'), (NULL, 'Personal Development', '0'), (NULL, 'Design', '0'), (NULL, 'Marketing', '0'), (NULL, 'Lifestyle', '0'), (NULL, 'Photography & Video', '0'), (NULL, 'Health & Fitness', '0'), (NULL, 'Music', '0'), (NULL, 'Teaching & Academics', '0'), (NULL, 'I don\'t know yet', '0')";
+    $this->query($query);
+
+    /**
+     * -------------------
+     * | SLIDER_IMAGES Table |
+     * -------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `slider_images` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `image` varchar(2048) NOT NULL,
+        `title` varchar(100) DEFAULT NULL,
+        `description` varchar(255) DEFAULT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * -----------------------------
+     * | ROLES & PERMISSIONS Table |
+     * -----------------------------
+     */
+    $query = "
+      CREATE TABLE `roles` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `role` varchar(50) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * -------------------------
+     * | PERMISSIONS_MAP Table |
+     * -------------------------
+     */
+    $query = "
+      CREATE TABLE `permissions_map` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `role_id` int(11) NOT NULL,
+        `permission` varchar(100) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `role_id` (`role_id`),
+        KEY `permission` (`permission`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * ----------------------
+     * | COURSES_META Table |
+     * ----------------------
+     */
+    $query = "
+      CREATE TABLE `courses_meta` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `course_id` int(11) NOT NULL,
+        `tab` varchar(50) NOT NULL,
+        `data_type` varchar(100) NOT NULL,
+        `value` varchar(1024) NOT NULL,
+        `description` varchar(1024) DEFAULT NULL,
+        `unid` bigint(20) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `course_id` (`course_id`),
+        KEY `data_type` (`data_type`),
+        KEY `tab` (`tab`),
+        KEY `unid` (`unid`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * --------------------------
+     * | COURSES_LECTURES Table |
+     * --------------------------
+     */
+    $query = "
+      CREATE TABLE `courses_lectures` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `unid` bigint(20) NOT NULL,
+        `title` varchar(100) NOT NULL,
+        `description` varchar(2048) NOT NULL,
+        `file` varchar(1024) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `unid` (`unid`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+  }
+  # ---| ./CREATE Tables()\. | ---
 }
+# -----|  ./DATABASE()
