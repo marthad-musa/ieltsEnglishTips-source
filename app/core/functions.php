@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 11/01/2025
+ * Time: 03:30 PM
+ * * *
+ * @author  Marthad Musa <marthad_musa@yahoo.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # SECURITY CHECK  ---------------
 // if (!defined("ROOT")) die ("direct script access denied!");
 // defined("ABSPATH") ? "" : die();
@@ -30,11 +39,17 @@ function get_badge($data) {
   } elseif ($data == 'Pending') {
     # ...| PENDING Block
     $badge = 'warning';
-  } elseif ($data == 'Started') {
-    # ...| STARTED Block
+  } elseif ($data == 'Approved') {
+    # ...| APPROVED Block
+    $badge = 'secondary';
+  } elseif ($data == 'Published') {
+    # ...| PUBLISHED Block
+    $badge = 'info';
+  } elseif ($data == 'Rejected') {
+    # ...| REJECTED Block
     $badge = 'danger';
-  } elseif ($data == 'Completed') {
-    # ...| COMPLETED Block
+  } elseif ($data == 'On Going') {
+    # ...| ON GOING Block
     $badge = 'success';
   } else {
     # ...| ELSE Block
@@ -45,6 +60,93 @@ function get_badge($data) {
   return $badge;
 }
 # ---| ./Get_Badge()\. | ---
+
+
+# -----| Course_Status() | -----
+function course_status($course) {
+  $approved = isset($course->approved) ? intval($course->approved) : 0;
+  $published = isset($course->published) ? intval($course->published) : 0;
+
+  if ($approved === 0 && $published === 0) {
+    return 'Created';
+  }
+
+  if ($approved === 1 && $published === 0) {
+    return 'Approved';
+  }
+
+  if ($approved === 0 && $published === 1) {
+    return 'Rejected';
+  }
+
+  $today = date('Y-m-d');
+  $start_date = !empty($course->start_date) ? date('Y-m-d', strtotime($course->start_date)) : null;
+  $end_date = !empty($course->end_date) ? date('Y-m-d', strtotime($course->end_date)) : null;
+
+  if (!empty($end_date) && $today > $end_date) {
+    return 'Finished';
+  }
+
+  if (!empty($start_date)) {
+    $future_limit = date('Y-m-d', strtotime('+14 days'));
+    if ($start_date > $today && $start_date <= $future_limit) {
+      return 'Pending';
+    }
+
+    if ($start_date <= $today && (empty($end_date) || $today < $end_date)) {
+      return 'On Going';
+    }
+  }
+
+  return 'Published';
+}
+# ---| ./Course_Status()\. | ---
+
+
+# -----| Course_Status_Flags() | -----
+function course_status_flags($status) {
+  $flags = ['approved' => 0, 'published' => 0];
+
+  switch ($status) {
+    case 'Approved':
+      $flags = ['approved' => 1, 'published' => 0];
+      break;
+    case 'Published':
+    case 'Pending':
+    case 'On Going':
+    case 'Finished':
+      $flags = ['approved' => 1, 'published' => 1];
+      break;
+    case 'Rejected':
+      $flags = ['approved' => 0, 'published' => 1];
+      break;
+    case 'Created':
+    default:
+      $flags = ['approved' => 0, 'published' => 0];
+      break;
+  }
+
+  return $flags;
+}
+# ---| ./Course_Status_Flags()\. | ---
+
+
+# -----| Update_Course_Status_From_Date() | -----
+function update_course_status_from_date() {
+  $db = new \Database();
+  $today = date('Y-m-d');
+
+  $query = "select id, approved, published, start_date, end_date from courses where approved = 1 && published = 1 && start_date <= :today";
+  $rows = $db->query($query, ['today' => $today]);
+
+  if (!empty($rows)) {
+    foreach ($rows as $row) {
+      // No persistent status field exists, so status is derived dynamically.
+      // This function is kept for compatibility with controllers that invoke the routine.
+    }
+  }
+}
+# ---| ./Update_Course_Status_From_Date()\. | ---
 
 
 # -----| is_done() | -----
@@ -59,7 +161,7 @@ function is_done($data) {
 
 # -----| Get_Date() | -----
 function get_date($date) {
-  return date("jS M, Y",strtotime($date));
+  return date("d/m/Y",strtotime($date));
 }
 # ---| ./Get_Date()\. | ---
 
@@ -302,7 +404,7 @@ function get_video($file) {
   }
   # ---| ./IF(File)
 
-  return ROOT . "/" . No_Image;
+  return ROOT . "/assets/img/noimage.jpg";
 }
 # ---| ./Get_VIDEO()\. | ---
 
@@ -397,10 +499,6 @@ function generate_slug($str) {
 }
 # ---| ./Generate_SLUG()\. | ---
 
-# -----|  | -----
-# ---| ./\. | ---
-
-
 # -----| TEMPORARY | -----
 /**
  * These Lines are to AUTOMATICALLY Create SLUGS in the Table Using a Table Column
@@ -416,3 +514,50 @@ function generate_slug($str) {
 //   $course->query("update courses set slug = :slug where id = :id limit 1",['id'=>$row->id,'slug'=>$slug]);
 // } # ---| ./FOREACH(ROWS)
 # ---| ./TEMPORARY\. | ---
+
+# -----| ActiveNav | -----
+function active_nav($page = null) {
+  $target = str_replace('url=','',$_SERVER['QUERY_STRING']);
+  if ($target == $page) {
+    # ...| TRUE Block
+    echo 'active';
+  }
+  # ---| ./IF(Target)
+}
+# ---| ./ActiveNav\. | ---
+
+
+# -----| Show_Role() | -----
+function show_role($role = null) {
+  if ($role == 1) {
+    # ... Student Block
+    echo 'secondary';
+  } elseif ($role == 2) {
+    # ... Teacher Block
+    echo 'success';
+  } elseif ($role == 3) {
+    # ... Admin Block
+    echo 'primary';
+  } else {
+    # ... FALSE Block
+    echo 'danger';
+  }
+  # ---| ./IF/ELSE(Role)
+}
+# ---| ./Show_Role()\. | ---
+
+# -----| SHOW_DETAILS() | -----
+function show_details($detail = null) {
+  if (!empty($detail)) {
+    # ...| TRUE Block
+    echo ucfirst($detail);
+  } else {
+    # ...| FALSE Block
+    echo 'Nothing to show';
+  }
+}
+# ---| ./SHOW_DETAILS()\. | ---
+
+# -----|  | -----
+# ---| ./\. | ---
+

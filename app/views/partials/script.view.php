@@ -1,13 +1,9 @@
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> -->
-<script src="assets/vendor/php-email-form/validate.js"></script> <!-- To Validate Forms and Emails -->
-<script src="assets/vendor/aos/aos.js"></script>
-<script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-<script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-<script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-
-<!-- Floating Language Switch Button -->
-<button class="btn floating-translate-btn" style="background-color: #5578ff; color: white; position: fixed; bottom: 75px; right: 10px; z-index: 100001; padding: 10px 15px; border-radius: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 8px; font-weight: 500;" title="Switch to Arabic">
-  <i class="bi bi-translate" style="font-size: 18px;"></i>
-  <span>عربي</span>
-</button>
+<!-- ---- JavaScript Scripts ---- -->
+<!-- <script src="<?=ROOT?>/assets/js/clock.js"></script> -->
+<script src="<?=ROOT?>/zenblog/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="<?=ROOT?>/zenblog/assets/vendor/swiper/swiper-bundle.min.js"></script>
+<script src="<?=ROOT?>/zenblog/assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="<?=ROOT?>/zenblog/assets/vendor/aos/aos.js"></script>
+<script src="<?=ROOT?>/zenblog/assets/vendor/php-email-form/validate.js"></script>
+<script src="<?=ROOT?>/zenblog/assets/js/main.js"></script>
+<!-- -| ./JavaScript Scripts\. |. -->

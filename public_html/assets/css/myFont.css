@@ -1,0 +1,149 @@
+@charset "UTF-8";
+
+/* Webfonts */
+@font-face{font-family: Advertising; src: url(../myFonts/AdvertisingBold.ttf);}
+@font-face{font-family: Algerian; src: url(../myFonts/ALGER.TTF);}
+@font-face{font-family: Alido; src: url(../myFonts/Alido.otf);}
+@font-face{font-family: Casablanca; src: url(../myFonts/HacenCasablanca.ttf);}
+@font-face{font-family: Clarity; src: url(../myFonts/cleg.ttf);}
+@font-face{font-family: Crevil; src: url(../myFonts/CrevilBlack.otf);}
+@font-face{font-family: DigitalArabia; src: url(../myFonts/HacenDigitalArabiaXL.ttf);}
+@font-face{font-family: Dunkirk; src: url(../myFonts/Dunkirk.otf);}
+@font-face{font-family: Egypt; src: url(../myFonts/HacenEgypt.ttf);}
+@font-face{font-family: Freehand; src: url(../myFonts/TT1043M.TTF);}
+@font-face{font-family: Jordan; src: url(../myFonts/HacenJordan.ttf);}
+@font-face{font-family: LinerPrint; src: url(../myFonts/HacenLinerPrint-out.ttf);}
+@font-face{font-family: LucindaH; src: url(../myFonts/LHANDW.TTF);}
+@font-face{font-family: Tehran; src: url(../myFonts/HacenTehran.ttf);}
+@font-face{font-family: Tunisia; src: url(../myFonts/HacenTunisia.ttf);}
+@font-face{font-family: TypographerHv; src: url(../myFonts/HacenTypographerHeavy.ttf);}
+@font-face{font-family: Vanilla; src: url(../myFonts/HacenVanilla.ttf);}
+
+
+
+
+/* Webfont Classes */
+.fontAdvertising { font-family: Advertising !important;}
+
+.fontJordan { font-family: Jordan !important;}
+
+.fontPrint { font-family: LinerPrint !important;}
+
+.fontTunisia { font-family: Tunisia !important;}
+
+
+/* ARABIC Webfont Classes */
+.fontCasablanca { font-family: Casablanca !important;}
+
+.fontDigital { font-family: DigitalArabia !important;}
+
+.fontEgypt { font-family: Egypt !important;}
+
+.fontTehran { font-family: Tehran !important;}
+
+.fontTypograph { font-family: TypographerHv !important;}
+
+.fontVanilla { font-family: Vanilla !important;}
+
+
+/* ENGLISH Webfont Classes */
+.fontAlgerian { font-family: Algerian !important;}
+
+.fontAlido { font-family: Alido !important;}
+
+.fontClarity { font-family: Clarity !important;}
+
+.fontCrevil { font-family: Crevil !important;}
+
+.fontDunkirk { font-family: Dunkirk !important;}
+
+.fontFreehand { font-family: Freehand !important;}
+
+.fontLucindaH { font-family: LucindaH !important;}
+
+/* ROOT -------- */
+:root {
+  /* ---------- COLORS ---------- */
+  --black: #000000;
+  --blue: #007bff;
+  --indigo: #6610f2;
+  --purple: #6f42c1;
+  --pink: #ee3577;
+  --red: #dc3545;
+  --orange: #f68e62;
+  --yellow: #ffc107;
+  --green: #28a745;
+  --teal: #20c997;
+  --cyan: #17a2b8;
+  --white: #fff;
+  --gray: #767575;
+  --gray-dark: #434242;
+  --primary: #6f42c1;
+  --secondary: #4f4f4f;
+  --success: #28a745;
+  --info: #17a2b8;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --light: #c2c2c2;
+  --lightgray: #eeeeee;
+  --dark: #434242;
+  /* Light Mode -------- */
+  /* --pc = (PrimaryColor) */
+  /* --sc = (SecondaryColor) */
+  /* --ac = (AccentColor) */
+  --pc: var(--black);
+  --sc: var(--white);
+  /* ----| ./Light Mode\.*/
+
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  /* ---------- GENERAL myFont ---------- */
+  --fontAdvertising: Advertising;
+  --fontJordan: Jordan;
+  --fontPrint: LinerPrint;
+  --fontTunisia: Tunisia;
+  /* ---------- ARABIC myFont ---------- */
+  --fontCasablanca: Casablanca;
+  --fontDigital: DigitalArabia;
+  --fontEgypt: Egypt;
+  --fontTehran: Tehran;
+  --fontTypographerHv: TypographerHv;
+  --fontVanilla: Vanilla;
+  /* ---------- ENGLISH myFont ---------- */
+  --fontAlgerian: Algerian;
+  --fontAlido: Alido;
+  --fontClarity: Clarity;
+  --fontCrevil: Crevil;
+  --fontDunkirk: Dunkirk;
+  --fontFreehand: Freehand;
+  --fontLucindaH: LucindaH;
+  /* ---------- Font Sizes ---------- */
+  --font-normal: 1em;
+  --font-small: 0.8125rem;
+  /* ---------- Sidebar ---------- */
+  --sidebar-width: 280px;
+  --content-max-width: 860px;
+
+  /* TEXT -------- */
+  /* Element: <font_weight> <font_size> / <line_height> <font_family> */
+  --h1: bold max(54px, 4vw) / max(64px, 5vw) var(--fontJordan);
+  --h2: bold max(36px, 4vw) / max(48px, 5vw) var(--fontJordan);
+  --h3: bold max(30px, 4vw) / max(30px, 5vw) var(--fontJordan);
+  --h4: bold max(24px, 4vw) / max(28px, 5vw) var(--fontJordan);
+  --links: bold 18px/18px var(--fontAlido);
+  --p: 18px/30px var(--fontAlido);
+  --subtext: 12px/20px var(--fontAlido);
+  /* ----| ./TEXT\.*/
+
+  --transition: 0.3s ease-in-out;
+  --shadow: #00000030 0px 0px 10px 0px;
+  --shadowdark: #00000030 0px 5px 10px 5px;
+
+  /*  -------- */
+  /* ----| ./\.*/
+
+} /* ----| ./ROOT\.*/  
+

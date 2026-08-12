@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -28,9 +37,8 @@ class Signup extends Controller {
       if ($user->validate($_POST)) {
         # ...| TRUE Block
         $_POST['date'] = date("Y-m-d H:i:s");
-        // $_POST['role'] = 2; /*2=>Admin | 1=>user*/
-        $_POST['role'] = 1;
-        $_POST['image'] = "uploads/images/noimage.jpg";
+        $_POST['role'] = 1; /*3=>Admin | 2=>Teacher | 1=>User*/
+        $_POST['image'] = "assets/img/noimage.jpg";
         $_POST['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
         $user->insert($_POST);

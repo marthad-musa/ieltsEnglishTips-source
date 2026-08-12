@@ -1,17 +1,24 @@
-<?php $this->view('admin/admin-header',$data) ?>
+<?php $this->view('partials/private.header',$data) ?>
+<?php $this->view('partials/private.nav',$data) ?>
 
-  <div class="pagetitle row">
-    <div class="col-md-6">
-      <h1 class=""><?=$data['title']?></h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="<?=ROOT?>//">Home</a></li>
-          <li class="breadcrumb-item active"><?=$data['title']?></li>
-        </ol>
-      </nav>
-    </div>
+<!-- ---------| Main |--------- -->
+<main id="main" class="main">
+
+  <!-- ---------| Page Title |--------- -->
+  <div class="pagetitle">
+    <h1 class=""><?=$data['title']?></h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="<?=ROOT?>">Home</a></li>
+        <li class="breadcrumb-item active"><?=$data['title']?></li>
+      </ol>
+    </nav>
+  </div>
+  <!-- -------| ./Page Title\. |------- -->
+  
+  <!-- ---- CHECK Page MESSAGES ---- -->
+  <div class="row">
     <div class="col-md-6 w-50">
-      <!-- ---- CHECK Page MESSAGES ---- -->
       <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
         <?php if(message()):?>
           <span class="alert alert-warning">
@@ -20,91 +27,117 @@
           </span>
         <?php endif;?>
       </div>
-      <!-- -| ./CHECK Page MESSAGES\. |- -->
     </div>
   </div>
-  <!-- End Page Title -->
+  <!-- -| ./CHECK Page MESSAGES\. |- -->
 
-  <?php if ($uid->role === 1): ?>
-    <!-- <?=show($uid)?> -->
-    <!-- <?=show($courses)?> -->
-    <!-- <?=show($students)?> -->
-    <!-- <?=show(count($students))?> -->
-  <?php else: ?>
-    <div class="alert alert-danger">Nothing to show</div>
+  <!-- ---------| Main Content |--------- -->
+  <?php if ($uid->role_id == 3): ?>
+
     <section class="section dashboard">
-      <div class="row">
+      <!-- TOP side columns -->
+      <div class="col-lg-12">
+        <div class="row">
 
+          <!-- Courses Card -->
+          <div class="col-xxl-3 col-lg-3">
+            <div class="card info-card sales-card">
+
+              <div class="card-body">
+                <h5 class="card-title">Courses</h5>
+
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-mortarboard"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6><?=count($courses) ?: '0 <sub>Empty</sub>'?></h6>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <!-- End Courses Card -->
+
+          <!-- Tests Card -->
+          <div class="col-xxl-3 col-lg-3">
+            <div class="card info-card revenue-card">
+
+              <div class="card-body">
+                <h5 class="card-title">Quizes</h5>
+
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="fa fa-circle-question"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6><?=count($exams) ?: '0 <sub>Empty</sub>'?></h6>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <!-- End Tests Card -->
+
+          <!-- teachers Card -->
+          <div class="col-xxl-3 col-lg-3">
+
+            <div class="card info-card customers-card">
+
+              <div class="card-body">
+                <h5 class="card-title">Teachers</h5>
+
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-people"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6><?=count($teachers) ?: '0 <sub>Empty</sub>'?></h6>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+          <!-- End Teachers Card -->
+
+          <!-- Students Card -->
+          <div class="col-xxl-3 col-lg-3">
+
+            <div class="card info-card customers-card">
+
+              <div class="card-body">
+                <h5 class="card-title">Students</h5>
+
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-people"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6><?=count($students) ?: '0 <sub>Empty</sub>'?></h6>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+          <!-- End Students Card -->
+
+        </div>
+      </div>
+      <!-- End TOP side columns -->
+
+      <div class="row">
+        
         <!-- Left side columns -->
         <div class="col-lg-8">
           <div class="row">
 
-            <!-- Courses Card -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card sales-card">
-
-                <div class="card-body">
-                  <h5 class="card-title">Courses</h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-mortarboard"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6><?=count($courses) ?? 0?></h6>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            <!-- End Courses Card -->
-
-            <!-- Tests Card -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
-
-                <div class="card-body">
-                  <h5 class="card-title">Tests</h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="fa fa-circle-question"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6>0</h6>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            <!-- End Tests Card -->
-
-            <!-- Students Card -->
-            <div class="col-xxl-4 col-xl-12">
-
-              <div class="card info-card customers-card">
-
-                <div class="card-body">
-                  <h5 class="card-title">Students</h5>
-
-                  <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-people"></i>
-                    </div>
-                    <div class="ps-3">
-                      <h6><?=count($students) ?? 0?></h6>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-            <!-- End Students Card -->
-
-            <!-- Recent Sales -->
+            <!-- Approved Table -->
             <div class="col-12">
               <div class="card recent-sales overflow-auto">
 
@@ -122,7 +155,7 @@
                 </div>
 
                 <div class="card-body">
-                  <h5 class="card-title">Recent Sales <span>| Today</span></h5>
+                  <h5 class="card-title">Approved Table <span>| Today</span></h5>
 
                   <table class="table table-borderless datatable">
                     <thead>
@@ -177,91 +210,17 @@
 
               </div>
             </div>
-            <!-- End Recent Sales -->
-
-            <!-- Top Selling -->
-            <div class="col-12">
-              <div class="card top-selling overflow-auto">
-
-                <div class="filter">
-                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                    </li>
-
-                    <li><a class="dropdown-item" href="#">Today</a></li>
-                    <li><a class="dropdown-item" href="#">This Month</a></li>
-                    <li><a class="dropdown-item" href="#">This Year</a></li>
-                  </ul>
-                </div>
-
-                <div class="card-body pb-0">
-                  <h5 class="card-title">Top Selling <span>| Today</span></h5>
-
-                  <table class="table table-borderless">
-                    <thead>
-                      <tr>
-                        <th scope="col">Preview</th>
-                        <th scope="col">Product</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Sold</th>
-                        <th scope="col">Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row"><a href="#"><img src="<?=ROOT?>//niceadmin/assets/img/product-1.jpg" alt=""></a></th>
-                        <td><a href="#" class="text-primary fw-bold">Ut inventore ipsa voluptas nulla</a></td>
-                        <td>$64</td>
-                        <td class="fw-bold">124</td>
-                        <td>$5,828</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><a href="#"><img src="<?=ROOT?>//niceadmin/assets/img/product-2.jpg" alt=""></a></th>
-                        <td><a href="#" class="text-primary fw-bold">Exercitationem similique doloremque</a></td>
-                        <td>$46</td>
-                        <td class="fw-bold">98</td>
-                        <td>$4,508</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><a href="#"><img src="<?=ROOT?>//niceadmin/assets/img/product-3.jpg" alt=""></a></th>
-                        <td><a href="#" class="text-primary fw-bold">Doloribus nisi exercitationem</a></td>
-                        <td>$59</td>
-                        <td class="fw-bold">74</td>
-                        <td>$4,366</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><a href="#"><img src="<?=ROOT?>//niceadmin/assets/img/product-4.jpg" alt=""></a></th>
-                        <td><a href="#" class="text-primary fw-bold">Officiis quaerat sint rerum error</a></td>
-                        <td>$32</td>
-                        <td class="fw-bold">63</td>
-                        <td>$2,016</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><a href="#"><img src="<?=ROOT?>//niceadmin/assets/img/product-5.jpg" alt=""></a></th>
-                        <td><a href="#" class="text-primary fw-bold">Sit unde debitis delectus repellendus</a></td>
-                        <td>$79</td>
-                        <td class="fw-bold">41</td>
-                        <td>$3,239</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                </div>
-
-              </div>
-            </div>
-            <!-- End Top Selling -->
+            <!-- End Approved Table -->
 
           </div>
+          <!-- End Row -->
         </div>
         <!-- End Left side columns -->
 
         <!-- Right side columns -->
         <div class="col-lg-4">
 
-          <!-- News & Updates Traffic -->
+          <!-- Recent Events -->
           <div class="card">
             <div class="filter">
               <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -276,53 +235,76 @@
               </ul>
             </div>
 
-            <div class="card-body pb-0">
-              <h5 class="card-title">News &amp; Updates <span>| Today</span></h5>
+            <div class="card-body">
+              <h5 class="card-title">Recent Events <span>| Today</span></h5>
 
-              <div class="news">
-                <div class="post-item clearfix">
-                  <img src="<?=ROOT?>//niceadmin/assets/img/news-1.jpg" alt="">
-                  <h4><a href="#">Nihil blanditiis at in nihil autem</a></h4>
-                  <p>Sit recusandae non aspernatur laboriosam. Quia enim eligendi sed ut harum...</p>
-                </div>
+              <div class="activity">
 
-                <div class="post-item clearfix">
-                  <img src="<?=ROOT?>//niceadmin/assets/img/news-2.jpg" alt="">
-                  <h4><a href="#">Quidem autem et impedit</a></h4>
-                  <p>Illo nemo neque maiores vitae officiis cum eum turos elan dries werona nande...</p>
-                </div>
+                <div class="activity-item d-flex">
+                  <div class="activite-label">32 min</div>
+                  <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                  <div class="activity-content">
+                    Quia quae rerum <a href="#" class="fw-bold text-dark">explicabo officiis</a> beatae
+                  </div>
+                </div><!-- End activity item-->
 
-                <div class="post-item clearfix">
-                  <img src="<?=ROOT?>//niceadmin/assets/img/news-3.jpg" alt="">
-                  <h4><a href="#">Id quia et et ut maxime similique occaecati ut</a></h4>
-                  <p>Fugiat voluptas vero eaque accusantium eos. Consequuntur sed ipsam et totam...</p>
-                </div>
+                <div class="activity-item d-flex">
+                  <div class="activite-label">56 min</div>
+                  <i class='bi bi-circle-fill activity-badge text-danger align-self-start'></i>
+                  <div class="activity-content">
+                    Voluptatem blanditiis blanditiis eveniet
+                  </div>
+                </div><!-- End activity item-->
 
-                <div class="post-item clearfix">
-                  <img src="<?=ROOT?>//niceadmin/assets/img/news-4.jpg" alt="">
-                  <h4><a href="#">Laborum corporis quo dara net para</a></h4>
-                  <p>Qui enim quia optio. Eligendi aut asperiores enim repellendusvel rerum cuder...</p>
-                </div>
+                <div class="activity-item d-flex">
+                  <div class="activite-label">2 hrs</div>
+                  <i class='bi bi-circle-fill activity-badge text-primary align-self-start'></i>
+                  <div class="activity-content">
+                    Voluptates corrupti molestias voluptatem
+                  </div>
+                </div><!-- End activity item-->
 
-                <div class="post-item clearfix">
-                  <img src="<?=ROOT?>//niceadmin/assets/img/news-5.jpg" alt="">
-                  <h4><a href="#">Et dolores corrupti quae illo quod dolor</a></h4>
-                  <p>Odit ut eveniet modi reiciendis. Atque cupiditate libero beatae dignissimos eius...</p>
-                </div>
+                <div class="activity-item d-flex">
+                  <div class="activite-label">1 day</div>
+                  <i class='bi bi-circle-fill activity-badge text-info align-self-start'></i>
+                  <div class="activity-content">
+                    Tempore autem saepe <a href="#" class="fw-bold text-dark">occaecati voluptatem</a> tempore
+                  </div>
+                </div><!-- End activity item-->
+
+                <div class="activity-item d-flex">
+                  <div class="activite-label">2 days</div>
+                  <i class='bi bi-circle-fill activity-badge text-warning align-self-start'></i>
+                  <div class="activity-content">
+                    Est sit eum reiciendis exercitationem
+                  </div>
+                </div><!-- End activity item-->
+
+                <div class="activity-item d-flex">
+                  <div class="activite-label">4 weeks</div>
+                  <i class='bi bi-circle-fill activity-badge text-muted align-self-start'></i>
+                  <div class="activity-content">
+                    Dicta dolorem harum nulla eius. Ut quidem quidem sit quas
+                  </div>
+                </div><!-- End activity item-->
 
               </div>
-              <!-- End sidebar recent posts-->
 
             </div>
-          </div>
-          <!-- End News & Updates -->
+          </div><!-- End Recent Events -->
 
-        </div>
-        <!-- End Right side columns -->
+        </div><!-- End Right side columns -->
 
       </div>
     </section>
+  <?php elseif ($uid->role_id == 2): ?>
+    <div class="alert alert-dark"><?=ucfirst($uid->role_name)?> Nothing to show</div>
+  <?php elseif ($uid->role_id == 1): ?>
+    <div class="alert alert-info"><?=ucfirst($uid->role_name)?> Nothing to show</div>
   <?php endif; ?>
+  <!-- -------| ./Main Content\. |------- -->
 
-<!-- ======= Footer ======= -->
-<?php $this->view('admin/admin-footer',$data) ?>
+</main>
+<!-- -------| ./Main\. |------- -->
+
+<?php $this->view('partials/private.footer',$data) ?>

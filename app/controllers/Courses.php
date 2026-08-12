@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -13,20 +22,20 @@ if (!defined("ROOT")) die ("direct script access denied!");
 /**
  * Courses()
  * *
- * The Courses Page
+ * The All-Courses Page
  */
 class Courses extends Controller {
   # -----| Index() | -----
   public function index($slug = null) {
-    $course = new \Model\Courses();
+    $course = new \Model\Course();
     $course_meta = new \Model\Course_meta();
 
     $data['title'] = "Courses";
  
     # ...| READ ALL Courses
-    $data['rows'] = $course->where(['approved'=>0], 'desc', 10);
+    $data['rows'] = $course->where(['approved'=>1,'published'=>1], 'desc', 10);
 
-    # ...| READ The Courses Data
+    # ...| READ The Course Data
     $data['row'] = $row = $course->first(['slug'=>$slug]);
 
     # ...| READ ALL Courses Metas
@@ -66,8 +75,8 @@ class Courses extends Controller {
 
   # -----| Constructor |-----
   // function __construct() {
-  //   echo "Home Page";
+  //   echo "Courses Page";
   // }
   # ---| ./Constructor\. |---
 }
-# -----| ./Home()
+# -----| ./Courses()

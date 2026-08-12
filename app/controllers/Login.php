@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -34,7 +43,7 @@ class Login extends Controller {
       if ($row) {
         # ...| TRUE Block
         if (password_verify($_POST['password'], $row->password)) {
-          # ...| TRUE Block -----| Get User ROLE Name |-----
+          # ...| TRUE Block | Get User ROLE Name |-----
           $query = "select role from roles where id = :id limit 1";
           $id = $row->role;
 
@@ -50,20 +59,8 @@ class Login extends Controller {
 
           # -----| AUTHENTICATE |-----
           Auth::authenticate($row);
-          // if ($row->role == 1) {
-          //   # ...| USER/STUDENT Block
-          //   message("Login seccessful!");
-          //   redirect('user/dashboard');
-          // } else if ($row->role == 2 || $row->role == 3 || $row->role == 4) {
-          //   # ...| ADMIN/MGR/INSTRUCTOR Block
-            message("Login seccessful!");
-            redirect('admin/dashboard');
-          // } else if ($row->role == '') {
-          //   # ...| Unknown Block
-          //   message("Something went wrong!");
-          //   redirect('logout');
-          // }
-          // # ---| ./IF/ELSE/IF(Role Name)          
+          message("Login seccessful!");
+          redirect('admin/dashboard');
         }
         # ---| ./IF(Password)
       }

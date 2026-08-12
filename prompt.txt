@@ -1,0 +1,438 @@
+Using HTML, CSS, Javascript, & the current PHP MVC OOP hirarchy, do the following:
+
+• Courses:
+  1- Admin View side (./app/views/admin/courses.view.php):
+    - Maintain the current code.
+    - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Courses page. Therefore, the link and view page will be allowed to display for admins.
+    - The top part of the page is for displaying all APPROVED/PUBLISHED courses (viewed in cards as displayed in the present card).
+      The card will display the Course Image, the Course Price and Currency, The Starting Date, and The number of students who Enrolled next to the remaining empty spots if exists.
+    - The bottom part of the page is a table displaying all created courses.
+      Maintain the current table structure.
+      All Created Course will be listed in the table with a created Primary/Blue colored status as currently displayed.
+      Each 'Course Title' will have a modal (as currently displayed) displaying additional details like:
+        1) Course Discription.
+        2) Course Creator fullname (user_id field).
+        3) Course Level.
+        4) Course Language.
+        5) Course Primary Subject.
+        6) Course Duration.
+        7) Course Total Number of Students.
+        8) Course Creation Date.
+        9) Course Starting Date.
+        10) Course Ending Date.
+        11) Course Total Number of Students.
+        12) Course Number of Views. (When ever a STUDENT click to view the course, a 'views' counter is increased).
+        13) Course Trending (measured by the average number of views and the number of enrolled students).
+      On clicking the Course 'Status', a modal will pop up with a form to change the status into one of the following:
+        (Info/Light Blue) PUBLISHED,
+        (Secondary/Dark Grey) APPROVED,
+        (Warning/Yellow) PENDING,
+        (Danger/Red) REJECTED,
+        (Success/Green) On Going.
+      IF the course starting date arrives, the course status automatically changes into On Going.
+    - Admins can create and add courses using the New Course button.
+    - When clicking the New Course button, the ADD Course part displays with the current form.
+      Once the Course is created, the course status will be Primary/Blue Created status.
+      After the course is successfully created, the page will redirect to Editing the newly created course as currently coded.
+    - The EDIT Course part of the page displays the current tabs with the Javascript code.
+      Review the Intended Learners Tab and fix any HTML/PHP/JAVASCRIPT bugs if exists.
+      Review the Curriculum Tab and fix any HTML/PHP/JAVASCTIPT bugs if exists.
+        Additionally, allow TWO Options for adding a new Curriculum: adding Videos, Adding PDF attachments.
+        Videos are coded in the page. Double check the code and fix any HTML/PHP/JAVASCRIPT potential errors.
+      Review the Course Landing Page Tab and fix any HTML/PHP/JAVASCTIPT bugs if exists.
+        Remove the Subcategory from the view, the database table and the PHP MVC system.
+        Fix the Video thumbnail as intended in the code to allow a blank image if no video uploaded.
+      Review the Course Duration Tab and adjust the code to contain The total number of student field, the Course Starting Date, Course Ending Date, calculate the Course Duration and Display it in the corresponding field.
+      Review the Course Messages Tab and fix any HTML/PHP/JAVASCTIPT bugs if exists.
+    - On the Delete Course, display a message to confirm the Deletion as coded then delete the record and all refrences from the database.
+    - After creating and editing the Course, admin can APPROVE, PUBLISH, HOLD AND PEND the Course, or REJECT it.
+      Adjust the a corresponding form to allow that.
+      Courses will display acordingly on the display part of the page.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Courses page. Therefore, the link and view page will be allowed to display for teachers.
+    - Teachers are allowed to creat/add new courses and edit them but not Deleting or Approving Courses.
+      Maintain the Same functionalities as ADMIN with the exeption of DELETING AND APPROVING COURSES whitch will be limited to Admins Only.
+      Keep the page top and bottom view parts the same as ADMIN.
+      Keep the Additional course details modal but remove the Status column from the table and the form modal for Teachers view.
+      For the Teachers view, on the top of the (./app/views/admin/courses.view.php) display only the APPROVED and PUBLISHED courses that are created by the current logged Teacher.
+      On the Bottom part of the page, display a table with all courses created by the current logged Teacher and are still not edited or ready to be approved.
+      When a Teacher add a new course, the same form as Admins will be displayed.
+      On editing the course, Teacher will be giving the same functionalities as admin.
+      When editing is over, Teacher will wait until the Admin review, approve and publish the coures or the course will not appear.
+
+    (IF Role_ID = 1 'Student'):
+    - Students are Allowed to view the Courses page. Therefore, the link and view page will be allowed to display for students.
+    - Students are Only allowd to join courses. Therefore, the page will display all APPROVED and PUBLISHED courses for students view.
+    - Student view will display cards of APPROVED and PUBLISHED courses and their categories.
+    - Students will choose a course to join. Once enrolled, Students will be redirected to Enrolled Courses page (./app/views/admin/lessons.view.php).
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+  - Maintain the current code in the Courses function in the controller.
+  - Adjust the code to correspond with the requirements of the view part as descripbed above including adding a part for Course Duration and Course Messages.
+
+  3- Home Page side (./app/views/home.view.php):
+  - Maintain the curretn code in the home page courses section as placeholder if no course is added to the database.
+  - When a course is added to the database, display the database courses in the home page.
+
+  4- Home Controller side (./app/controllers/Home.php):
+  - Adjust the controller to display all database courses.
+
+  5- Courses Page side (./app/views/courses.view.php):
+  - Maintain the curretn code in the courses section as placeholder if no course is added to the database.
+  - When a course is added to the database, display the database courses in the courses page.
+
+  6- Courses Controller side (./app/controllers/courses.php):
+  - Adjust the controller to display all database courses.
+
+  7- Course Details Page side (./app/views/course_details.view.php):
+  - When clicking on a certain course, the course details page will display all the required details.
+  - Admins, Teachers, and Students are allowed to view the Course Details page.
+
+  8- Course Details Controller side (./app/controllers/Course_details.php):
+  - Adjust the controller to display the chosen course details.
+
+• Enrolled Courses:
+  1- Admin View side (./app/views/admin/lessons.view.php):
+  - create a similar page as courses but with the following adjustments:
+  - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Enrolled Courses page. Therefore, the link and view page will display for admins.
+    - All available APPROVED and PUBLISHED courses with enrolled students will show in cards.
+    - Each card will display the course details and the number of enrolled students.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Erolled Courses page. Therefore, the link and view page will display for teachers.
+    - All available APPROVED and PUBLISHED courses that is created by the currently logged teacher and with enrolled students will show in cards.
+    - Each card will display the course details and the number of enrolled students.
+
+    (IF Role_ID = 1 'Student'):
+    - Students are Allowed to view the Erolled Courses page. Therefore, the link and view page will display for students.
+    - On Enrolled Courses, currently logged student will view all courses that they are currently enrolled in or courses that are finished and completed by the current logged student.
+      If the course is On Going, the student will be able to see the course Curriculum and attachments and whitch lesson they're currently on.
+      If the course is completed, all lessons and attachments will be displayed.
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+  - Create a function called enrolled_courses in the controller.
+  - Adjust the function code to correspond with the requirements of the view parts as descripbed above.
+
+• Categories:
+  1- Admin View side (./app/views/admin/categories.view.php):
+  - Maintain the current code.
+  - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Enrolled Courses page. Therefore, the link and view page will display for admins.
+    - Admins are allowed to add and create new categories.
+      When an Admin add a new category, Maintain the current code as it is.
+      Display the table with all database categories.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are NOT Allowed to view the Categories page. Therefore, the link and view page will NOT display for teachers.
+    - In case a teacher clicks on the category page by mistake, redirect them to the Dashboard page.
+
+    (IF Role_ID = 1 'Student'):
+    - Students are NOT Allowed to view the Categories page. Therefore, the link and view page will NOT display for students.
+    - In case a student clicks on the category page by mistake, redirect them to the Dashboard page.
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+    - The Categories function will display all available categories with the ability of Adding new ones, Editing the current ones, or deleting the current ones by Admins only.
+
+• Lectures Materials:
+  1- Admin View side (./app/views/admin/materials.view.php):
+  - Create a page that displays all current courses as cards, each card displays the course image, name, category and attached PDF material if exists.
+  - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Course Materials page. Therefore, the link and view page will display for admins.
+    - Admins are allowed to add and upload new PDF Materials and asign them to certain courses.
+      When an Admin add a new material, create a form corresponding with the addition process and the asigning to a certian course process.
+    - On Lectures Materials, Admins will approve the course PDF Materials before publishing it.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Course Materials page. Therefore, the link and view page will display for teachers.
+    - Teachers are allowed to add and upload new PDF Materials and asign them to certain courses.
+      When a Teacher add a new material, create a form corresponding with the addition process and the asigning to a certian course process.
+
+    (IF Role_ID = 1 'Student'):
+    - Students are Allowed to view the Course Materials page. Therefore, the link and view page will NOT display for students.
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+    - The Course_materials function will display all available categories with the ability of Adding new ones or deleting the current ones by Admins only.
+
+• Quizes
+  1- Admin View side (./app/views/admin/quiz.view.php):
+    - Create the view page.
+    - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Quizes page. Therefore, the link and view page will be allowed to display for admins.
+    - The top part of the page is for displaying all APPROVED and PUBLISHED Quizes (viewed in cards as displayed in the courses page).
+      The card will display the Course Image, the Course Category, and the quiz name.
+        When clicking on the quiz name, a wide modal with the quiz details will display including:
+        1) The quiz starting date.
+        2) The quiz Duration.
+        3) The quiz total questions.
+        4) The quiz Questions Listed underneeth eachother.
+        5) The quiz full mark.
+        6) The quiz Right answer mark.
+        7) The quiz Wrong answer mark.
+    - The bottom part of the page is a table displaying all created quizes waiting to be APPROVED and PUBLISHED by Admin.
+      Maintain the admin/courses table structure.
+      All Created Quizes will be listed in the table with a created Primary/Blue colored status as displayed in Courses table.
+      On clicking the Quiz 'Status', a modal will pop up with a form to change the status into one of the following:
+        (Info/Light Blue) PUBLISHED,
+        (Secondary/Dark Grey) APPROVED,
+        (Warning/Yellow) PENDING,
+        (Danger/Red) REJECTED,
+        (Success/Green) On Going.
+        (Dark/Light Black) FINISHED.
+      IF the quiz starting date arrives, the quiz status automatically changes into On Going.
+    - Admins can create and add, edit, and delete Quizes using the New Quiz button.
+    - When clicking the New Quiz button, the ADD Quiz part displays with a form to choose the quiz starting date, the quiz number of quiestions, the quiz right answer mark, the quiz wrong answer mark, the quiz status, the course linked to the quiz, a list for the quiz questions and a sub-list for each question option answers.
+      Once the Quiz is created, the course status will be Primary/Blue Created status.
+      After the Quiz is successfully created, The quiz will ernter aqueue to display for the admins to approve and publish it.
+    - The EDIT quiz part of the page displays the current quiz details and the Admin can Edit all details including the questions text and options.
+    - On the Delete quiz, display a message to confirm the Deletion as coded in courses then delete the record and all refrences from the database.
+    - After creating and editing the quiz, admin can APPROVE, PUBLISH, HOLD AND PEND the quiz, or REJECT it.
+      Adjust the a corresponding form to allow that.
+      Quizes will display acordingly on the display part of the page.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Quizes page. Therefore, the link and view page will be allowed to display for teachers.
+    - Teachers can crate new quizes, edit the ones they have created but they can not delete the quizes.
+    - Teachers will view the same display as Admins.
+
+    (IF Role_ID = 1 'Student'):
+    - Students are Allowed to view the Quizes page. Therefore, the link and view page will be allowed to display for students.
+    - Students Can take a quiz but not create, edit or delete quizes.
+    - Before a student can take a quiz, student must join the quiz.
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+  - Create a function with the name Quiz to process the quizes addition, editing and deleting.
+  - The function should allow the students to take a quiz and auto mark the answers, then send the final score to the corresponding page.
+
+• Final Scores
+  1- Admin View side (./app/views/admin/scores.view.php):
+    - Create the view page.
+    - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Scores page. Therefore, the link and view page will be allowed to display for admins.
+    - The page wiil display all Quizes into two rows.
+    - The top row will display the quizes that are not finished or Starting time did not arrived yet (viewed in cards as displayed in the courses page).
+    - The next row will display the quiz that are finished and students have completed it (viewed in cards as displayed in the courses page).
+      The card will display the quiz name, the full mark, the number of students who took the quiz, the number of student who passed the quiz and the number of students who faild.
+    - When clicking on the quiz card, the bottom part of the page will display a table displaying the names of all students who took that quiz, the final score they got, the number of Rigth Answers they got and the number of Wrong Answers.
+      When clicking on a student name, a modal with the student quiz details will display including:
+      1) The quiz date.
+      2) The quiz Duration.
+      3) The quiz total questions.
+      4) The quiz Questions Listed underneeth eachother with each answer the student provided.
+        each ansewr will have eather a green border if Right Answer or Red Border for Wrong Answer.
+      5) The quiz full mark.
+      Maintain the admin/courses table structure for the modal.
+    - Admins can publish the final Scrores to the following pages:
+      1) Events:
+        (./app/views/events.view.php) Adjust the view page cards to display the scores of published quizes.
+        (./app/controllers/Events.php) Adjust the Controller to process the functionalities.
+      2) Blog:
+        (./app/views/admin/blog.view.php) Create the View page with similar cards as displayed in Events view page.
+        (./app/controllers/Admin.php) Create a Blog function to process the required functionalities.
+
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Scores page. Therefore, the link and view page will be allowed to display for Teachers.
+    - The page wiil display all Quizes that are created by the currently logged Teacher and finished and completed by the students (viewed in cards as displayed in the courses page).
+
+    (IF Role_ID = 1 'Students'):
+    - Students are Allowed to view the Scores page. Therefore, the link and view page will be allowed to display for Students.
+    - The page wiil display all Quizes that are finished and students have completed it (viewed in cards as displayed in the courses page).
+
+  2- Admin Controller side (./app/controllers/Admin.php):
+  - Create a function with the name Score to process the students final scores automatic calculating and publishing.
+  - The function should automatically calculate the quizes scores, then send the final score to the corresponding pages.
+
+CMS (Content Management System)
+- Create a CMS system and add it to a Drop-Down Group link in (./app/views/partials/private.nav.view.php).
+  The dropdown group link will be named 'CMS Settings' and it will be a list of links that will include the following:
+  • Slider Images:
+    1- Admin View side (./app/views/admin/slider-images.view.php)
+    - Only Admins are Allowed to view the Slider Images page. Therefore, the link and view page will be allowed to display for admins.
+    - Use the currently provided code and link it to the ADMIN Controller and the database to ensure admins are allowed to add Slider Images form as much numbers as they need, add a slider Title and Description to the sliders as well as edit it or deleted whenever they intent to.
+    2- Admin Controller side (./app/controllers/Admin.php)
+    - Adjust the slider_images function to accomidate the process of adding, editting, deleting, and publishing slider images for the public Home page (./app/views/home.view.php).
+    3- The Home page (./app/views/home.view.php)
+    - Keep the current Slider Images, Titles, and Descriptions as placeholders.
+    - Adjust the slider Images to display Admin's choices for images, titles, and discription should they choose to make future changes to them.
+
+  • Hero Section:
+    1- Admin View side (./app/views/admin/hero.view.php)
+    - Only Admins are Allowed to view the Hero page. Therefore, the link and view page will be allowed to display for admins.
+    - Create a view file similar to (slider-images.view.php) with tabs linked to the following pages:
+      1) About (./app/views/about.view.php).
+      2) Facutly (./app/views/faculty.view.php).
+      3) Courses (./app/views/courses.view.php).
+      4) Course Details (./app/views/course_details.view.php).
+      5) Events (./app/views/events.view.php).
+      6) Exam (./app/views/exam.view.php).
+      7) Contact (./app/views/contact.view.php).
+    - Adjust the view page to allow admins to 
+    2- Admin Controller side (./app/controllers/Admin.php)
+    - Create a 'hero' function to accomidate the process of adding, editting, deleting, and publishing Hero images for the respectful pages.
+
+  • Courses:
+  - Create a CMS for publishing courses into the following view pages:
+  1) Home Page side (./app/views/home.view.php).
+  2) Courses Page side (./app/views/courses.view.php).
+
+  • Faculty:
+  - Create a CMS for publishing Faculty Memebter into the following view pages:
+  1) Home Page side (./app/views/home.view.php).
+  2) Faculty Page side (./app/views/Faculty.view.php).
+
+  • Events:
+  - Create a CMS for publishing Events into the following view pages:
+  1) Events Page side (./app/views/events.view.php).
+  2) Blog Page side (./app/views/admin/blog.view.php).
+
+  • Contsct:
+  - Create a CMS for publishing Contact info to the following view pages:
+  1) Contact Page side (./app/views/contact.view.php).
+  2) FOOTER  (./app/views/partials/public.footer.view.php).
+  - Create a function named contact in (./app/controllers/Admin.php) to process and redirect all contact messages to this email address: mohammedabbo52@gmail.com.
+
+Admin Side (after logging in):
+• Navbar:
+  1- Admin side navbar view (./app/views/partials/private.nav.view.php):
+    - Maintain the current code and display.
+    - Adjust the Search bar to provide a search for the followin acording to a certain condition:
+    (IF Role_ID = 3 'Admin'):
+      - Allow search for Students, Teachers, Permissions, Categories, Courses, Lessons, Quizes.
+    (IF Role_ID = 2 'Teacher'):
+      - Allow search for Students who enrolled into a course created by the currently logged in Teacher, Courses created by the currently logged in Teacher, Lessons created by the currently logged in Teacher, Quizes created by the currently logged in Teacher.
+    (IF Role_ID = 1 'Student'):
+      - Allow search for Teachers, Courses, Quizes.
+  2- Admin Controller side (./app/controllers/Admin.php):
+  - Maintain the current code in the Dashboard function in the controller.
+  - Adjust the code to correspond with the requirements of the view Search bar as descripbed above.
+
+• Sidebar:
+  1- Admin sidebar view (./app/views/partials/private.nav.view.php):
+    - Maintain the current code and display.
+    - replace the 'slider images' link with a dropdown link group named 'CMS' as descripbed above and limit visibility to ONLY Admins.
+    - Allow the Dashboard link to be visible to everyone.
+    - Allow the Profile link to be visible to everyone.
+    - Allow the Courses dropdown link group to be visible to everyone with the following roles:
+      (IF Role_ID = 3 'Admin') Then Allow:
+        - My Courses
+        - Enrolled Courses
+        - Categories
+        - Lectures Materials
+        - Quizes
+        - Final Scores
+      (IF Role_ID = 2 'Teacher') Then Allow:
+        - My Courses
+        - Enrolled Courses
+        - Lectures Materials
+        - Quizes
+        - Final Scores
+      (IF Role_ID = 1 'Students'):
+        - My Courses
+        - Enrolled Courses
+        - Lectures Materials
+        - Quizes
+        - Final Scores
+    - Allow the USERS dropdown link group to be visible to Admins ONLY.
+    - Keep the rest of the page as is.
+
+• Dashboard:
+  1- Admin View side (./app/views/admin/dashboard.view.php):
+    - Maintain the current design.
+    - Split the page into 3 views displayed acording to a certain condition: if Role_ID == 3 (Admin), if Role_ID == 2 (Teacher), and if Role_ID == 1 (Students).
+    (IF Role_ID = 3 'Admin'):
+    - Admins are Allowed to view the Dashboard view page.
+    - The top part of the page is for displaying cards with counters for the respectful entities as follows:
+      1) Courses
+      2) Quizes
+      3) Teachers
+      4) Students
+    - The bottom part of the page is a table displaying all newly created items that requires Approval and Publishing, such as:
+      - Users Approval (Admins, Teachers and Students)
+      - Courses Approval and Publishing (created by Admins or Teachers)
+      - Quizes Approval and Publishing (created by Admins or Teachers).
+      Maintain the current table structure.
+      Limit the columns to the following:
+      - #
+      - Target Item (Users, Courses, Quizes).
+      - Date (Date of creation for above items).
+      - Status (Approval and Publish status)
+      When clicking on a row, a modal (similar to courses status modal) will show to eather APPROVE, PEND, PUBLISH, REJECT.
+    - The right side of the view page (Recent Events) is a list of all the Published events, such as:
+      - Newly Published Course.
+      - Newly Published Quiz.
+      - Newly Published Quiz Score.
+    (IF Role_ID = 2 'Teacher'):
+    - Teachers are Allowed to view the Dashboard view page.
+    - The top part of the page is for displaying cards with counters for courses the currently logged in Teacher has created which includes the number of Students enrolled in each course.
+    - The bottom part of the page is a table of all the Courses which are created by the currently logged in Teacher and are not completely finished editting.
+      The columns of the table are:
+      - # (Course ID number from the database)
+      - Title (Course Title)
+      - Category
+      When clicking on a row, the Teacher will be redirected to Course edit view page.
+    - No Recent Event allowed for Teachers
+    (IF Role_ID = 1 'Student'):
+    - Students are Allowed to view the Dashboard view page.
+    - The top part of the page is for displaying cards with counters for courses the currently logged in Student are enrolled in and are currently on going and not yet finished.
+    - No Bottom Table or Recent Event allowed for Students
+
+  2- Admin Controller (./app/controllers/Admin.php):
+    - Adjust the Dashboard fucntion to process the requirements listed above.
+
+• Profile:
+  1- Admin View side (./app/views/admin/profile.view.php):
+    - Maintain the current design.
+    - Admins, Teahcers and Students are Allowed to view the Profile view page.
+    - Fist tab is to dispaly currently logged in User information.
+    - Second tab is a form to Update the currently logged in User information.
+    - Third tab is a form to change the currently logged in User Language.
+    - Fourth tab is a form to change the currently logged in User Password.
+      User must provide the current used password then provide the new password twice for confirmation.
+      Validate the password before replacing the old one with the new in the database.
+
+  2- Admin Controller (./app/controllers/Admin.php):
+    - Adjust the Profile fucntion to process the requirements listed above.
+
+• USERS Dropdown Grop:
+  USERS Dropdown Grop is limited to ADMINS ONLY and Teachers and Students are not allowed to view it.
+  The Group contains two links: the first is Users and the second is Roles and Permissions.
+  - USERS:
+  1- Admin View side (./app/views/admin/users.view.php):
+    - Create the view page with the same design as admin/courses view page.
+    - The top part of the view will display 3 cards:
+      - ADMINISTRATION: display the count of Admins registered in the database.
+      - TEACHERS: display the count of Teachers registered in the database.
+      - STUDENTS: display the count of Students registered in the database.
+    - The bottom part of the view will display a table similar to admin/courses view page.
+      When a User card is clicked, the table will display the names and important details of all User with the same Role as the chosen card.
+    - Add a 'New User' button on the Top Right side of the view to allow the admins to add a new user using the same form used in the register page (./app/views/auth/signup.view.php).
+      Include in this form a dropdown selection input to allow ADMINS to choose the new user role between the following: Student, Teacher, or Admins.
+  2- Admin Controller side (./app/controllers/Admin.php):
+    - Create a Users function to process the view page above
+
+  - Roles and Permissions:
+  1- Admin View side (./app/views/admin/roles.view.php):
+    - Adjust the Database and View Page to contain the Roles and Permissions for the entire admin side.
+    - Split the page into grops, each group displays a Role.
+    - Under each Role group there is a set of permission to allow/denie users access to certain parts of the website acording to their Role.
+  2- Admin Controller side (./app/controllers/Admin.php):
+    - Review the Roles function to accomidate the requirements above.
+
+• Counters:
+- Create an automatic counter in the database in each respectful table for the following:
+  - Total number of students in every course provided.
+  - Total number of courses published by the ADMINS.
+  - Total number of events published by the ADMINS.
+  - Total number of Teachers APPROVED by the ADMINS.
+- Set the counters to publish in the home view (./app/views/home.view.php) and about view (./app/views/about.view.php) pages.
+
+
+Review the entire wesite script pages and evaluate any errors and report them at once.

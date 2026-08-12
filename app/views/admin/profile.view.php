@@ -1,33 +1,46 @@
-<?php $this->view('admin/admin-header',$data) ?>
+<?php $this->view('partials/private.header',$data) ?>
+<?php $this->view('partials/private.nav',$data) ?>
 
-  <?php if(!empty($row)): ?>
-    <div class="pagetitle row">
-      <div class="col-md-6">
-        <h1 class=""><?=$data['title']?></h1>
-        <nav>
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?=ROOT?>//">Home</a></li>
-            <li class="breadcrumb-item"><a href="<?=ROOT?>//admin/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><?=$data['title']?></li>
-            <li class="breadcrumb-item active"><?=esc(ucfirst($row->firstname))?> <?=esc(ucfirst($row->lastname))?></li>
-          </ol>
-        </nav>
-      </div>
-      <div class="col-md-6 w-50">
-        <!-- ---- CHECK Page MESSAGES ---- -->
-        <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-          <?php if(message()):?>
-            <span class="alert alert-warning">
-              <i class="bi bi-envelope-dash"></i>
-                <span class=""><?=message('',true)?></span>
-            </span>
-          <?php endif;?>
-        </div>
-        <!-- -| ./CHECK Page MESSAGES\. |- -->
+<style>
+  .hide {
+    display: none;
+  }
+</style>
+
+<!-- ---------| Main |--------- -->
+<main id="main" class="main">
+
+  <!-- ---------| Page Title |--------- -->
+  <div class="pagetitle">
+    <h1 class=""><?=$data['title']?></h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="<?=ROOT?>">Home</a></li>
+          <li class="breadcrumb-item"><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><?=$data['title']?></li>
+          <li class="breadcrumb-item active"><?=esc(ucfirst($uid->firstname))?> <?=esc(ucfirst($uid->lastname))?></li>
+        </ol>
+      </nav>
+  </div>
+  <!-- -------| ./Page Title\. |------- -->
+  
+  <!-- ---- CHECK Page MESSAGES ---- -->
+  <div class="row">
+    <div class="col-md-6 w-50">
+      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
+        <?php if(message()):?>
+          <span class="alert alert-warning">
+            <i class="bi bi-envelope-dash"></i>
+              <span class=""><?=message('',true)?></span>
+          </span>
+        <?php endif;?>
       </div>
     </div>
-    <!-- End Page Title -->
+  </div>
+  <!-- -| ./CHECK Page MESSAGES\. |- -->
 
+  <!-- ---------| Main Content |--------- -->
+  <?php if(!empty($uid)): ?>
     <section class="section profile">
       <div class="row">
         <div class="col-xl-4">
@@ -35,14 +48,12 @@
           <div class="card">
             <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
-              <img src="<?=get_image($row->image)?>" alt="<?=esc($row->firstname)?> <?=esc($row->lastname)?> Profile" class="rounded-circle" style="width:150px;max-width:150px;height:150px;object-fit:cover;">
-              <h2 class=""><?=esc($row->firstname)?> <?=esc($row->lastname)?></h2>
-              <h3 class="fontClarity"><?=esc(ucfirst($row->role_name))?></h3>
+              <img src="<?=get_image($uid->image)?>" alt="<?=esc($uid->firstname)?> <?=esc($uid->lastname)?> Profile" class="rounded-circle" style="width:150px;max-width:150px;height:150px;object-fit:cover;">
+              <h2 class=""><?=esc($uid->firstname)?> <?=esc($uid->lastname)?></h2>
+              <span class="badge bg-<?=show_role($uid->role_id)?>"><i class="bi bi-star me-1"> <?=esc(ucfirst($uid->role_name))?></i> </span>
               <div class="social-links mt-2">
-                <a href="<?=esc($row->twitter_link)?>" class="twitter"><i class="bi bi-twitter"></i></a>
-                <a href="<?=esc($row->facebook_link)?>" class="facebook"><i class="bi bi-facebook"></i></a>
-                <a href="<?=esc($row->instagram_link)?>" class="instagram"><i class="bi bi-instagram"></i></a>
-                <a href="<?=esc($row->linkedin_link)?>" class="linkedin"><i class="bi bi-linkedin"></i></a>
+                <a href="<?=esc($uid->facebook_link)?>" class="facebook"><i class="bi bi-facebook"></i></a>
+                <a href="<?=esc($uid->instagram_link)?>" class="instagram"><i class="bi bi-instagram"></i></a>
               </div>
             </div>
           </div>
@@ -63,67 +74,62 @@
                   <button onclick="set_tab(this.getAttribute('data-bs-target'))" class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit" id="profile-edit-tab">Edit Profile</button>
                 </li>
 
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                   <button onclick="set_tab(this.getAttribute('data-bs-target'))" class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings" id="profile-settings-tab">Settings</button>
-                </li>
+                </li> -->
 
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                   <button onclick="set_tab(this.getAttribute('data-bs-target'))" class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password" id="profile-change-password-tab">Change Password</button>
-                </li>
+                </li> -->
 
               </ul>
               <div class="tab-content pt-2">
 
                 <div class="tab-pane fade show active profile-overview" id="profile-overview">
                   <h5 class="card-title">About</h5>
-                  <p class="small fst-italic"><?=esc(ucfirst($row->bio))?></p>
+                  <p class="small fst-italic"><?=esc(show_details($uid->bio))?></p>
 
                   <h5 class="card-title">Profile Details</h5>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label ">Full Name</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->firstname))?> <?=esc(ucfirst($row->lastname))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->firstname))?> <?=esc(show_details($uid->lastname))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label ">User Name</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->username))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->username))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Company</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->company))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->company))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Job</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->job))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->job))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Country</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->country))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->country))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Address</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc(ucfirst($row->address))?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->address))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Phone</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc($row->phone)?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->phone))?></div>
                   </div>
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Email</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc($row->email)?></div>
+                    <div class="col-lg-9 col-md-8"><?=esc(show_details($uid->email))?></div>
                   </div>
-
-                  <!-- <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Password</div>
-                    <div class="col-lg-9 col-md-8 fontClarity"><?=esc($row->password)?></div>
-                  </div> -->
 
                 </div>
 
@@ -131,11 +137,13 @@
 
                   <!-- Profile Edit Form -->
                   <form method="post" enctype="multipart/form-data">
+
+                    <!-- ---| Profile Image |--- -->
                     <div class="row mb-3">
                       <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
                       <div class="col-md-8 col-lg-9">
                         <div class="d-flex">
-                          <img class="js-image-preview" src="<?=ROOT?>//<?=esc($row->image)?>" alt="<?=esc($row->firstname)?> <?=esc($row->lastname)?> Profile" style="width:150px;max-width:150px;height:150px;object-fit: cover;">
+                          <img class="js-image-preview" src="<?=ROOT?>/<?=esc($uid->image) ?: No_Image?>" alt="<?=esc($uid->firstname)?> <?=esc($uid->lastname)?> Profile">
                           <div class="js-filename m-2">Selected file: None</div>
                         </div>
                         <div class="pt-2">
@@ -145,276 +153,329 @@
                           </label>
                           <!-- ---- Image Error ---- -->
                           <?php if(!empty($errors['image'])):?>
-                            <small class="js-error-image text-danger fontClarity"><?=$errors['image']?>.</small>
+                            <small class="js-error-image text-danger"><?=$errors['image']?>.</small>
                           <?php endif;?>
-                          <small class="js-error-image text-danger fontClarity"></small>
+                          <small class="js-error-image text-danger"></small>
                           <!-- -| ./Image Error\. |- -->
                           <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
                         </div>
                       </div>
                     </div>
+                    <!-- -| ./Profile Image\. |- -->
 
+                    <!-- ---| Firstname |--- -->
                     <div class="row mb-3">
                       <label for="firstname" class="col-md-4 col-lg-3 col-form-label">First Name</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="firstname" type="text" class="form-control <?=!empty($errors['firstname']) ? 'border-danger' : '';?>" id="firstname" value="<?=set_value('firstname',$row->firstname)?>" placeholder="Edit first name" required>
+                        <input name="firstname" type="text" class="form-control <?=!empty($errors['firstname']) ? 'border-danger' : '';?>" id="firstname" value="<?=set_value('firstname',$uid->firstname)?>" placeholder="Edit first name" required>
                       </div>
                       <!-- ---- Firstname Error ---- -->
                       <?php if(!empty($errors['firstname'])):?>
-                        <small class="js-error-firstname text-danger fontClarity"><?=$errors['firstname']?>.</small>
+                        <small class="js-error-firstname text-danger"><?=$errors['firstname']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-firstname text-danger fontClarity"></small>
+                      <small class="js-error-firstname text-danger"></small>
                       <!-- -| ./Firstname Error\. |- -->
                     </div>
+                    <!-- -| ./Firstname\. |- -->
 
+                    <!-- ---| Lastname |--- -->
                     <div class="row mb-3">
                       <label for="lastname" class="col-md-4 col-lg-3 col-form-label">Last Name</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="lastname" type="text" class="form-control <?=!empty($errors['lastname']) ? 'border-danger' : '';?>" id="lastname" value="<?=set_value('lastname',$row->lastname)?>" placeholder="Edit last name" required>
+                        <input name="lastname" type="text" class="form-control <?=!empty($errors['lastname']) ? 'border-danger' : '';?>" id="lastname" value="<?=set_value('lastname',$uid->lastname)?>" placeholder="Edit last name" required>
                       </div>
                       <!-- ---- Lastname Error ---- -->
                       <?php if(!empty($errors['lastname'])):?>
-                        <small class="js-error-lastname text-danger fontClarity"><?=$errors['lastname']?>.</small>
+                        <small class="js-error-lastname text-danger"><?=$errors['lastname']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-lastname text-danger fontClarity"></small>
+                      <small class="js-error-lastname text-danger"></small>
                       <!-- -| ./Lastname Error\. |- -->
                     </div>
+                    <!-- -| ./Lastname\. |- -->
 
+                    <!-- ---| Username |--- -->
                     <div class="row mb-3">
                       <label for="username" class="col-md-4 col-lg-3 col-form-label">User Name</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="username" type="text" class="form-control <?=!empty($errors['username']) ? 'border-danger' : '';?>" id="username" value="<?=set_value('username',$row->username)?>" placeholder="Edit user name" required>
+                        <input name="username" type="text" class="form-control <?=!empty($errors['username']) ? 'border-danger' : '';?>" id="username" value="<?=set_value('username',$uid->username)?>" placeholder="Edit user name" required>
                       </div>
                       <!-- ---- Username Error ---- -->
                       <?php if(!empty($errors['username'])):?>
-                        <small class="js-error-username text-danger fontClarity"><?=$errors['username']?>.</small>
+                        <small class="js-error-username text-danger"><?=$errors['username']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-username text-danger fontClarity"></small>
+                      <small class="js-error-username text-danger"></small>
                       <!-- -| ./Username Error\. |- -->
                     </div>
+                    <!-- -| ./Username\. |- -->
 
+                    <!-- ---| Biography |--- -->
                     <div class="row mb-3">
                       <label for="bio" class="col-md-4 col-lg-3 col-form-label">About</label>
                       <div class="col-md-8 col-lg-9">
-                        <textarea name="bio" class="form-control" id="bio" style="height: 100px" placeholder="Edit biography"><?=set_value('bio',$row->bio)?></textarea>
+                        <textarea name="bio" class="form-control" id="bio" style="height: 100px" placeholder="Edit biography"><?=set_value('bio',$uid->bio)?></textarea>
                       </div>
+                      <!-- ---- Biography Error ---- -->
+                      <?php if(!empty($errors['bio'])):?>
+                        <small class="js-error-bio text-danger"><?=$errors['bio']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-bio text-danger"></small>
+                      <!-- -| ./Biography Error\. |- -->
                     </div>
-                    <!-- ---- Biography Error ---- -->
-                    <?php if(!empty($errors['bio'])):?>
-                      <small class="js-error-bio text-danger fontClarity"><?=$errors['bio']?>.</small>
-                    <?php endif;?>
-                    <small class="js-error-bio text-danger fontClarity"></small>
-                    <!-- -| ./Biography Error\. |- -->
+                    <!-- -| ./Biography\. |- -->
 
+                    <!-- ---| Company |--- -->
                     <div class="row mb-3">
                       <label for="company" class="col-md-4 col-lg-3 col-form-label">Company</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="company" type="text" class="form-control" id="company" value="<?=set_value('company',$row->company)?>" placeholder="Edit company">
+                        <input name="company" type="text" class="form-control" id="company" value="<?=set_value('company',$uid->company)?>" placeholder="Edit company">
                       </div>
+                      <!-- ---- Company Error ---- -->
+                      <?php if(!empty($errors['company'])):?>
+                        <small class="js-error-company text-danger"><?=$errors['company']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-company text-danger"></small>
+                      <!-- -| ./Company Error\. |- -->
                     </div>
+                    <!-- -| ./Company\. |- -->
 
+                    <!-- ---| Job |--- -->
                     <div class="row mb-3">
                       <label for="Job" class="col-md-4 col-lg-3 col-form-label">Job</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="job" type="text" class="form-control" id="Job" value="<?=set_value('job',$row->job)?>" placeholder="Edit job title">
+                        <input name="job" type="text" class="form-control" id="Job" value="<?=set_value('job',$uid->job)?>" placeholder="Edit job title">
                       </div>
+                      <!-- ---- JOB Error ---- -->
+                      <?php if(!empty($errors['job'])):?>
+                        <small class="js-error-job text-danger"><?=$errors['job']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-job text-danger"></small>
+                      <!-- -| ./JOB Error\. |- -->
                     </div>
+                    <!-- -| ./Job\. |- -->
 
+                    <!-- ---| Country |--- -->
                     <div class="row mb-3">
                       <label for="Country" class="col-md-4 col-lg-3 col-form-label">Country</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="country" type="text" class="form-control" id="Country" value="<?=set_value('country',$row->country)?>" placeholder="Edit country">
+                        <input name="country" type="text" class="form-control" id="Country" value="<?=set_value('country',$uid->country)?>" placeholder="Edit country">
+                      </div>
+                      <!-- ---- Country Error ---- -->
+                      <?php if(!empty($errors['country'])):?>
+                        <small class="js-error-country text-danger"><?=$errors['country']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-country text-danger"></small>
+                      <!-- -| ./Country Error\. |- -->
+                    </div>
+                    <!-- -| ./Country\. |- -->
+
+                    <!-- ---| LANGUAGE |--- -->
+                    <div class="row mb-3">
+                      <label for="Language" class="col-md-4 col-lg-3 col-form-label">Language</label>
+                      <div class="col-md-8 col-lg-9">
+                        <select class="form-select text-start" name="language_id" id="Language" aria-label=".form-select example">
+                          <option class="fs-6 fw-bold" selected disabled>- Language -</option>
+                          <option class="fs-6" value="1" <?= ($uid->language_id =='1') ? 'selected': ''; ?>>English</option>
+                          <option class="fs-6" value="2" <?= ($uid->language_id =='2') ? 'selected': ''; ?>>Arabic</option>
+                        </select>
                       </div>
                     </div>
+                    <!-- -| ./LANGUAGE\. |- -->
 
+                    <!-- ---| Address |--- -->
                     <div class="row mb-3">
                       <label for="Address" class="col-md-4 col-lg-3 col-form-label">Address</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="address" type="text" class="form-control" id="Address" value="<?=set_value('address',$row->address)?>" placeholder="Edit address">
+                        <input name="address" type="text" class="form-control" id="Address" value="<?=set_value('address',$uid->address)?>" placeholder="Edit address">
                       </div>
+                      <!-- ---- Address Error ---- -->
+                      <?php if(!empty($errors['address'])):?>
+                        <small class="js-error-address text-danger"><?=$errors['address']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-address text-danger"></small>
+                      <!-- -| ./Address Error\. |- -->
                     </div>
+                    <!-- -| ./Address\. |- -->
 
+                    <!-- ---| Phone |--- -->
                     <div class="row mb-3">
                       <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="phone" type="text" class="form-control <?=!empty($errors['phone']) ? 'border-danger' : '';?>" id="Phone" value="<?=set_value('phone',$row->phone)?>" placeholder="Edit phone number">
+                        <input name="phone" type="text" class="form-control <?=!empty($errors['phone']) ? 'border-danger' : '';?>" id="Phone" value="<?=set_value('phone',$uid->phone)?>" placeholder="Edit phone number">
                       </div>
                       <!-- ---- Phone Error ---- -->
                       <?php if(!empty($errors['phone'])):?>
-                        <small class="js-error-phone text-danger fontClarity"><?=$errors['phone']?>.</small>
+                        <small class="js-error-phone text-danger"><?=$errors['phone']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-phone text-danger fontClarity"></small>
+                      <small class="js-error-phone text-danger"></small>
                       <!-- -| ./Phone Error\. |- -->
                     </div>
+                    <!-- -| ./Phone\. |- -->
 
+                    <!-- ---| E-mail |--- -->
                     <div class="row mb-3">
                       <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="email" type="email" class="form-control <?=!empty($errors['email']) ? 'border-danger' : '';?>" id="Email" value="<?=set_value('email',$row->email)?>" placeholder="Edit E-mail" required>
+                        <input name="email" type="email" class="form-control <?=!empty($errors['email']) ? 'border-danger' : '';?>" id="Email" value="<?=set_value('email',$uid->email)?>" placeholder="Edit E-mail" required>
                       </div>
                       <!-- ---- E-mail Error ---- -->
                       <?php if(!empty($errors['email'])):?>
-                        <small class="js-error-email text-danger fontClarity"><?=$errors['email']?>.</small>
+                        <small class="js-error-email text-danger"><?=$errors['email']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-email text-danger fontClarity"></small>
+                      <small class="js-error-email text-danger"></small>
                       <!-- -| ./E-mail Error\. |- -->
                     </div>
+                    <!-- -| ./E-mail\. |- -->
 
-                    <div class="row mb-3">
-                      <label for="Twitter" class="col-md-4 col-lg-3 col-form-label">Twitter Profile</label>
-                      <div class="col-md-8 col-lg-9 fontClarity">
-                        <input name="twitter_link" type="text" class="form-control <?=!empty($errors['twitter_link']) ? 'border-danger' : '';?>" id="Twitter" value="<?=set_value('twitter_link',$row->twitter_link)?>" placeholder="Edit Twitter profile link">
-                      </div>
-                      <!-- ---- Twitter Error ---- -->
-                      <?php if(!empty($errors['twitter_link'])):?>
-                        <small class="js-error-twitter_link text-danger fontClarity"><?=$errors['twitter_link']?>.</small>
-                      <?php endif;?>
-                      <small class="js-error-twitter_link text-danger fontClarity"></small>
-                      <!-- -| ./Twitter Error\. |- -->
-                    </div>
-                    
+                    <!-- ---| Facebook |--- -->
                     <div class="row mb-3">
                       <label for="Facebook" class="col-md-4 col-lg-3 col-form-label">Facebook Profile</label>
-                      <div class="col-md-8 col-lg-9 fontClarity">
-                        <input name="facebook_link" type="text" class="form-control <?=!empty($errors['facebook_link']) ? 'border-danger' : '';?>" id="Facebook" value="<?=set_value('facebook_link',$row->facebook_link)?>" placeholder="Edit Facebook profile link">
+                      <div class="col-md-8 col-lg-9">
+                        <input name="facebook_link" type="text" class="form-control <?=!empty($errors['facebook_link']) ? 'border-danger' : '';?>" id="Facebook" value="<?=set_value('facebook_link',$uid->facebook_link)?>" placeholder="Edit Facebook profile link">
                       </div>
                       <!-- ---- Facebook Error ---- -->
                       <?php if(!empty($errors['facebook_link'])):?>
-                        <small class="js-error-facebook_link text-danger fontClarity"><?=$errors['facebook_link']?>.</small>
+                        <small class="js-error-facebook_link text-danger"><?=$errors['facebook_link']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-facebook_link text-danger fontClarity"></small>
+                      <small class="js-error-facebook_link text-danger"></small>
                       <!-- -| ./Facebook Error\. |- -->
                     </div>
+                    <!-- -| ./Facebook\. |- -->
                       
+                    <!-- ---| Instagram |--- -->
                     <div class="row mb-3">
                       <label for="Instagram" class="col-md-4 col-lg-3 col-form-label">Instagram Profile</label>
-                      <div class="col-md-8 col-lg-9 fontClarity">
-                        <input name="instagram_link" type="text" class="form-control <?=!empty($errors['instagram_link']) ? 'border-danger' : '';?>" id="Instagram" value="<?=set_value('instagram_link',$row->instagram_link)?>" placeholder="Edit Instagram profile link">
+                      <div class="col-md-8 col-lg-9">
+                        <input name="instagram_link" type="text" class="form-control <?=!empty($errors['instagram_link']) ? 'border-danger' : '';?>" id="Instagram" value="<?=set_value('instagram_link',$uid->instagram_link)?>" placeholder="Edit Instagram profile link">
                       </div>
                       <!-- ---- Instagram Error ---- -->
                       <?php if(!empty($errors['instagram_link'])):?>
-                        <small class="js-error-instagram_link text-danger fontClarity"><?=$errors['instagram_link']?>.</small>
+                        <small class="js-error-instagram_link text-danger"><?=$errors['instagram_link']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-instagram_link text-danger fontClarity"></small>
+                      <small class="js-error-instagram_link text-danger"></small>
                       <!-- -| ./Instagram Error\. |- -->
                     </div>
+                    <!-- -| ./Instagram\. |- -->
                         
-                    <div class="row mb-3">
-                      <label for="Linkedin" class="col-md-4 col-lg-3 col-form-label">Linkedin Profile</label>
-                      <div class="col-md-8 col-lg-9 fontClarity">
-                        <input name="linkedin_link" type="text" class="form-control <?=!empty($errors['linkedin_link']) ? 'border-danger' : '';?>" id="Linkedin" value="<?=set_value('linkedin_link',$row->linkedin_link)?>" placeholder="Edit Linked-in profile link">
-                      </div>
-                      <!-- ---- LinkedIn Error ---- -->
-                      <?php if(!empty($errors['linkedin_link'])):?>
-                        <small class="js-error-linkedin_link text-danger fontClarity"><?=$errors['linkedin_link']?>.</small>
-                      <?php endif;?>
-                      <small class="js-error-linkedin_link text-danger fontClarity"></small>
-                      <!-- -| ./LinkedIn Error\. |- -->
-                    </div>
-
-                    <!-- ---- FORM PROGRESS BAR ---- -->
+                    <!-- ---| FORM PROGRESS BAR |--- -->
                     <div class="js-prog progress my-4 hide">
-                      <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">Saving.. 50%</div>
+                      <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">Saving.. 0%</div>
                     </div>
                     <!-- -| ./FORM PROGRESS BAR\. |- -->
 
+                    <!-- ---| Submit |--- -->
                     <div class="text-center">
-                      <a href="<?=ROOT?>//admin">
-                        <button type="button" class="btn btn-secondary w-25 float-start fontClarity">Go back!</button>
+                      <a href="<?=ROOT?>/admin/dashboard">
+                        <button type="button" class="btn btn-secondary w-25 float-start">Go back!</button>
                       </a>
-                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end fontClarity">Save Changes</button>
+                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end">Save Changes</button>
                     </div>
-                  </form><!-- End Profile Edit Form -->
+                    <!-- -| ./Submit\. |- -->
+                  </form>
+                  <!-- End Profile Edit Form -->
                 </div>
 
-                <div class="tab-pane fade pt-3" id="profile-settings">
+                <!-- <div class="tab-pane fade pt-3" id="profile-settings"> -->
 
                   <!-- Settings Form -->
-                  <form>
+                  <!-- <form method="post"> -->
 
                     <!-- ---- LANGUAGE ---- -->
-                    <!-- <div class="row mb-3 col-9">
-                      <select class="form-select text-start mb-1 py-3" name="language" aria-label=".form-select example">
-                        <option class="fs-6 fw-bold fontClarity" selected disabled>- Language -</option>
-                        <option class="fs-6 fontTunisia" value="en" <?= ($row->language =='en') ? 'selected': ''; ?>>English</option>
-                        <option class="fs-6 fontTunisia" value="ar" <?= ($row->language =='ar') ? 'selected': ''; ?>>Arabic</option>
-                        <option class="fs-6 fontTunisia" value="fr" <?= ($row->language =='fr') ? 'selected': ''; ?>>Fronce</option>
+                    <!-- <div class="row mb-3 mx-auto col-9">
+                      <select class="form-select text-start mb-1 py-3" name="language_id" aria-label=".form-select example">
+                        <option class="fs-6 fw-bold" selected disabled>- Language -</option>
+                        <option class="fs-6" value="1" <?= ($uid->language_id =='1') ? 'selected': ''; ?>>English</option>
+                        <option class="fs-6" value="2" <?= ($uid->language_id =='2') ? 'selected': ''; ?>>Arabic</option>
                       </select>
                     </div> -->
                     <!-- -| ./LANGUAGE\. |- -->
 
-                    <!-- ---- Notifications ---- -->
-                    <div class="row mb-3">
-                      <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Email Notifications</label>
+                    <!-- ---- FORM PROGRESS BAR ---- -->
+                    <!-- <div class="js-prog progress my-4 hide">
+                      <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">Saving.. 0%</div>
+                    </div> -->
+                    <!-- -| ./FORM PROGRESS BAR\. |- -->
+
+                    <!-- <div class="text-center">
+                      <a href="<?=ROOT?>/admin/dashboard">
+                        <button type="button" class="btn btn-secondary w-25 float-start">Go back!</button>
+                      </a>
+                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end">Save Changes</button>
+                    </div>
+                  </form> -->
+                  <!-- End settings Form -->
+
+                <!-- </div> -->
+
+                <!-- <div class="tab-pane fade pt-3" id="profile-change-password"> -->
+
+                  <!-- ---------| Change Password |--------- -->
+                  <!-- <form method="post"> -->
+                    <!-- ---| Current Password |--- -->
+                    <!-- <div class="row mb-3">
+                      <label for="current-Password" class="col-md-4 col-lg-3 col-form-label">Current Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="changesMade" checked>
-                          <label class="form-check-label" for="changesMade">
-                            Changes made to your account
-                          </label>
-                        </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="newProducts" checked>
-                          <label class="form-check-label" for="newProducts">
-                            Information on new products and services
-                          </label>
-                        </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="proOffers">
-                          <label class="form-check-label" for="proOffers">
-                            Marketing and promo offers
-                          </label>
-                        </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="checkbox" id="securityNotify" checked disabled>
-                          <label class="form-check-label" for="securityNotify">
-                            Security alerts
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- -| ./Notifications\. |- -->
+                        <input name="current-password" type="password" class="form-control <?=!empty($errors['current-password']) ? 'border-danger' : '';?>" id="current-password" value="<?=set_value('password',$uid->password)?>" placeholder="Type your current password, please!" required>
+                      </div> -->
+                      <!-- ---- Password Error ---- -->
+                      <!-- <?php if(!empty($errors['current-password'])):?>
+                        <small class="js-error-password text-danger"><?=$errors['current-password']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-password text-danger"></small> -->
+                      <!-- -| ./Password Error\. |- -->
+                    <!-- </div> -->
+                    <!-- -| ./Current Password\. |- -->
 
-                    <div class="text-center">
-                      <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                  </form><!-- End settings Form -->
-
-                </div>
-
-                <div class="tab-pane fade pt-3" id="profile-change-password">
-                  <!-- Change Password Form -->
-                  <form>
-
-                    <div class="row mb-3">
-                      <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label">Current Password</label>
+                    <!-- ---| New Password |--- -->
+                    <!-- <div class="row mb-3">
+                      <label for="new-Password" class="col-md-4 col-lg-3 col-form-label">New Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="password" type="password" class="form-control" id="currentPassword">
-                      </div>
-                    </div>
+                        <input name="new-password" type="password" class="form-control <?=!empty($errors['new-password']) ? 'border-danger' : '';?>" id="new-password" value="" placeholder="Type your new password, please!" required>
+                      </div> -->
+                      <!-- ---- Password Error ---- -->
+                      <!-- <?php if(!empty($errors['new-password'])):?>
+                        <small class="js-error-password text-danger"><?=$errors['new-password']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-password text-danger"></small> -->
+                      <!-- -| ./Password Error\. |- -->
+                    <!-- </div> -->
+                    <!-- -| ./New Password\. |- -->
 
-                    <div class="row mb-3">
-                      <label for="newPassword" class="col-md-4 col-lg-3 col-form-label">New Password</label>
+                    <!-- ---| Retype Password |--- -->
+                    <!-- <div class="row mb-3">
+                      <label for="retype-Password" class="col-md-4 col-lg-3 col-form-label">Re-Type Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="newpassword" type="password" class="form-control" id="newPassword">
-                      </div>
-                    </div>
+                        <input name="retype-password" type="password" class="form-control <?=!empty($errors['retype-password']) ? 'border-danger' : '';?>" id="retype-password" value="" placeholder="Re-type your password, please!" required>
+                      </div> -->
+                      <!-- ---- Password Error ---- -->
+                      <!-- <?php if(!empty($errors['retype-password'])):?>
+                        <small class="js-error-password text-danger"><?=$errors['retype-password']?>.</small>
+                      <?php endif;?>
+                      <small class="js-error-password text-danger"></small> -->
+                      <!-- -| ./Password Error\. |- -->
+                    <!-- </div> -->
+                    <!-- -| ./Retype Password\. |- -->
 
-                    <div class="row mb-3">
-                      <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">Re-enter New Password</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="renewpassword" type="password" class="form-control" id="renewPassword">
-                      </div>
-                    </div>
+                    <!-- ---| FORM PROGRESS BAR |--- -->
+                    <!-- <div class="js-prog progress my-4 hide">
+                      <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">Saving.. 0%</div>
+                    </div> -->
+                    <!-- -| ./FORM PROGRESS BAR\. |- -->
 
-                    <div class="text-center">
-                      <button type="submit" class="btn btn-primary">Change Password</button>
-                    </div>
-                  </form><!-- End Change Password Form -->
+                    <!-- ---| Submit |--- -->
+                    <!-- <div class="text-center">
+                      <a href="<?=ROOT?>/admin/dashboard">
+                        <button type="button" class="btn btn-secondary w-25 float-start">Go back!</button>
+                      </a>
+                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end">Save Changes</button>
+                    </div> -->
+                    <!-- -| ./Submit\. |- -->
+                  <!-- </form> -->
+                  <!-- -------| ./Change Password\. |------- -->
 
-                </div>
+                <!-- </div> -->
 
-              </div><!-- End Bordered Tabs -->
+              </div>
+              <!-- End Bordered Tabs -->
 
             </div>
           </div>
@@ -424,16 +485,18 @@
     </section>
   <?php else:?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <!-- <span class="fontClarity fs-5">Sorry, profile not found!</span> -->
        <span class="fs-3 d-block my-2"><i class="bi bi-emoji-frown"></i> Oh, no! No record found.</span>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <?php endif;?>
 
+  <!-- -------| ./Main Content\. |------- -->
+
   <!-- ---- SCRIPTS ---- -->
   <script>
     // Variables  ---------------
-    var tab = sessionStorage.getItem("tab") ? sessionStorage.getItem("tab") : "#profile-overview";
+    var tab = sessionStorage.getItem("tab") ? sessionStorage.getItem("tab") : "overview";
+    var dirty = false;
     // ------------|  ./Variables
 
     function show_tab(tab_name){
@@ -459,7 +522,7 @@
 
     window.onload = function(){
       show_tab(tab);
-    }/*39*/
+    }
 
     /* -----| Upload Functions | ----- */
     function save_profile(e){
@@ -494,7 +557,7 @@
           var ext = obj.image.name.split(".").pop();
         }
         // ---| ./IF(TypeOF)
-  
+
         if(!allowed.includes(ext.toLowerCase())){
           // ...| TRUE Block
           alert("Allowed file types are: " + allowed.toString(","));
@@ -544,8 +607,7 @@
         prog.children[0].innerHTML = "Saving.. " + percent + "%";
       });
       
-      // ajax.open('post','',ture);
-      ajax.open('post','');
+      ajax.open('POST','',true);
       ajax.send(myform);
     }
     // ---| ./Send_Data()
@@ -553,17 +615,18 @@
     function handle_result(result){
       /* --- Converting to JSON --- */
       var obj = JSON.parse(result);
-
+      
       /* --- IF Valid Object --- */
       if (typeof obj == 'object') {
         // ...| TRUE Block | Valid Object
         if (typeof obj.errors == 'object') {
           // ...| TRUE Block | Errors Exists
           display_errors(obj.errors);
-          alert("Please, double check inputs before Update!")
+          alert("Please, double check inputs before Update!");
+          // window.location.reload();
         } else {
           // ...| FALSE Block | No Errors & Save Complete
-          alert("Successful Update!")
+          alert("Successful Update!");
           window.location.reload();
         }
         // ---| ./IF/ELSE(Errors Exists)
@@ -580,8 +643,10 @@
     }
     // ---| Display_Errors
     /* ---| ./Upload Functions\. |--- */
-    </script>
+  </script>
   <!-- -| ./SCRIPTS\. |- -->
 
-<!-- ======= Footer ======= -->
-<?php $this->view('admin/admin-footer',$data) ?>
+</main>
+<!-- -------| ./Main\. |------- -->
+
+<?php $this->view('partials/private.footer',$data) ?>

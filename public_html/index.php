@@ -10,8 +10,10 @@
  */
 
 # SECURITY CHECK  ---------------
+// if (!defined("ROOT")) die ("direct script access denied!");
 // define("ABSPATH") ? "" : die();
 # ------------|  ./SECURITY CHECK
+
 
 # REQUIREMENTS  ---------------
 session_start();

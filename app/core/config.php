@@ -1,6 +1,15 @@
 <?php
 
 /**
+ * User: TECH-Tag
+ * Date: 11/01/2025
+ * Time: 03:30 PM
+ * * *
+ * @author  Marthad Musa <marthad_musa@yahoo.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
+/**
  * -------------
  * | CONSTANTS |
  * -------------
@@ -15,7 +24,6 @@ define('ROOTPATH', __DIR__ . DS);
 
 # Application Name  ---------------
 define("APPNAME", "IELTS English Tips");
-define("APP_NAME", "IELTS English Tips");
 # ------------|  ./Application Name
 
 # Application Description  ---------------
@@ -32,9 +40,9 @@ define('APPYEAR', date('Y'));
 # Application SuperUser  ---------------
 define('ROOTUSER', 'marthad');
 define('UID', 'contact@marthad.me');
-define('PWD', '41m!6hty');
+define('PWD', md5('41m!6hty'));
 define('ROLE', 'admin');
-define('LAN', 'en_US');
+define('LAN', 'en');
 # ------------|  ./Application SuperUser
 
 # ABSolute PATH  ---------------
@@ -52,11 +60,15 @@ define('DEBUG', true);
 # ------------|  ./CONSTANTS
 
 # IMAGES  ---------------
-define('FAVICON', 'assets/img/favicon.png');
+define('FAVICON', 'assets/img/favico.png');
+define('BRAND', 'assets/img/brand.png');
 define('LOGO', 'assets/img/logo.png');
 define('NOTFOUND', 'assets/img/404.svg');
-define('NoIMAGE', 'assets/img/noimage.jpg');
-define('No_Image', 'assets/img/no_image.jpg');
+define('ADMINISTRATOR', 'assets/img/admin.jpg');
+define('FEMALE', 'assets/img/female.jpg');
+define('MALE', 'assets/img/male.jpg');
+define('No_Image', 'assets/img/noimage.jpg');
+define('NoIMAGE', 'assets/img/noIMG.jpg');
 # ------------|  ./IMAGES
 
 /**
@@ -97,6 +109,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
    * define('ROOT', ROOTPATH.'public');
    * ----------------------------------
    */
+  // define('ROOT', 'http://localhost/mentor/public_html');
   define('ROOT', 'http://localhost/ieltsenglishtips/public_html');
   # ------------|  ./Full ROOT URL for LOCAL Hosting
 
@@ -121,7 +134,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
   # ------------|  ./DATABASE USERNAME
 
   # DATABASE PASSWORD  ---------------
-  define('DBPASS', 'Mo2h@011152');
+  define('DBPASS', 'Mo2@011152');
   # ------------|  ./DATABASE PASSWORD
 
   # DATABASE DRIVER  ---------------

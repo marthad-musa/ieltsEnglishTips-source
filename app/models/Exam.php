@@ -162,7 +162,7 @@ class Exam extends Model {
     if (!empty($rows[0]->user_id)) {
       # ...| TRUE Block
       foreach ($rows as $key => $row) {
-        $query = "select firstname, lastname, role, image from users where id = :id limit 1";
+        $query = "select firstname, lastname, role_id, image from users where id = :id limit 1";
         $user = $db->query($query,['id'=>$row->user_id]);
         if (!empty($user)) {
           # ...| TRUE Block

@@ -207,7 +207,7 @@ class Database {
      * -----------------
      */
     $query = "
-      CREATE TABLE `courses` (
+      CREATE TABLE IF NOT EXISTS `courses` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `title` varchar(100) NOT NULL,
         `description` text DEFAULT NULL,
@@ -222,7 +222,12 @@ class Database {
         `course_image_tmp` varchar(1024) NOT NULL,
         `course_promo_video` varchar(1024) DEFAULT NULL,
         `primary_subject` varchar(100) DEFAULT NULL,
-        `date` datetime DEFAULT NULL,
+        `course_duration` int(11) DEFAULT NULL,
+        `course_timeline` int(11) DEFAULT NULL,
+        `total_student` int(11) DEFAULT NULL,
+        `create_date` datetime DEFAULT NULL,
+        `start_date` datetime DEFAULT NULL,
+        `end_date` datetime DEFAULT NULL,
         `tags` varchar(2048) DEFAULT NULL,
         `congratulations_message` varchar(2048) DEFAULT NULL,
         `welcome_message` varchar(2048) DEFAULT NULL,
@@ -234,9 +239,6 @@ class Database {
         `views` int(11) NOT NULL DEFAULT 0,
         `trending` int(11) NOT NULL DEFAULT 0,
         `slug` varchar(100) NOT NULL,
-        /* ---|Course Duration, Total Number of Students|--- */
-        /* ---|Start Date, End Date|--- */
-        KEY `primary_subject` (`primary_subject`),
         KEY `title` (`title`),
         KEY `user_id` (`user_id`),
         KEY `category_id` (`category_id`),
@@ -244,13 +246,39 @@ class Database {
         KEY `level_id` (`level_id`),
         KEY `language_id` (`language_id`),
         KEY `price_id` (`price_id`),
-        KEY `date` (`date`),
+        KEY `course_duration` (`course_duration`),
+        KEY `primary_subject` (`primary_subject`),
+        KEY `total_student` (`total_student`),
+        KEY `create_date` (`create_date`),
+        KEY `start_date` (`start_date`),
+        KEY `end_date` (`end_date`),
         KEY `approved` (`approved`),
         KEY `published` (`published`),
         KEY `views` (`views`),
         KEY `trending` (`trending`),
-        KEY `slug` (`slug`)
-      ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+        KEY `slug` (`slug`),
+        KEY `course_timeline` (`course_timeline`),
+        KEY `tags` (`tags`(1024))
+      ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+    ";
+
+    $this->query($query);
+
+    /**
+     * ----------------------------
+     * | COURSES Enrollment Table |
+     * ----------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `course_enroll` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `course_id` int(11) NOT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 1,
+        KEY `user_id` (`user_id`),
+        KEY `course_id` (`course_id`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin
     ";
 
     $this->query($query);
@@ -300,7 +328,7 @@ class Database {
      * -----------------------------
      */
     $query = "
-      CREATE TABLE `roles` (
+      CREATE TABLE IF NOT EXISTS `roles` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `role` varchar(50) NOT NULL,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
@@ -316,7 +344,7 @@ class Database {
      * -------------------------
      */
     $query = "
-      CREATE TABLE `permissions_map` (
+      CREATE TABLE IF NOT EXISTS `permissions_map` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `role_id` int(11) NOT NULL,
         `permission` varchar(100) NOT NULL,
@@ -335,7 +363,7 @@ class Database {
      * ----------------------
      */
     $query = "
-      CREATE TABLE `courses_meta` (
+      CREATE TABLE IF NOT EXISTS `courses_meta` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `course_id` int(11) NOT NULL,
         `tab` varchar(50) NOT NULL,
@@ -360,7 +388,7 @@ class Database {
      * --------------------------
      */
     $query = "
-      CREATE TABLE `courses_lectures` (
+      CREATE TABLE IF NOT EXISTS `courses_lectures` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `unid` bigint(20) NOT NULL,
         `title` varchar(100) NOT NULL,

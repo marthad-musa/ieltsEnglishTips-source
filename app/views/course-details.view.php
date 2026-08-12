@@ -1,31 +1,42 @@
-<?php $this->view('partials/header', $data) ?>
-<?php $this->view('partials/navbar', $data) ?>
+<?php $this->view('partials/public.header', $data) ?>
+<?php $this->view('partials/public.navbar', $data) ?>
 <!-- ----------| ./INCLUDES\. |---------- -->
 
 <!-- ------------- MAIN ------------- -->
 <main class="main">
 
-  <!-- Page Title -->
+  <!-- ---------| Page Title |--------- -->
   <div class="page-title" data-aos="fade">
-    <div class="heading">
+    <!-- ---------| Hero Section |--------- -->
+    <!-- <section id="hero" class="hero section dark-background">
+
+      <img src="<?=ROOT?>/assets/img/hero-3.png" alt="" data-aos="fade-in">
+
       <div class="container">
-        <div class="row d-flex justify-content-center text-center">
-          <div class="col-lg-8">
-            <h1>Course Details</h1>
-            <p class="mb-0">Odio et unde deleniti. Deserunt numquam exercitationem. Officiis quo odio sint voluptas consequatur ut a odio voluptatem. Sit dolorum debitis veritatis natus dolores. Quasi ratione sint. Sit quaerat ipsum dolorem.</p>
-          </div>
-        </div>
+        <h2 data-aos="fade-up" data-aos-delay="100">Course Details</h2>
+        <p data-aos="fade-up" data-aos-delay="200">Find out more deteails about this course.</p>
       </div>
-    </div>
+    </section> -->
+    <!-- -------| ./Hero Section\. |------- -->
+
     <nav class="breadcrumbs">
       <div class="container">
         <ol>
-          <li><a href="<?=ROOT?>/">Home</a></li>
-          <li class="current">Course Details</li>
+          <li><a href="<?=ROOT?>">Home</a></li>
+          <li class="current">Course Details<br></li>
         </ol>
       </div>
     </nav>
-  </div><!-- End Page Title -->
+  </div>
+  <!-- -------| ./Page Title\. |------- -->
+
+  <?php if (message()): ?>
+    <div class="container mb-4">
+      <div class="alert alert-info text-center" role="alert">
+        <?=esc(message('', true))?>
+      </div>
+    </div>
+  <?php endif; ?>
 
   <!-- Course Details Section -->
   <section id="course-details" class="course-details section">
@@ -38,20 +49,20 @@
           <!-- Course Header -->
           <div class="course-header" data-aos="fade-up" data-aos-delay="200">
             <div class="course-image">
-              <img src="assets/img/course/course-details-1.webp" alt="Course Image" class="img-fluid">
+              <img src="<?=ROOT?>/assets/img/slide-1.jpg" alt="Course Image" class="img-fluid">
             </div>
             <div class="course-meta">
               <div class="instructor">
-                <img src="assets/img/person/person-f-3.webp" alt="Instructor" class="instructor-avatar">
+                <img src="<?=ROOT?>/assets/img/teachers-3.png" alt="Instructor" class="instructor-avatar">
                 <div class="instructor-info">
-                  <h6>Dr. Sarah Mitchell</h6>
-                  <span>Computer Science Professor</span>
+                  <h6>Mohammed Abbo</h6>
+                  <span>Founder of <strong style="color: crimson;">IELTS</strong> <strong style="color: #5578ff;">English</strong> <strong style="color: orangered;">Tips</strong></span>
                 </div>
               </div>
               <div class="course-stats">
                 <div class="stat-item">
                   <i class="bi bi-people"></i>
-                  <span>2,847 students</span>
+                  <span><?=esc($course_students ?: '0')?> students</span>
                 </div>
                 <div class="stat-item">
                   <i class="bi bi-clock"></i>
@@ -59,15 +70,16 @@
                 </div>
                 <div class="stat-item">
                   <i class="bi bi-calendar"></i>
-                  <span>16 weeks</span>
+                  <span>12 weeks</span>
                 </div>
               </div>
             </div>
-          </div><!-- End Course Header -->
+          </div>
+          <!-- End Course Header -->
 
           <!-- Course Content -->
-          <div class="course-content" data-aos="fade-up" data-aos-delay="300">
-            <h2>Advanced Web Development Fundamentals</h2>
+          <!-- <div class="course-content" data-aos="fade-up" data-aos-delay="300">
+            <h2>IELTS Speaking Test</h2>
 
             <div class="course-description">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
@@ -97,10 +109,11 @@
               </div>
             </div>
 
-          </div><!-- End Course Content -->
+          </div> -->
+          <!-- End Course Content -->
 
           <!-- Course Curriculum -->
-          <div class="course-curriculum" data-aos="fade-up" data-aos-delay="400">
+          <!-- <div class="course-curriculum" data-aos="fade-up" data-aos-delay="400">
             <h3>Course Curriculum</h3>
 
             <div class="curriculum-section">
@@ -186,7 +199,8 @@
               </div>
             </div>
 
-          </div><!-- End Course Curriculum -->
+          </div> -->
+          <!-- End Course Curriculum -->
 
         </div>
 
@@ -198,34 +212,37 @@
             <!-- Pricing Card -->
             <div class="pricing-card">
               <div class="price">
-                <span class="currency">$</span>
-                <span class="amount">199</span>
+                <span class="currency">£</span>
+                <span class="amount">750</span>
                 <span class="period">/course</span>
               </div>
-              <div class="original-price">$299</div>
+              <div class="original-price">£1000</div>
 
               <div class="course-features">
                 <div class="feature">
                   <i class="bi bi-clock"></i>
                   <span>40 hours of content</span>
                 </div>
-                <div class="feature">
+                <!-- <div class="feature">
                   <i class="bi bi-trophy"></i>
                   <span>Certificate of completion</span>
-                </div>
+                </div> -->
                 <div class="feature">
                   <i class="bi bi-phone"></i>
                   <span>Mobile and desktop access</span>
                 </div>
-                <div class="feature">
+                <!-- <div class="feature">
                   <i class="bi bi-infinity"></i>
                   <span>Lifetime access</span>
-                </div>
+                </div> -->
               </div>
 
-              <button class="btn-enroll">Enroll Now</button>
+              <form method="post" action="<?=ROOT?>/course_details/enroll/<?=esc($row->slug)?>">
+                <button type="submit" class="btn-enroll">Enroll Now</button>
+              </form>
               <button class="btn-preview">Preview Course</button>
-            </div><!-- End Pricing Card -->
+            </div>
+            <!-- End Pricing Card -->
 
             <!-- Course Info -->
             <div class="course-info-card">
@@ -236,7 +253,7 @@
               </div>
               <div class="info-item">
                 <span class="label">Students:</span>
-                <span class="value">2,847 enrolled</span>
+                <span class="value">27 enrolled</span>
               </div>
               <div class="info-item">
                 <span class="label">Language:</span>
@@ -244,28 +261,27 @@
               </div>
               <div class="info-item">
                 <span class="label">Prerequisites:</span>
-                <span class="value">Basic HTML &amp; CSS</span>
+                <span class="value">Basic English</span>
               </div>
               <div class="info-item">
                 <span class="label">Last Updated:</span>
-                <span class="value">November 2024</span>
+                <span class="value">November 2025</span>
               </div>
-            </div><!-- End Course Info -->
+            </div>
+            <!-- End Course Info -->
 
             <!-- Tags -->
             <div class="course-tags">
               <h4>Tags</h4>
               <div class="tags-list">
-                <span class="tag">Web Development</span>
-                <span class="tag">JavaScript</span>
-                <span class="tag">React</span>
-                <span class="tag">Node.js</span>
-                <span class="tag">Full Stack</span>
-                <span class="tag">Programming</span>
+                <span class="tag">English</span>
+                <span class="tag">IELTS</span>
+                <span class="tag">IELTS Speaking TEST</span>
               </div>
             </div><!-- End Tags -->
 
-          </div><!-- End Course Sidebar -->
+          </div>
+          <!-- End Course Sidebar -->
 
         </div>
 
@@ -273,8 +289,7 @@
 
     </div>
 
-  </section>
-  <!-- /Course Details Section -->
+  </section><!-- /Course Details Section -->
 
   <!-- Tabs Section -->
   <!-- <section id="tabs" class="tabs section">
@@ -311,7 +326,7 @@
                   <p>Et nobis maiores eius. Voluptatibus ut enim blanditiis atque harum sint. Laborum eos ipsum ipsa odit magni. Incidunt hic ut molestiae aut qui. Est repellat minima eveniet eius et quis magni nihil. Consequatur dolorem quaerat quos qui similique accusamus nostrum rem vero</p>
                 </div>
                 <div class="col-lg-4 text-center order-1 order-lg-2">
-                  <img src="assets/img/illustration/illustration-13.webp" alt="" class="img-fluid">
+                  <img src="<?=ROOT?>/assets/img/illustration/illustration-13.webp" alt="" class="img-fluid">
                 </div>
               </div>
             </div>
@@ -323,7 +338,7 @@
                   <p>Ea ipsum voluptatem consequatur quis est. Illum error ullam omnis quia et reiciendis sunt sunt est. Non aliquid repellendus itaque accusamus eius et velit ipsa voluptates. Optio nesciunt eaque beatae accusamus lerode pakto madirna desera vafle de nideran pal</p>
                 </div>
                 <div class="col-lg-4 text-center order-1 order-lg-2">
-                  <img src="assets/img/illustration/illustration-11.webp" alt="" class="img-fluid">
+                  <img src="<?=ROOT?>/assets/img/illustration/illustration-11.webp" alt="" class="img-fluid">
                 </div>
               </div>
             </div>
@@ -335,7 +350,7 @@
                   <p>Iure officiis odit rerum. Harum sequi eum illum corrupti culpa veritatis quisquam. Neque necessitatibus illo rerum eum ut. Commodi ipsam minima molestiae sed laboriosam a iste odio. Earum odit nesciunt fugiat sit ullam. Soluta et harum voluptatem optio quae</p>
                 </div>
                 <div class="col-lg-4 text-center order-1 order-lg-2">
-                  <img src="assets/img/illustration/illustration-14.webp" alt="" class="img-fluid">
+                  <img src="<?=ROOT?>/assets/img/illustration/illustration-14.webp" alt="" class="img-fluid">
                 </div>
               </div>
             </div>
@@ -347,7 +362,7 @@
                   <p>Eaque consequuntur consequuntur libero expedita in voluptas. Nostrum ipsam necessitatibus aliquam fugiat debitis quis velit. Eum ex maxime error in consequatur corporis atque. Eligendi asperiores sed qui veritatis aperiam quia a laborum inventore</p>
                 </div>
                 <div class="col-lg-4 text-center order-1 order-lg-2">
-                  <img src="assets/img/illustration/illustration-12.webp" alt="" class="img-fluid">
+                  <img src="<?=ROOT?>/assets/img/illustration/illustration-12.webp" alt="" class="img-fluid">
                 </div>
               </div>
             </div>
@@ -359,7 +374,7 @@
                   <p>Exercitationem nostrum omnis. Ut reiciendis repudiandae minus. Omnis recusandae ut non quam ut quod eius qui. Ipsum quia odit vero atque qui quibusdam amet. Occaecati sed est sint aut vitae molestiae voluptate vel</p>
                 </div>
                 <div class="col-lg-4 text-center order-1 order-lg-2">
-                  <img src="assets/img/illustration/illustration-10.webp" alt="" class="img-fluid">
+                  <img src="<?=ROOT?>/assets/img/illustration/illustration-10.webp" alt="" class="img-fluid">
                 </div>
               </div>
             </div>
@@ -376,4 +391,4 @@
 <!-- ----------| ./MAIN\. |---------- -->
 
 <!-- ------------- INCLUDES ------------- -->
-<?php $this->view('partials/footer',$data) ?>
+<?php $this->view('partials/public.footer',$data) ?>

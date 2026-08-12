@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -32,10 +41,10 @@ class Home extends Controller {
     $data['title'] = "Home";
  
     # ...| READ ALL Courses
-    $data['rows'] = $course->where(['approved'=>0], 'desc', 10);
+    $data['rows'] = $course->where(['approved'=>1,'published'=>1], 'desc', 10);
 
     # ...| READ ALL Courses Order by Trending Value
-    $query = "select * from courses where approved = 0 order by trending desc limit 5";
+    $query = "select * from courses where approved = 1 and published = 1 order by trending desc limit 5";
     $data['trending'] = $course->query($query);
 
     if ($data['rows']) {
@@ -58,9 +67,9 @@ class Home extends Controller {
     # ---| ./IF(Rows)
 
     # -----| Load Slider Images | -----
-    // $slider = new Slider();
-    // $slider->order = 'asc';
-    // $data['images'] = $slider->where(['disabled'=>0]);
+    $slider = new Slider();
+    $slider->order = 'asc';
+    $data['images'] = $slider->where(['disabled'=>0]);
     # ---| ./Load Slider Images\. | ---
 
     $this->view('home',$data);

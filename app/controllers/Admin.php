@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -20,11 +29,11 @@ use \Model\Slider;
 class Admin extends Controller {
   # -----| Index() | -----
   public function index() {
-    if (!Auth::logged_in()) {
-      # ...| TRUE Block
-      message('Please, log in!');
-      redirect('login');
-    }
+    // if (!Auth::logged_in()) {
+    //   # ...| TRUE Block
+    //   message('Please, log in!');
+    //   redirect('login');
+    // }
     # ---| ./IF(logged_in())
 
     $id = $id ?? Auth::getId();
@@ -54,13 +63,22 @@ class Admin extends Controller {
     $data['uid'] = $uid = $user->first(['id'=>$id]);
     # ---| ./User Details
 
-    $data['students'] = $students = $user->where(['role'=>1]);
-    # ---| ./Students Details
+    $data['students'] = $students = $user->where(['role_id'=>1]);
+    $data['teachers'] = $teachers = $user->where(['role_id'=>2]);
+    $data['admins']   = $admins   = $user->where(['role_id'=>3]);
+    # ---| ./USERS Details
+
+    $role = new \Model\Role();
+    $roles = $role->findAll();
+    $data['roles'] = array_reverse($roles);
+    # ---| ./Role Details
 
     $course = new \Model\Course();
     $data['courses'] = $courses = $course->findAll();
     # ---| ./Course Details
-
+    
+    $course = new \Model\Exam();
+    $data['exams'] = $exams = $course->findAll();
     # ---| ./Test Details
 
     $data['title'] = "Dashboard";
@@ -68,6 +86,68 @@ class Admin extends Controller {
     $this->view('admin/dashboard',$data);
   }
   # ---| ./Dashboard()\. | ---
+
+  # -----| Users() | -----
+  public function users() {
+    // show($_SESSION['USER_DATA']);die;
+    if (!Auth::logged_in()) {
+      # ...| TRUE Block
+      message('Please, log in!');
+      redirect('login');
+    }
+    # ---| ./IF(logged_in())
+
+    $id = $id ?? Auth::getId();
+
+    $user = new \Model\User();
+    $data['uid'] = $uid = $user->first(['id'=>$id]);
+    $data['users'] = $users = $user->findAll();
+    $data['users'] = array_reverse($users);
+    # ---| ./User Details
+
+    $data['students'] = $students = $user->where(['role_id'=>1]);
+    $data['teachers'] = $teachers = $user->where(['role_id'=>2]);
+    $data['admins']   = $admins   = $user->where(['role_id'=>3]);
+    # ---| ./USERS Details
+
+    $role = new \Model\Role();
+    $roles = $role->findAll();
+    $data['roles'] = array_reverse($roles);
+    # ---| ./Role Details
+
+    $data['title'] = "Users";
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['ajax'] ?? '') == '1') {
+      if (($_POST['action'] ?? '') == 'set_role') {
+        $csrf_code = $_POST['csrf_code'] ?? '';
+        if (!empty($csrf_code) && $_SESSION['csrf_code'] != $csrf_code) {
+          echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+          die;
+        }
+
+        $target_id = (int)($_POST['user_id'] ?? 0);
+        $target = $user->first(['id'=>$target_id]);
+        $new_role_id = (int)($_POST['role_id'] ?? $uid->role_id);
+
+        if (!$target) {
+          echo json_encode(['success' => false, 'message' => 'User not found.']);
+          die;
+        }
+
+        if ($target->role_id == 3 && $uid->role_id != 3) {
+          echo json_encode(['success' => false, 'message' => 'Only the super-admin can edit admin roles.']);
+          die;
+        }
+
+        $user->update($target->id, ['role_id' => $new_role_id]);
+        echo json_encode(['success' => true, 'message' => 'Role updated successfully.']);
+        die;
+      }
+    }
+
+    $this->view('admin/users',$data);
+  }
+  # ---| ./Users()\. | ---
 
   # -----| Exams() | -----
   public function exams($action = null, $id = null, $uid = null) {
@@ -445,12 +525,40 @@ class Admin extends Controller {
 
     $data = [];
 
+    // Refresh date-driven course status logic in controllers.
+    update_course_status_from_date();
+
     $data['uid'] = $uid = $user->first(['id'=>$user_id]);
     $data['row'] = $row = $user->first(['id'=>$user_id]);
 
     $data['action'] = $action;
     $data['id'] = $id;
     $data['title'] = "Courses";
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['ajax'] ?? '') == '1') {
+      if (($_POST['action'] ?? '') == 'set_course_status') {
+        $csrf_code = $_POST['csrf_code'] ?? '';
+        if (!empty($csrf_code) && $_SESSION['csrf_code'] != $csrf_code) {
+          echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+          die;
+        }
+
+        $course_id = (int)($_POST['course_id'] ?? 0);
+        $status = trim($_POST['status'] ?? '');
+        $row = $course->first(['id'=>$course_id]);
+
+        if (!$row) {
+          echo json_encode(['success' => false, 'message' => 'Course not found.']);
+          die;
+        }
+
+        $flags = course_status_flags($status);
+        $course->update($row->id, $flags);
+
+        echo json_encode(['success' => true, 'message' => 'Course status updated to '.$status]);
+        die;
+      }
+    }
 
     if ($action == 'add') {
       # ...| ADD Block
@@ -460,9 +568,9 @@ class Admin extends Controller {
         # ...| TRUE Block
         if ($course->validate($_POST)) {
           # ...| TRUE Block
-          $_POST['date'] = date("Y-m-d H:i:s");
+          $_POST['create_date'] = date("Y-m-d H:i:s");
           $_POST['user_id'] = $user_id;
-          $_POST['price_id'] = 1;
+          // $_POST['price_id'] = 1;
 
           $course->insert($_POST);
 
@@ -502,18 +610,45 @@ class Admin extends Controller {
 
       if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
         # ...| TRUE Block
+        $course_meta = new \Model\Course_meta();
+        $course_lecture = new \Model\Course_lecture();
+
+        $meta_rows = $course_meta->where(['course_id'=>$row->id]);
+        if ($meta_rows) {
+          foreach ($meta_rows as $meta_row) {
+            if (!empty($meta_row->lectures_row)) {
+              foreach ($meta_row->lectures_row as $lecture) {
+                $course_lecture->delete($lecture->id);
+              }
+            }
+            $course_meta->delete($meta_row->id);
+          }
+        }
+
         $course->delete($row->id);
         message("Courses deleted successfully!");
         redirect('admin/courses');
       } # ---| ./IF(POST)
       # ---| ./Action=>DELETE\. |---
+    } elseif ($action == 'status') {
+      # ...| STATUS Block
+      $data['row'] = $row = $course->first(['id'=>$id]);
+
+      if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
+        $status = $_POST['status'] ?? '';
+        $flags = course_status_flags($status);
+        $course->update($row->id, $flags);
+        message("Course status updated to $status");
+        redirect('admin/courses');
+      }
+      # ---| ./Action=>STATUS\. |---
     } elseif ($action == 'edit') {
       # ...| EDIT Block
-      $categories = $category->findAll('asc');
-      $languages = $language->findAll('asc');
-      $levels = $level->findAll('asc');
-      $prices = $price->findAll('asc');
-      $currencies = $currency->findAll('asc');
+      $data['categories'] = $categories = array_reverse($category->findAll('asc'));
+      $data['languages'] = $languages = array_reverse($language->findAll('asc'));
+      $data['levels'] = $levels = array_reverse($level->findAll('asc'));
+      $data['prices'] = $prices = array_reverse($price->findAll('asc'));
+      $data['currencies'] = $currencies = array_reverse($currency->findAll('asc'));
 
       /**
        * --------------------------
@@ -537,10 +672,10 @@ class Admin extends Controller {
           if ($_POST['tab_name'] == "course-landing-page") {
             # ...| Course Landing Page Block
             include views_path('course-edit-tabs/course-landing-page');
-          // } else
-          // if ($_POST['tab_name'] == "promotions") {
-          //   # ...| Promotion Block
-          //   include views_path('course-edit-tabs/promotions');
+          } else
+          if ($_POST['tab_name'] == "course-duration") {
+            # ...| Promotion Block
+            include views_path('course-edit-tabs/course-duration');
           } else
           if ($_POST['tab_name'] == "course-messages") {
             # ...| Course Messages Block
@@ -633,7 +768,7 @@ class Admin extends Controller {
                       $arr['data_type'] = $data_type;
                       $arr['course_id'] = $id;
                       $arr['value'] = $value;
-                      $arr['unid'] = $_POST['unid'];
+                      // $arr['unid'] = $_POST['unid'];
                       $arr['disabled'] = 0;
                       
                       if (count($old_ids) > 0) {
@@ -933,12 +1068,19 @@ class Admin extends Controller {
     
                 $info['data'] = "Course saved successfully!";
                 $info['data_type'] = "save";
-              // } else
-              // if ($_POST['tab_name'] == "pomotions") {
-              //   # ...| TAB: (Pomotions) Block
-              // } else
-              // if ($_POST['tab_name'] == "course-messages") {
-              //   # ...| TAB: (Course Messages) Block
+              } else
+              if ($_POST['tab_name'] == "course-duration") {
+                # ...| TAB: (Course Duration) Block
+                if ($_SERVER['REQUEST_METHOD'] == "POST") {
+                  $course->update($id,$_POST);
+
+                  $info['data'] = "Course saved successfully!";
+                  $info['data_type'] = "save";
+                }
+                # ---| ./IF(POST)
+              } else
+              if ($_POST['tab_name'] == "course-messages") {
+                # ...| TAB: (Course Messages) Block
               }
               # ---| ./IF/ELSE/IF(TAB)
             } else {
@@ -990,6 +1132,26 @@ class Admin extends Controller {
 
           // show($_FILES);
           // show($_POST);
+        } else
+        if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_video") {
+          # ...| TRUE Block
+          $folder = "uploads/courses/";
+          if (!file_exists($folder)) {
+            # ...| TRUE Block
+            mkdir($folder,0777,true);
+          }
+
+          if (!empty($_FILES['video']['name'])) {
+            # ...| TRUE Block
+            $destination = $folder . time() . basename($_FILES['video']['name']);
+            if (move_uploaded_file($_FILES['video']['tmp_name'], $destination)) {
+              if (!empty($row->course_promo_video) && file_exists($row->course_promo_video)) {
+                unlink($row->course_promo_video);
+              }
+
+              $course->update($id,['course_promo_video'=>$destination,'csrf_code'=>$_POST['csrf_code']]);
+            }
+          }
         }
         # ---| ./IF/ELSE/IF(Data_Type)
 
@@ -1004,7 +1166,18 @@ class Admin extends Controller {
       $data['rows'] = $course->findAll();
     } else {
       # ...| ALL My Courses Block
-      $data['rows'] = $course->where(['user_id'=>$user_id]);
+      $course->limit = 100;
+
+      if ($uid->role_id == 3) {
+        $data['approved_courses'] = $course->where(['approved'=>1,'published'=>1]);
+        $data['rows'] = $course->findAll();
+      } elseif ($uid->role_id == 2) {
+        $data['approved_courses'] = $course->where(['user_id'=>$user_id,'approved'=>1,'published'=>1]);
+        $data['rows'] = $course->where(['user_id'=>$user_id,'approved'=>0,'published'=>0]);
+      } else {
+        $data['approved_courses'] = $course->where(['approved'=>1,'published'=>1]);
+        $data['rows'] = [];
+      }
       # ---| ./COURSES MAIN PAGE\. |---
     }
     # ---| ./IF/ELSE(ACTION)
@@ -1012,6 +1185,145 @@ class Admin extends Controller {
     $this->view('admin/courses',$data);
   }
   # ---| ./Courses()\. | ---
+
+  # -----| Lessons() | -----
+  public function lessons() {
+    if (!Auth::logged_in()) {
+      # ...| TRUE Block
+      message('Please, log in!');
+      redirect('login');
+    }
+    # ---| ./IF(logged_in())
+
+    $user_id    = Auth::getId();
+    $course     = new \Model\Course();
+    $enrollment = new \Model\Enrollment();
+    $user       = new \Model\User();
+
+    $data = [];
+    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
+
+    // Use Enrollment records to find enrolled courses for this user
+    $enrolled = $enrollment->where(['user_id'=>$user_id]);
+    $rows = [];
+    if ($enrolled) {
+      foreach ($enrolled as $er) {
+        $c = $course->first(['id'=>$er->course_id]);
+        if ($c) $rows[] = $c;
+      }
+    }
+    $data['rows'] = $rows;
+
+    $data['title'] = "Enrolled Courses";
+
+    $this->view('admin/lessons',$data);
+  }
+  # ---| ./Lessons()\. | ---
+
+  # -----| Lectures() | -----
+  public function lectures($action = null, $id = null) {
+    if (!Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+    }
+
+    $user_id = Auth::getId();
+    $course_lecture = new \Model\Course_lecture();
+    $course_meta = new \Model\Course_meta();
+    $course = new \Model\Course();
+    $user = new \Model\User();
+
+    $data = [];
+    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
+    $data['title'] = "Lectures";
+    $data['action'] = $action;
+    $data['id'] = $id;
+
+    if ($action == 'add') {
+      $sections = $course_meta->query("select distinct cm.unid, cm.course_id, c.title as course_title from courses_meta cm left join courses c on cm.course_id = c.id where cm.disabled = 0 order by c.title asc");
+      $data['sections'] = $sections;
+
+      if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $lecture_data = [
+          'unid' => $_POST['unid'] ?? null,
+          'title' => trim($_POST['title'] ?? ''),
+          'description' => trim($_POST['description'] ?? ''),
+          'disabled' => 0,
+        ];
+
+        if (empty($lecture_data['unid']) || empty($lecture_data['title'])) {
+          $data['errors']['lecture'] = "Please select a section and provide a lecture title.";
+        } else {
+          $filename = "";
+          if (!empty($_FILES['file']['name'])) {
+            $folder = "uploads/courses/";
+            if (!file_exists($folder)) {
+              mkdir($folder,0777,true);
+            }
+            $filename = $folder . time() . basename($_FILES['file']['name']);
+            move_uploaded_file($_FILES['file']['tmp_name'], $filename);
+          }
+          $lecture_data['file'] = $filename;
+          $course_lecture->insert($lecture_data);
+          message("Lecture created successfully!");
+          redirect('admin/lectures');
+        }
+      }
+
+      $this->view('admin/lectures',$data);
+      return;
+    }
+
+    if ($action == 'delete' && $_SERVER['REQUEST_METHOD'] == 'POST') {
+      $row = $course_lecture->first(['id'=>$id]);
+      if ($row) {
+        $course_lecture->delete($row->id);
+        message("Lecture deleted successfully!");
+      }
+      redirect('admin/lectures');
+    }
+
+    $query = "select cl.*, cm.course_id, cm.tab, cm.data_type from courses_lectures cl left join courses_meta cm on cl.unid = cm.unid group by cl.id order by cl.id desc";
+    $rows = $course_lecture->query($query);
+    $data['rows'] = array_reverse($rows);
+
+    $this->view('admin/lectures',$data);
+  }
+  # ---| ./Lectures()\. | ---
+
+  # -----| Quizzes() | -----
+  public function quizzes($action = null, $id = null) {
+    if (!Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+    }
+
+    $user_id = Auth::getId();
+    $exam = new \Model\Exam();
+    $course = new \Model\Course();
+
+    $data = [];
+    $data['title'] = "Quizzes";
+
+    if ($action == 'add') {
+      redirect('admin/exams/add');
+    }
+
+    if ($action == 'delete' && $_SERVER['REQUEST_METHOD'] == 'POST') {
+      $row = $exam->first(['id'=>$id, 'user_id'=>$user_id]);
+      if ($row) {
+        $exam->delete($row->id);
+        message("Quiz deleted successfully!");
+      }
+      redirect('admin/quizzes');
+    }
+
+    $data['rows'] = $exam->query("select * from exam where user_id = :user_id order by id desc", ['user_id'=>$user_id]);
+    $data['courses'] = $course->findAll();
+
+    $this->view('admin/quizzes',$data);
+  }
+  # ---| ./Quizzes()\. | ---
 
   # -----| Categories() | -----
   public function categories($action = null, $id = null, $uid = null) {
@@ -1106,6 +1418,99 @@ class Admin extends Controller {
     $this->view('admin/categories',$data);
   }
   # ---| ./Categories()\. | ---
+
+  # -----| Prices() | -----
+  public function prices($action = null, $id = null, $uid = null) {
+    if (!Auth::logged_in()) {
+      # ...| TRUE Block
+      message('Please, log in!');
+      redirect('login');
+    }
+    # ---| ./IF(logged_in())
+
+    $uid = $uid;
+    $user_id = Auth::getId();
+    $price = new \Model\Price_model();
+    # ---| ./MODELS\. | ---
+
+    $user = new \Model\User();
+    $data = [];
+
+    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
+
+    $data['action'] = $action;
+    $data['id'] = $id;
+    $data['title'] = "Prices";
+
+    if ($action == 'add') {
+      # ...| ADD Block
+      if ($_SERVER['REQUEST_METHOD'] == "POST") {
+        # ...| TRUE Block
+        if (user_can('add_prices')) {
+          # ...| TRUE Block
+          if ($price->validate($_POST)) {
+            # ...| TRUE Block
+            // $_POST['slug'] = str_to_url($_POST['price']);
+            $price->insert($_POST);
+            message("Your price was created seccessfully!");
+            redirect('admin/prices');
+          }
+          # ---| ./IF(VALIDATE)
+        } else {
+          # ...| FALSE Block
+          $price->errors['price'] = "Permission not allowed!";
+        }
+        # ---| ./IF/ELSE(User_Can(Permission))
+
+        $data['errors'] = $price->errors;
+      }
+      # ---| ./IF(POST)
+
+      # ---| ./Action=>ADD\. |---
+    } elseif ($action == 'delete') {
+      # ...| DELETE Block -----| Get Price Information | -----
+      $data['row'] = $row = $price->first(['id'=>$id]);
+
+      if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
+        # ...| TRUE Block
+        $price->delete($row->id);
+        message("Your price was deleted seccessfully!");
+        redirect('admin/prices');
+
+        $data['errors'] = $price->errors;
+      }
+      # ---| ./IF(POST)
+
+      # ---| ./Action=>DELETE\. |---
+    } elseif ($action == 'edit') {
+      # ...| EDIT Block -----| Get Price Information | -----
+      $data['row'] = $row = $price->first(['id'=>$id]);
+
+      if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
+        # ...| TRUE Block
+        if ($price->validate($_POST)) {
+          # ...| TRUE Block
+          $price->update($row->id, $_POST);
+          message("Your price was updated seccessfully!");
+          redirect('admin/prices');
+        }
+        # ---| ./IF(VALIDATE)
+
+        $data['errors'] = $price->errors;
+      }
+      # ---| ./IF(POST)
+
+      # ---| ./Action=>EDIT\. |---
+    } else {
+      # ...| ALL Prices Block
+      $data['rows'] = $price->findAll();
+      # ---| ./Price MAIN PAGE\. |---
+    }
+    # ---| ./IF/ELSE(ACTION)
+
+    $this->view('admin/prices',$data);
+  }
+  # ---| ./Prices()\. | ---
 
   # -----| Roles() | -----
   public function roles($action = null, $id = null, $uid = null) {
@@ -1249,11 +1654,10 @@ class Admin extends Controller {
   
     $id = $id ?? Auth::getId();
 
-    // $user = new User();
     $user = new \Model\User();
-    $data['row'] = $row = $user->first(['id'=>$id]);
+    $data['uid'] = $uid = $user->first(['id'=>$id]);
 
-    if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
+    if ($_SERVER['REQUEST_METHOD'] == "POST" && $uid) {
       # ...| TRUE Block
       $folder = "uploads/images/";
       if (!file_exists($folder)) {
@@ -1266,7 +1670,7 @@ class Admin extends Controller {
 
       if ($user->edit_validate($_POST,$id)) {
         # ...| TRUE Block
-        $id = $row->id;
+        $id = $uid->id;
         $allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
         # ----- | CHECK IMAGES | -----
@@ -1282,9 +1686,10 @@ class Admin extends Controller {
               resize_image($destination);
               $_POST['image'] = $destination;
 
-              if (file_exists($row->image)) {
+              // if (file_exists($row->image)) {
+              if (file_exists($uid->image)) {
                 # ...| TRUE Block
-                unlink($row->image);
+                unlink($uid->image);
               }
               # ---| ./IF(imageExist)
             } else {

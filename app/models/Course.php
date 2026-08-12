@@ -37,6 +37,7 @@ class Course extends Model {
     'get_language',
     'get_currency',
     'get_price',
+    // 'get_course_enroll',
   ];
 
   protected $beforeUpdate = [];
@@ -56,7 +57,11 @@ class Course extends Model {
     'course_image_tmp',
     'course_promo_video',
     'primary_subject',
-    'date',
+    'course_duration',
+    'total_student',
+    'create_date',
+    'start_date',
+    'end_date',
     'tags',
     'congratulations_message',
     'welcome_message',
@@ -67,6 +72,7 @@ class Course extends Model {
     'csrf_code',
     'views',
     'trending',
+    'slug',
   ];
   # ---| ./Properties\. |---
   
@@ -213,7 +219,7 @@ class Course extends Model {
     if (!empty($rows[0]->user_id)) {
       # ...| TRUE Block
       foreach ($rows as $key => $row) {
-        $query = "select firstname, lastname, role, image from users where id = :id limit 1";
+        $query = "select firstname, lastname, role_id, image from users where id = :id limit 1";
         $user = $db->query($query,['id'=>$row->user_id]);
         if (!empty($user)) {
           # ...| TRUE Block
@@ -322,7 +328,8 @@ class Course extends Model {
         $price = $db->query($query,['id'=>$row->price_id]);
         if (!empty($price)) {
           # ...| TRUE Block
-          $price[0]->name = $price[0]->name . ' (' . $rows[$key]->currency_row->symbol . $price[0]->price . ') ' . strtoupper($rows[$key]->currency_row->currency);
+          // $price[0]->name = $price[0]->name . ' (' . $rows[$key]->currency_row->symbol . $price[0]->price . ') ' . strtoupper($rows[$key]->currency_row->currency);
+          $price[0]->name = $price[0]->name . ' (' . $price[0]->price . ') ';
           $rows[$key]->price_row = $price[0];
         }
         # ---| ./IF(USERS)
@@ -333,6 +340,27 @@ class Course extends Model {
 
     return $rows;
   } # ---| ./Get_PRICE() |---
+
+  // protected function get_course_enroll($rows) {
+  //   $db = new \Database();
+  //   if (!empty($rows[0]->total_student)) {
+  //     # ...| TRUE Block
+  //     foreach ($rows as $key => $row) {
+  //       $query = "select * from course_enroll where course_id = :course_id";
+  //       $enroll = $db->query($query,['course_id'=>$row->id]);
+  //       if (!empty($enroll)) {
+  //         # ...| TRUE Block
+  //         // $enroll[0]->name = $enroll[0]->name . ' (' . $enroll[0]->enroll . ') ';
+  //         $rows[$key]->enroll_row = $enroll[0];
+  //       }
+  //       # ---| ./IF(USERS)
+  //     }
+  //     # ---| ./FOREACH(ROWS)
+  //   }
+  //   # ---| ./IF(ROWS)
+
+  //   return $rows;
+  // } # ---| ./Get_PRICE() |---
   # ---| ./AfterSELECT Functions\. |---
 }
 # -----| ./Course()

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * User: TECH-Tag
+ * Date: 08/16/2025
+ * Time: 07:37 PM
+ * * *
+ * @author  Marthad Musa <marthad.musa@gmail.com>
+ * @package https://marthadmusa.blogger.com
+ */
+
 # NameSpace  ---------------
 namespace Controller;
 # ------------|  ./NameSpace
@@ -36,7 +45,7 @@ class Category extends Controller {
     $data['rows'] = $course->query($query,['slug'=>$slug]);
 
     # ...| READ ALL Courses Order by Trending Value
-    $query = "select * from courses where approved = 0 order by trending desc limit 5";
+    $query = "select * from courses where approved = 1 and published = 1 order by trending desc limit 5";
     $data['trending'] = $course->query($query);
 
     if ($data['rows']) {

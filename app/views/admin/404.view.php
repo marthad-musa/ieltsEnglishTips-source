@@ -1,54 +1,16 @@
-<?php $this->view('admin/admin-header',$data) ?>
+<?php $this->view('partials/private.header',$data) ?>
 
-  <div class="pagetitle row">
-    <div class="col-md-6">
-      <h1 class=""><?=$data['title']?></h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="<?=ROOT?>//">Home</a></li>
-          <li class="breadcrumb-item active"><?=$data['title']?></li>
-        </ol>
-      </nav>
-    </div>
-    <div class="col-md-6 w-50">
-      <!-- ---- CHECK Page MESSAGES ---- -->
-      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-        <?php if(message()):?>
-          <span class="alert alert-warning">
-            <i class="bi bi-envelope-dash"></i>
-              <span class=""><?=message('',true)?></span>
-          </span>
-        <?php endif;?>
-      </div>
-      <!-- -| ./CHECK Page MESSAGES\. |- -->
-    </div>
+<!-- ---------| Main |--------- -->
+<main>
+  <div class="container">
+    <section class="section error-404 min-vh-100 d-flex flex-column align-items-center justify-content-center">
+      <h1>404</h1>
+      <h2>The page you are looking for doesn't exist.</h2>
+      <a class="btn btn-secondary" href="<?=ROOT?>/admin/dashboard">Back to dashboard</a>
+      <img src="<?=ROOT?>/assets/img/404-not-found.svg" class="img-fluid py-5" alt="Page Not Found">
+    </section>
   </div>
-  <!-- End Page Title -->
+</main>
+<!-- -------| ./Main\. |------- -->
 
-  <section class="section dashboard">
-    <div class="row">
-
-      <!-- Left side columns -->
-      <div class="col-lg-10">
-        <div class="row">
-
-          <!-- Sales Card -->
-          <div class="col-md-10 col-xxl-6">
-            <div class="card info-card sales-card">
-              <div class="card-body">
-                <h5 class="card-title">404&comma;&nbsp;Page <span>not found!</span></h5>
-              </div>
-            </div>
-            <!-- End Card -->
-          </div>
-          <!-- End Sales Card -->
-        </div>
-        <!-- End ROW -->
-      </div>
-      <!-- End Left side columns -->
-
-    </div>
-  </section>
-
-    <!-- ======= Footer ======= -->
-<?php $this->view('admin/admin-footer',$data) ?>
+<?php $this->view('partials/private.footer',$data) ?>

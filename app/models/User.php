@@ -40,17 +40,18 @@ class User extends Model {
     'phone',
     'bio',
     'password',
-    'role',
-    'language',
+    'role_id',
+    'language_id',
     'date',
     'image',
-    'twitter_link',
+    // 'twitter_link',
     'facebook_link',
     'instagram_link',
-    'linkedin_link',
+    // 'linkedin_link',
   ];
   protected $afterSelect = [
     'get_role',
+    'get_language',
   ];
   # ---| ./Properties\. | ---
   
@@ -180,13 +181,13 @@ class User extends Model {
     # ---| ./IF/ELSE(UserNAME)
 
     # ...| TWITTER_LINK Block
-    if(!empty($data['twitter_link'])) {
-      $data['twitter_link'] = filter_var($data['twitter_link'],FILTER_SANITIZE_URL);
-      if(!filter_var($data['twitter_link'],FILTER_VALIDATE_URL)) {
-        $this->errors['twitter_link'] = "Twitter link is not valid!";
-      }
-      # ---| ./IF(FILTER LINK)
-    }
+    // if(!empty($data['twitter_link'])) {
+    //   $data['twitter_link'] = filter_var($data['twitter_link'],FILTER_SANITIZE_URL);
+    //   if(!filter_var($data['twitter_link'],FILTER_VALIDATE_URL)) {
+    //     $this->errors['twitter_link'] = "Twitter link is not valid!";
+    //   }
+    //   # ---| ./IF(FILTER LINK)
+    // }
     # ---| ./IF(TWITTER_LINK)
     
     # ...| FACEBOOK_LINK Block
@@ -210,13 +211,13 @@ class User extends Model {
     # ---| ./IF(INSTAGRAM_LINK)
     
     # ...| LINKEDIN_LINK Block
-    if(!empty($data['linkedin_link'])) {
-      $data['linkedin_link'] = filter_var($data['linkedin_link'],FILTER_SANITIZE_URL);
-      if(!filter_var($data['linkedin_link'],FILTER_VALIDATE_URL)) {
-        $this->errors['linkedin_link'] = "Linked-in link is not valid!";
-      }
-      # ---| ./IF(FILTER LINK)
-    }
+    // if(!empty($data['linkedin_link'])) {
+    //   $data['linkedin_link'] = filter_var($data['linkedin_link'],FILTER_SANITIZE_URL);
+    //   if(!filter_var($data['linkedin_link'],FILTER_VALIDATE_URL)) {
+    //     $this->errors['linkedin_link'] = "Linked-in link is not valid!";
+    //   }
+    //   # ---| ./IF(FILTER LINK)
+    // }
     # ---| ./IF(LINKEDIN_LINK)
 
     # ...| Phone Block
@@ -232,11 +233,11 @@ class User extends Model {
     # ---| ./IF(PHONE)
 
     # ...| Company Block
-    // if(!empty($data['company'])) {
-    //   if(!preg_match("/^[a-zA-Z0-9 ]+$/", trim($data['company']))) {
-    //     $this->errors['company'] = "Only letters, numbers and spaces allowed!";
-    //   }
-    // }
+    if(!empty($data['company'])) {
+      if(!preg_match("/^[a-zA-Z0-9 ]+$/", trim($data['company']))) {
+        $this->errors['company'] = "Only letters, numbers and spaces allowed!";
+      }
+    }
     # ---| ./IF(COMPANY)
 
     # ...| Job Block
@@ -256,11 +257,11 @@ class User extends Model {
     # ---| ./IF(COUNTRY)
 
     # ...| Address Block
-    // if(empty($data['address'])) {
-    //   if(!preg_match("/^[a-zA-Z0-9 ]+$/", trim($data['address']))) {
-    //     $this->errors['address'] = "Only letters, numbers and spaces allowed!";
-    //   }
-    // }
+    if(empty($data['address'])) {
+      if(!preg_match("/^[a-zA-Z0-9 ]+$/", trim($data['address']))) {
+        $this->errors['address'] = "Only letters, numbers and spaces allowed!";
+      }
+    }
     # ---| ./IF(ADDRESS)
 
     # ...| Biography Block
@@ -283,6 +284,25 @@ class User extends Model {
     // }
     # ---| ./IF(LANGUAGE)
 
+    # ...| Password Block
+    if(empty($data['current-password'])) {
+      $this->errors['current-password'] = "Current Password is required!";
+    } else {
+      $results = $this->where(['password'=>$data['current-password']]);
+      if(password_verify($results['password'], $data['current-password'])) {
+        if(empty($data['new-password'])) {
+          $this->errors['new-password'] = "New Password is required!";
+        } else
+        if(empty($data['retype-password'])) {
+          $this->errors['retype-password'] = "Re-Type Password is required!";
+        } else
+        if(!password_verify($data['new-password'], $data['retype-password'])) {
+          $this->error['retype-password'] = "New Password don't match!";
+        }
+      }
+    }
+    # ---| ./IF/ELSE(Password)
+
     if(empty($this->errors)) {
       # ...| TRUE Block
       return true;
@@ -295,11 +315,11 @@ class User extends Model {
 
   # -----| Get_Permissions() | -----
   protected function get_role(mixed $data):mixed {
-    if (!empty($data[0]->email) && !empty($data[0]->role)) {
+    if (!empty($data[0]->email) && !empty($data[0]->role_id)) {
       # ...| TRUE Block
       foreach ($data as $key => $row) {
         $query = "select role from roles where id = :id limit 1";
-        $res = $this->query($query,['id'=>$row->role]);
+        $res = $this->query($query,['id'=>$row->role_id]);
 
         if ($res) {
           # ...| TRUE Block
@@ -314,5 +334,27 @@ class User extends Model {
     return $data;
   }
   # ---| ./Get_Permissions()\. | ---
+
+  # -----| Get_Language() | -----
+  protected function get_language(mixed $data):mixed {
+    if (!empty($data[0]->email) && !empty($data[0]->language_id)) {
+      # ...| TRUE Block
+      foreach ($data as $key => $row) {
+        $query = "select language from languages where id = :id limit 1";
+        $res = $this->query($query,['id'=>$row->language_id]);
+
+        if ($res) {
+          # ...| TRUE Block
+          $data[$key]->language_name = $res[0]->language;
+        }
+        # ---| ./IF(Result)
+      }
+      # ---| ./FOREACH(Data)
+    }
+    # ---| ./IF(Data)
+
+    return $data;
+  }
+  # ---| ./Get_Language()\. | ---
 }
 # -----| ./User()
