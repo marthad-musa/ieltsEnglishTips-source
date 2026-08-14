@@ -284,6 +284,31 @@ class Database {
     $this->query($query);
 
     /**
+     * ---------------------------------------
+     * | COURSE_JOIN_REQUESTS Table |
+     * ---------------------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `course_join_requests` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `course_id` int(11) NOT NULL,
+        `user_id` int(11) NOT NULL,
+        `status` varchar(20) NOT NULL DEFAULT 'Pending',
+        `requested_at` datetime DEFAULT NULL,
+        `approved_by` int(11) DEFAULT NULL,
+        `approved_at` datetime DEFAULT NULL,
+        `notes` varchar(1024) DEFAULT NULL,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `course_id` (`course_id`),
+        KEY `user_id` (`user_id`),
+        KEY `status` (`status`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
      * -------------------
      * | CATEGORIES Table |
      * -------------------

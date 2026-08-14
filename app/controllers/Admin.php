@@ -1198,13 +1198,33 @@ class Admin extends Controller {
     $user_id    = Auth::getId();
     $course     = new \Model\Course();
     $enrollment = new \Model\Enrollment();
+    $course_request = new \Model\Course_join_request();
+    $course_meta = new \Model\Course_meta();
+    $course_lecture = new \Model\Course_lecture();
     $user       = new \Model\User();
 
     $data = [];
     $data['uid'] = $uid = $user->first(['id'=>$user_id]);
 
-    // Use Enrollment records to find enrolled courses for this user
-    $enrolled = $enrollment->where(['user_id'=>$user_id]);
+    $approved_courses = $course->where(['approved'=>1,'published'=>1]);
+    $data['approved_courses'] = $approved_courses ?: [];
+
+    $teacher_courses = $course->where(['user_id'=>$user_id,'approved'=>1,'published'=>1]);
+    $data['teacher_courses'] = $teacher_courses ?: [];
+
+    $student_approved_requests = $course_request->where(['user_id'=>$user_id,'status'=>'Approved']);
+    $student_courses = [];
+    if ($student_approved_requests) {
+      foreach ($student_approved_requests as $request) {
+        $course_row = $course->first(['id'=>$request->course_id,'approved'=>1,'published'=>1]);
+        if ($course_row) {
+          $student_courses[] = $course_row;
+        }
+      }
+    }
+    $data['student_courses'] = $student_courses;
+
+    $enrolled = $enrollment->where(['user_id'=>$user_id,'disabled'=>0]);
     $rows = [];
     if ($enrolled) {
       foreach ($enrolled as $er) {
@@ -1213,6 +1233,152 @@ class Admin extends Controller {
       }
     }
     $data['rows'] = $rows;
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && ($_POST['ajax'] ?? '') == '1') {
+      $action = $_POST['action'] ?? '';
+
+      if ($action == 'load_course_requests') {
+        $course_id = (int)($_POST['course_id'] ?? 0);
+        $selected_course = $course->first(['id'=>$course_id,'approved'=>1,'published'=>1]);
+
+        if (!$selected_course) {
+          echo json_encode(['success' => false, 'message' => 'Course not found.']);
+          die;
+        }
+
+        $requests = $course_request->where(['course_id'=>$course_id]);
+        $rows_html = '<div class="card"><div class="card-body"><h6 class="card-title">Enrollment requests for '.esc($selected_course->title).'</h6>';
+
+        if ($requests) {
+          $rows_html .= '<div class="table-responsive"><table class="table table-bordered align-middle"><thead><tr><th>Student</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+          foreach ($requests as $request) {
+            $student = $user->first(['id'=>$request->user_id]);
+            $status = $request->status ?? 'Pending';
+            $rows_html .= '<tr>';
+            $rows_html .= '<td>'.esc($student->firstname ?? 'Student').' '.esc($student->lastname ?? '').'</td>';
+            $rows_html .= '<td><span class="badge bg-'.($status == 'Approved' ? 'success' : ($status == 'Rejected' ? 'danger' : 'warning')).'">'.esc($status).'</span></td>';
+            $rows_html .= '<td>';
+            $rows_html .= '<form method="post" class="d-inline-block request-status-form" data-course-id="'.$course_id.'" data-request-user-id="'.$request->user_id.'">';
+            $rows_html .= '<input type="hidden" name="csrf_code" value="'.($_SESSION['csrf_code'] ?? '').'">';
+            $rows_html .= '<select name="status" class="form-select form-select-sm d-inline-block" style="width:auto;min-width:120px;">';
+            $rows_html .= '<option value="Pending" '.($status == 'Pending' ? 'selected' : '').'>Pending</option>';
+            $rows_html .= '<option value="Approved" '.($status == 'Approved' ? 'selected' : '').'>Approve</option>';
+            $rows_html .= '<option value="Rejected" '.($status == 'Rejected' ? 'selected' : '').'>Reject</option>';
+            $rows_html .= '</select>';
+            $rows_html .= '<button type="submit" class="btn btn-sm btn-primary ms-2">Save</button>';
+            $rows_html .= '</form>';
+            $rows_html .= '</td>';
+            $rows_html .= '</tr>';
+          }
+          $rows_html .= '</tbody></table></div>';
+        } else {
+          $rows_html .= '<div class="alert alert-light border">No student requests for this course yet.</div>';
+        }
+
+        $rows_html .= '</div></div>';
+
+        echo json_encode(['success' => true, 'html' => $rows_html]);
+        die;
+      }
+
+      if ($action == 'load_student_course') {
+        $course_id = (int)($_POST['course_id'] ?? 0);
+        $selected_course = $course->first(['id'=>$course_id,'approved'=>1,'published'=>1]);
+
+        if (!$selected_course) {
+          echo json_encode(['success' => false, 'message' => 'Course not found.']);
+          die;
+        }
+
+        $course_sections = $course_meta->where(['course_id'=>$course_id,'disabled'=>0]);
+        $sections_html = '<div class="list-group">';
+        if ($course_sections) {
+          foreach ($course_sections as $section) {
+            $lecture_items = $course_lecture->where(['unid'=>$section->unid,'disabled'=>0]);
+            $sections_html .= '<div class="list-group-item">';
+            $sections_html .= '<strong>'.esc($section->value ?? 'Section').'</strong>';
+            if ($lecture_items) {
+              $sections_html .= '<ul class="mb-0 mt-2 ps-3">';
+              foreach ($lecture_items as $lecture) {
+                $sections_html .= '<li>'.esc($lecture->title).'</li>';
+              }
+              $sections_html .= '</ul>';
+            }
+            $sections_html .= '</div>';
+          }
+        } else {
+          $sections_html .= '<div class="list-group-item">No course sections found.</div>';
+        }
+        $sections_html .= '</div>';
+
+        $other_courses = array_filter($student_courses, function($item) use ($course_id) {
+          return $item->id != $course_id;
+        });
+
+        $other_html = '<div class="list-group">';
+        if ($other_courses) {
+          foreach ($other_courses as $other_course) {
+            $other_html .= '<a href="#" class="list-group-item list-group-item-action">'.esc($other_course->title).'</a>';
+          }
+        } else {
+          $other_html .= '<div class="list-group-item">No other approved courses.</div>';
+        }
+        $other_html .= '</div>';
+
+        $html = '<div class="row g-3"><div class="col-lg-4"><div class="card"><div class="card-body"><h6 class="card-title">'.esc($selected_course->title).'</h6><p class="small text-muted">'.esc($selected_course->description ?? 'No description available').'</p>'.$sections_html.'</div></div></div><div class="col-lg-4"><div class="card"><div class="card-body"><video class="w-100" controls><source src="'.get_image($selected_course->course_promo_video ?: $selected_course->course_image).'" type="video/mp4"></video></div></div></div><div class="col-lg-4"><div class="card"><div class="card-body"><h6 class="card-title">Other approved courses</h6>'.$other_html.'</div></div></div></div>';
+
+        echo json_encode(['success' => true, 'html' => $html]);
+        die;
+      }
+
+      if ($action == 'update_request_status') {
+        $course_id = (int)($_POST['course_id'] ?? 0);
+        $user_id = (int)($_POST['user_id'] ?? 0);
+        $status = trim($_POST['status'] ?? 'Pending');
+        $csrf_code = $_POST['csrf_code'] ?? '';
+
+        if (!empty($csrf_code) && ($_SESSION['csrf_code'] ?? '') != $csrf_code) {
+          echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+          die;
+        }
+
+        $request = $course_request->first(['course_id'=>$course_id,'user_id'=>$user_id]);
+        if (!$request) {
+          $course_request->insert([
+            'course_id' => $course_id,
+            'user_id' => $user_id,
+            'status' => $status,
+            'requested_at' => date('Y-m-d H:i:s'),
+            'approved_by' => $user_id,
+            'approved_at' => ($status == 'Approved') ? date('Y-m-d H:i:s') : null,
+            'disabled' => 0,
+          ]);
+          echo json_encode(['success' => true, 'message' => 'Enrollment request updated.']);
+          die;
+        }
+
+        $course_request->update($request->id, [
+          'status' => $status,
+          'approved_by' => $user_id,
+          'approved_at' => ($status == 'Approved') ? date('Y-m-d H:i:s') : null,
+          'disabled' => 0,
+        ]);
+
+        if ($status == 'Approved') {
+          $exists = $enrollment->first(['user_id'=>$user_id,'course_id'=>$course_id]);
+          if (!$exists) {
+            $enrollment->insert([
+              'user_id' => $user_id,
+              'course_id' => $course_id,
+              'disabled' => 0,
+            ]);
+          }
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Request status saved.']);
+        die;
+      }
+    }
 
     $data['title'] = "Enrolled Courses";
 
