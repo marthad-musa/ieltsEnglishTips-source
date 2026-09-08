@@ -22,7 +22,7 @@
         <?php foreach ($images as $image): ?>
           <div class="carousel-item active">
             <!-- <img src="<?=ROOT?>/assets/img/hero-1.png" alt="" class="opacity-75"> -->
-            <img src="<?=get_image($image->image)?>" alt="<?=esc($image->title)?>" class="opacity-75">
+            <img src="<?=get_slider_image($image->image)?>" alt="<?=esc($image->title)?>" class="opacity-75">
             <div class="container">
               <div class="carousel-caption text-start">
                 <h1 data-aos="fade-up" data-aos-delay="100"><?=esc($image->title)?></h1>
@@ -269,13 +269,33 @@
                 <img src="<?=get_image($row->course_image)?>" class="img-fluid" alt="<?=esc($row->title)?>">
                 <div class="course-content">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <p class="category"><a href="<?=ROOT?>/courses/course-details/<?=esc($row->id)?>" class="text-white"><?=esc($row->category_row->category)?></a></p>
+                    <p class="category"><a href="<?=ROOT?>/<?php
+                      if(esc($row->id) == 1) {
+                        echo 'ielts';
+                      } elseif (esc($row->id) == 2) {
+                        echo 'headway';
+                      } elseif (esc($row->id) == 3) {
+                        echo 'computer';
+                      } else {
+                        echo '#';
+                      }?>
+                    " class="text-white"><?=esc($row->category_row->category)?></a></p>
                     <p class="price">
                       <?=esc($row->currency_row->symbol)?><?=esc($row->price_row->price)?> <sup><?=esc($row->currency_row->currency)?></sup>
                     </p>
                   </div>
     
-                  <h3><a href="#"><?=esc($row->title)?></a></h3>
+                  <h3><a href="<?=ROOT?>/<?php
+                    if(esc($row->id) == 1) {
+                      echo 'ielts';
+                    } elseif (esc($row->id) == 2) {
+                      echo 'headway';
+                    } elseif (esc($row->id) == 3) {
+                      echo 'computer';
+                    } else {
+                      echo '#';
+                    }?>
+                  "><?=esc($row->title)?></a></h3>
                   <p class="description"><?=esc($row->description)?></p>
                 </div>
               </div>
@@ -355,10 +375,10 @@
                 I created <span class="d-inline fw-bold" style="color: crimson;">IELTS</span> <span class="d-inline fw-bold" style="color: #5578ff;">English</span> <span class="d-inline fw-bold" style="color: orangered;">Tips</span> for one reason&colon; to help students <strong>break free</strong> from confusion and finally get the <strong>IELTS</strong> score they deserve.
               </p>
               <div class="social">
-                <a href=""><i class="bi bi-twitter-x"></i></a>
+                <!-- <a href=""><i class="bi bi-twitter-x"></i></a> -->
                 <a href=""><i class="bi bi-facebook"></i></a>
                 <a href=""><i class="bi bi-instagram"></i></a>
-                <a href=""><i class="bi bi-linkedin"></i></a>
+                <!-- <a href=""><i class="bi bi-linkedin"></i></a> -->
               </div>
             </div>
           </div>

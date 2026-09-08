@@ -221,15 +221,15 @@ class User extends Model {
     # ---| ./IF(LINKEDIN_LINK)
 
     # ...| Phone Block
-    if(!empty($data['phone'])) {
-      # ...| TRUE Block (Phone Regular Expression)
-      if(preg_match("/^((09|\+249)|(01|\+201)|(05|\+966)|(\+961)|(\+962)|(\+963)|(\+964)|(\+965)|(\+967)|(\+968)|(\+969)|(\+447))*[0-9]{9}$/", trim($data['phone']))) {
-        $data['phone'] = $_POST['phone'];
-      } else {
-        # ...| FALSE Block
-        $this->errors['phone'] = "Phone number not valid!";
-      }
-    }
+    // if(!empty($data['phone'])) {
+    //   # ...| TRUE Block (Phone Regular Expression)
+    //   if(preg_match("/^((09|\+249)|(01|\+201)|(05|\+966)|(\+961)|(\+962)|(\+963)|(\+964)|(\+965)|(\+967)|(\+968)|(\+969)|(\+447))*[0-9]{9}$/", trim($data['phone']))) {
+    //     $data['phone'] = $_POST['phone'];
+    //   } else {
+    //     # ...| FALSE Block
+    //     $this->errors['phone'] = "Phone number not valid!";
+    //   }
+    // }
     # ---| ./IF(PHONE)
 
     # ...| Company Block
@@ -285,22 +285,22 @@ class User extends Model {
     # ---| ./IF(LANGUAGE)
 
     # ...| Password Block
-    if(empty($data['current-password'])) {
-      $this->errors['current-password'] = "Current Password is required!";
-    } else {
-      $results = $this->where(['password'=>$data['current-password']]);
-      if(password_verify($results['password'], $data['current-password'])) {
-        if(empty($data['new-password'])) {
-          $this->errors['new-password'] = "New Password is required!";
-        } else
-        if(empty($data['retype-password'])) {
-          $this->errors['retype-password'] = "Re-Type Password is required!";
-        } else
-        if(!password_verify($data['new-password'], $data['retype-password'])) {
-          $this->error['retype-password'] = "New Password don't match!";
-        }
-      }
-    }
+    // if(empty($data['current-password'])) {
+    //   $this->errors['current-password'] = "Current Password is required!";
+    // } else {
+    //   $results = $this->where(['password'=>$data['current-password']]);
+    //   if(password_verify($results['password'], $data['current-password'])) {
+    //     if(empty($data['new-password'])) {
+    //       $this->errors['new-password'] = "New Password is required!";
+    //     } else
+    //     if(empty($data['retype-password'])) {
+    //       $this->errors['retype-password'] = "Re-Type Password is required!";
+    //     } else
+    //     if(!password_verify($data['new-password'], $data['retype-password'])) {
+    //       $this->error['retype-password'] = "New Password don't match!";
+    //     }
+    //   }
+    // }
     # ---| ./IF/ELSE(Password)
 
     if(empty($this->errors)) {
@@ -312,6 +312,30 @@ class User extends Model {
     return false;
   }
   # ---| ./EDIT_Validate()\. | ---
+
+  public function validate_password_change($data, $current_user) {
+    $this->errors = [];
+
+    if (empty($data['current_password'])) {
+      $this->errors['current_password'] = "Current password is required!";
+    } elseif (!password_verify($data['current_password'], $current_user->password)) {
+      $this->errors['current_password'] = "Current password is incorrect!";
+    }
+
+    if (empty($data['new_password'])) {
+      $this->errors['new_password'] = "New password is required!";
+    } elseif (strlen($data['new_password']) < 8) {
+      $this->errors['new_password'] = "New password must be at least 8 characters!";
+    }
+
+    if (empty($data['confirm_password'])) {
+      $this->errors['confirm_password'] = "Please confirm the new password!";
+    } elseif (($data['new_password'] ?? '') !== $data['confirm_password']) {
+      $this->errors['confirm_password'] = "Passwords do not match!";
+    }
+
+    return empty($this->errors);
+  }
 
   # -----| Get_Permissions() | -----
   protected function get_role(mixed $data):mixed {

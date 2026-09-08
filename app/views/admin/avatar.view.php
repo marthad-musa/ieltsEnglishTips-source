@@ -47,524 +47,113 @@
     }
   </style>
 
-  <!-- ---------| Course Details Modal |--------- -->
-  <div class="modal fade" id="detailsModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Course Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="pricing-card">
-            <!-- <img src="<?=ROOT?>/assets/img/course-1.png" class="w-50" alt=""> -->
-            <span class="h5">$199/course</span>
-          
-            <div class="course-features">
-              <div class="feature"><i class="bi bi-clock"></i> <span>40 hours of content</span></div>
-              <div class="feature"><i class="bi bi-trophy"></i> <span>Certificate of completion</span></div>
-              <div class="feature"><i class="bi bi-phone"></i> <span>Mobile and desktop access</span></div>
-              <div class="feature"><i class="bi bi-infinity"></i> <span>Lifetime access</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <span class="datte">2026/07/03</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- -------| ./Course Details Modal\. |------- -->
-
-  <!-- ---------| Course Approve Form Modal |--------- -->
-  <div class="modal fade" id="approveModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Course Approve</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="pricing-card">
-            <!-- <img src="<?=ROOT?>/assets/img/course-1.png" class="w-50" alt=""> -->
-            <span class="h5">$199/course</span>
-          
-            <div class="course-features">
-              <div class="feature"><i class="bi bi-clock"></i> <span>40 hours of content</span></div>
-              <div class="feature"><i class="bi bi-trophy"></i> <span>Certificate of completion</span></div>
-              <div class="feature"><i class="bi bi-phone"></i> <span>Mobile and desktop access</span></div>
-              <div class="feature"><i class="bi bi-infinity"></i> <span>Lifetime access</span></div>
-            </div>
-          
-            <button class="btn btn-sm w-100 btn-success my-2">Approve</button>
-            <button class="btn btn-sm w-100 btn-warning my-2">Pending</button>
-            <button class="btn btn-sm w-100 btn-danger" my-2>Reject</button>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button> -->
-          <span class="date">2026/07/03</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- -------| ./Course Approve Form Modal\. |------- -->
-
   <!-- ---------| MAIN |--------- -->
   <main id="main" class="main">
-    <?php if ($action == 'add'): ?>
-      <?php if ($uid->role_id == '3' || $uid->role_id == '2'): ?>
-        <div class="pagetitle">
-          <h1 class="fontClarity"><?=$data['title']?></h1>
-          <nav>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="<?=ROOT?>/">Home</a></li>
-              <li class="breadcrumb-item"><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
-              <li class="breadcrumb-item"><?=$data['title']?></li>
-              <li class="breadcrumb-item active"><?=$data['action']?></li>
-            </ol>
-          </nav>
-        </div><!-- End Page Title -->
-
-        <section class="section dashboard">
-          <div class="row">
-
-            <!-- Left side columns -->
-            <div class="row mb-5">
-
-              <!-- Customers Card -->
-              <div class="col-xxl-4 col-xl-12 row">
-
-                <!-- ---------- New-Course ---------- -->
-                <div class="card col-md-5 mx-auto">
-                  <div class="card-body">
-                    <h5 class="card-title fontClarity"><i class="bx bxs-video-plus fs-5"></i>&nbsp;<?=ucfirst($data['action'])?>&nbsp;Course</h5>
-
-                    <!-- Form with No Lables -->
-                    <form class="row g-3" method="post">
-                      <div class="col-md-12">
-                        <input type="text" name="title" value="<?=set_value('title')?>" class="form-control <?=!empty($errors['title']) ? 'border-danger' : '';?> fontClarity" placeholder="Course Title">
-                        <!-- ---- COURSE Title Error ---- -->
-                        <?php if(!empty($errors['title'])):?>
-                          <small class="text-danger fontClarity"><?=$errors['title']?>.</small>
-                        <?php endif;?>
-                        <!-- -| ./COURSE Title Error\. |- -->
-                      </div>
-                      <div class="col-md-12">
-                        <input type="text" name="primary_subject" value="<?=set_value('primary_subject')?>" class="form-control <?=!empty($errors['primary_subject']) ? 'border-danger' : '';?> fontClarity" placeholder="Primary subject e.g. Photography or Design">
-                        <!-- ---- COURSE Primary-Subject Error ---- -->
-                        <?php if(!empty($errors['primary_subject'])):?>
-                          <small class="text-danger fontClarity"><?=$errors['primary_subject']?>.</small>
-                        <?php endif;?>
-                        <!-- -| ./COURSE Primary-Subject Error\. |- -->
-                      </div>
-                      <div class="col-md-12">
-                        <select name="category_id" id="inputState" class="form-select <?=!empty($errors['category_id']) ? 'border-danger' : '';?> fontClarity">
-                          <option value="" selected="" disabled>Course Category...</option>
-                          <?php if(!empty($categories)): ?>
-                            <?php foreach($categories as $cat): ?>
-                              <option <?=set_select('category_id',$cat->id)?> value="<?=$cat->id?>"><?=esc($cat->category)?></option>
-                            <?php endforeach; ?>
-                          <?php endif; ?>
-                        </select>
-                        <!-- ---- COURSE Category_ID Error ---- -->
-                        <?php if(!empty($errors['category_id'])):?>
-                          <small class="text-danger fontClarity"><?=$errors['category_id']?>.</small>
-                        <?php endif;?>
-                        <!-- -| ./COURSE Category_ID Error\. |- -->
-                      </div>
-                      <div class="text-center fontClarity">
-                        <button type="submit" class="btn btn-outline-primary "><i class="bx bx-save"></i> Save</button>
-                        <a href="<?=ROOT?>/admin/courses">
-                          <button type="button" class="mx-3 btn btn-secondary "><i class="bi bi-box-arrow-left"></i> Back</button>
-                        </a>
-                      </div>
-                    </form>
-                    <!-- End Form with No Lables -->
-                  </div>
-                  <!-- -| ./Card-Body\. |- -->
-                </div>
-                <!-- -------| ./New-Course\. |------- -->
-              </div>
-              <!-- End Customers Card -->
-            </div>
-            <!-- End Left side columns -->
-          </div>
-        </section>
-      <?php else: ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          <span class="fs-3 d-block my-2"><i class="bi bi-emoji-frown"></i> Oh, no! You're not allowed here!</span>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      <?php endif; ?>
-
-    <?php elseif ($action == 'delete'): ?>
-      <div class="pagetitle">
-        <h1><?=$data['title']?></h1>
+    <!-- ---------| Action=>'READ' |--------- -->
+    <div class="pagetitle row">
+      <div class="col-md-6">
+        <h1 class=""><?=$data['title']?></h1>
         <nav>
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="<?=ROOT?>/">Home</a></li>
             <li class="breadcrumb-item"><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><?=$data['title']?></li>
-            <li class="breadcrumb-item active"><?=$data['action']?></li>
-            <li class="breadcrumb-item"><?=$data['id']?></li>
+            <li class="breadcrumb-item active"><?=$data['title']?></li>
           </ol>
         </nav>
       </div>
-      <!-- End Page Title -->
+    </div>
+    <!-- End Page Title -->
 
-      <section class="section dashboard">
-        <div class="row">
+    <section class="section dashboard">
+      <div class="row">
 
-          <!-- Left side columns -->
+        <!-- Left side columns -->
+        <!-- <div class="col-lg-8"> -->
           <div class="row">
 
-            <!-- Customers Card -->
+            <!-- Courses View -->
             <div class="col-xxl-4 col-xl-12">
-
-              <!-- -----| Delete Course Tabs |----- -->
-              <div class="card col-md-8 mx-auto">
-                <div class="card-body">
-                  <?php if (!empty($row)) :?>
-                    <h5 class="card-title text-danger"><i class="bi bi-trash fs-5"></i> Are you sure you want to&nbsp;<?=$data['action']?>&nbsp;this record&quest;</h5>
-                    <form method="POST">
-                      <div class="mt-3 float-end fontClarity">
-                        <button class="btn btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
-                        <a href="<?=ROOT?>/admin/courses">
-                          <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
-                        </a>
-                      </div>
-                      <p class="">Course Title&colon;&nbsp;<span class="text-primary fs-5"><?=esc($row->title)?></span></p>
-                      <p class="">Primary Subject&colon;&nbsp;<?=esc($row->primary_subject)?></p>
-                      <p class="">Category&colon;&nbsp;<?=esc($row->category_row->category)?></p>
-                      <p class="">Date created&colon;&nbsp;<?=get_date($row->date)?></p>
-                    </form>
-                  <?php else:?>
-                    <div class="text-center fontClarity">
-                      <h5 class="alert alert-danger"><i class="bi bi-emoji-frown"></i> Oh, no! Record not found.</h5>
-                      <a href="<?=ROOT?>/admin/courses">
-                        <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
-                      </a>
-                    </div>
-                  <?php endif;?>
-                </div>
-              </div>
-              <!-- ---| ./Delete Course Tabs\. |--- -->
-
-            </div>
-            <!-- End Customers Card -->
-          </div>
-          <!-- End Left side columns -->
-        </div>
-      </section>
-
-    <?php elseif ($action == 'edit'): ?>
-      <div class="pagetitle">
-        <h1><?=$data['title']?></h1>
-        <nav>
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?=ROOT?>/">Home</a></li>
-            <li class="breadcrumb-item"><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><?=$data['title']?></li>
-            <li class="breadcrumb-item active"><?=$data['action']?></li>
-            <li class="breadcrumb-item"><?=$data['id']?></li>
-          </ol>
-        </nav>
-      </div>
-      <!-- End Page Title -->
-
-      <section class="section dashboard">
-        <div class="row">
-
-          <!-- Left side columns -->
-          <div class="row">
-
-            <!-- Customers Card -->
-            <div class="col-xxl-4 col-xl-12">
-
-              <!-- -----| Edit Course Tabs |----- -->
               <div class="card">
                 <div class="card-body">
-                  <?php if (!empty($row)) :?>
-                    <div class="mt-3 float-end fontClarity">
-                      <button onclick="save_content()" class="js-save-button btn btn-secondary disabled"><i class="ri-save-3-fill"></i> Save</button>
-                      <a href="<?=ROOT?>/admin/courses">
-                        <button class="btn btn-outline-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
-                      </a>
-                    </div>
-                    <!-- <h5 class="card-title text-success"><i class="bx bx-pencil fs-5"></i>&nbsp;<?php //ucfirst($data['action'])?>&nbsp;Course &dash; <?=esc($row->title)?></h5> -->
-                    <h5 class="card-title text-success"><i class="bx bx-pencil fs-5"></i>&nbsp;<?=esc($row->title)?></h5>
+                  <h5 class="card-title">
+                    <i class="bi bi-mortarboard fs-5"></i> My <?=ucfirst($title)?>
+                    <a href="<?=ROOT?>/admin/courses/add" class="fontAlido">
+                      <button class="btn btn-outline-primary float-end fontClarity"><i class="bx bxs-video-plus"></i> New Course</button>
+                    </a>
+                  </h5>
 
-                    <!-- ---- Progress-Bar ---- -->
-                    <div class="progress my-2 js-save-progress hide">
-                      <div class="progress-bar progress-bar-video js-save-progress-inner" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                    </div>
-                    <!-- -| ./Progress-Bar\. |- -->
-
-                    <!-- ---- Tabs ---- -->
-                    <div class="tabs-holder">
-                      <div onclick="set_tab(this.id,this)" id="intended-learners" class="my-tab active-tab">Intended learners</div>
-                      <div onclick="set_tab(this.id,this)" id="curriculum" class="my-tab">Curriculum</div>
-                      <div onclick="set_tab(this.id,this)" id="course-landing-page" class="my-tab">Course landing page</div>
-                      <div onclick="set_tab(this.id,this)" id="course-duration" class="my-tab">Course Duration</div>
-                      <div onclick="set_tab(this.id,this)" id="course-messages" class="my-tab">Course messages</div>
-                    </div>
-                    <!-- -| ./Tabs\. |- -->
-
-                    <!-- ---- Div-Tabs ---- -->
-                    <div oninput="something_changed(event)" class="">
-                      <div id="tabs-content">
-                        <!-- ---- ./Loader\. ---- -->
-                      </div>
-                    </div>
-                    <!-- -| ./Div-Tabs\. |- -->
-                  <?php else:?>
-                    <div class="text-center fontClarity">
-                      <h5 class="alert alert-danger"><i class="bi bi-emoji-frown"></i> Oh, no! Record not found.</h5>
-                      <a href="<?=ROOT?>/admin/courses">
-                        <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
-                      </a>
-                    </div>
-                  <?php endif;?>
-                </div>
-              </div>
-              <!-- ---| ./Edit Course Tabs\. |--- -->
-
-            </div>
-            <!-- End Customers Card -->
-          </div>
-          <!-- End Left side columns -->
-        </div>
-      </section>
-
-    <?php else: ?>
-      <!-- ---------| Action=>'READ' |--------- -->
-      <div class="pagetitle row">
-        <div class="col-md-6">
-          <h1 class=""><?=$data['title']?></h1>
-          <nav>
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="<?=ROOT?>/">Home</a></li>
-              <li class="breadcrumb-item"><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
-              <li class="breadcrumb-item active"><?=$data['title']?></li>
-            </ol>
-          </nav>
-        </div>
-        <div class="col-md-6 w-50">
-          <!-- ---- CHECK Page MESSAGES ---- -->
-          <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-            <?php if(message()):?>
-              <span class="alert alert-warning">
-                <i class="bi bi-envelope-dash"></i>
-                  <span class=""><?=message('',true)?></span>
-              </span>
-            <?php endif;?>
-          </div>
-          <!-- -| ./CHECK Page MESSAGES\. |- -->
-        </div>
-      </div>
-      <!-- End Page Title -->
-
-      <!-- ---- Approved Courses ---- -->
-      <?php if ($uid->role_id == '2' || $uid->role_id == '3'): ?>
-        <div class="row">
-          <div class="col-md-12 row">
-
-            <div class="card col-md-3 mx-1">
-              <div class="card-header">
-                <img src="<?=ROOT?>/assets/img/noIMG.jpg" class="card-img-top" alt="...">
-              </div>
-              <div class="card-body">
-                <h5 class="fs-5 card-title text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
-                  $199/course
-                </h5>
-              </div>
-              <div class="card-footer">
-                <span class="date">2026/07/03</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      <?php endif; ?>
-      <!-- -| ./Approved Courses\. |- -->
-
-      <section class="section dashboard">
-        <div class="row">
-
-          <!-- Left side columns -->
-          <!-- <div class="col-lg-8"> -->
-            <div class="row">
-
-              <!-- Courses View -->
-              <div class="col-xxl-4 col-xl-12">
-
-                <?php if ($uid->role_id == 1): ?>
-                  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span class="fs-3 d-block my-2">
-                      <i class="bi bi-x-octagon"></i>
-                      As a <?=esc(ucfirst($uid->role_name))?>&comma; you're not allowed here.
-                    </span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                <?php elseif ($uid->role_id == 2): ?>
-                  <div class="card">
-                    <div class="card-body">
-                      <h5 class="card-title">
-                        <i class="bx bxs-graduation fs-5"></i> My <?=$data['title']?>
-                        <a href="<?=ROOT?>/admin/courses/add" class="fontAlido">
-                          <button class="btn btn-outline-primary float-end fontClarity"><i class="bx bxs-video-plus"></i> New Course</button>
-                        </a>
-                      </h5>
-
-                      <!-- ---- TEACHER Block ---- -->
-                      <table class="table table-border">
-                        <thead>
-                          <tr>
-                            <th class="bg-light" scope="col">#</th>
-                            <th class="bg-light" scope="col">Title</th>
-                            <th class="bg-light" scope="col">Category</th>
-                            <th class="bg-light" scope="col">Price</th>
-                            <th class="bg-light" scope="col">Duration</th>
-                            <th class="bg-light" scope="col">Status</th>
-                            <th class="bg-light" scope="col">Action</th>
-                          </tr>
-                        </thead>
-                        <?php if(!empty($rows)):?>
-                          <tbody>
-                            <?php foreach($rows as $row):?>
-                              <tr>
-                                <th scope="row"><?=$row->id ?: esc('#1')?></th>
-                                <td>
-                                  <span class="text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
-                                    <?=esc($row->title) ?: 'Brandon Jacob'?>
-                                  </span>
-                                </td>
-                                <td><?=esc($row->category_id) ?: 'At praesentium minu'?></td>
-                                <td><?=esc($row->price_id) ?: '$64'?></td>
-                                <td><span class=""><?=esc($row->course_duration) ?: 'Jul 16, 2026</span>'?></td>
-                                <td><span class="badge bg-primary">Created</span></td>
-                                <td>
-                                  <a href="<?=ROOT?>/admin/avatar/edit/<?=$row->id?>">
-                                    <i class="bx bx-pencil fs-5 text-success"></i> 
-                                  </a>
-                                  <a href="<?=ROOT?>/admin/avatar/delete/<?=$row->id?>">
-                                    <i class="bx bx-trash fs-5 text-danger"></i>
-                                  </a>
-                                </td>
-                              </tr>
-                            <?php endforeach;?>
-                          </tbody>
-                        <?php else:?>
-                          <tbody>
+                  <!-- ---| Table with stripped rows |--- -->
+                  <div class="card-body">
+                    <h5 class="card-title"><?=ucfirst($title)?> <span>| All</span></h5>
+                    <table class="table table-border">
+                      <thead>
+                        <tr>
+                          <th class="bg-light" scope="col">#</th>
+                          <th class="bg-light" scope="col">Title</th>
+                          <th class="bg-light" scope="col">Category</th>
+                          <th class="bg-light" scope="col">Price</th>
+                          <th class="bg-light" scope="col">Date</th>
+                          <th class="bg-light" scope="col">Status</th>
+                          <th class="bg-light" scope="col">Action</th>
+                          <!--
+                          id 	|title 	description 	user_id 	|category_id 	sub_category_id 	level_id 	language_id 	|price_id
+                          promo_link 	course_image 	course_image_tmp 	course_promo_video 	primary_subject 	course_duration
+                          total_student 	create_date 	start_date 	end_date 	tags 	congratulations_message 	welcome_message
+                          |approved 	published 	subtitle 	currency_id 	csrf_code 	views 	trending 	slug
+                          -->
+                        </tr>
+                      </thead>
+                      <?php if(!empty($rows)):?>
+                        <tbody>
+                          <?php foreach($rows as $row):?>
                             <tr>
-                              <td class="text-center text-danger" colspan="10">
-                                <span class="fs-3 d-block my-2"><i class="bi bi-emoji-frown"></i> Oh, no! No record found.</span>
-                                <a href="<?=ROOT?>/admin/avatar">
-                                  <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
+                              <th scope="row"><?=$row->id?></th>
+                              <td>
+                                <span class="text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                                  <?=esc($row->title)?>
+                                </span>
+                              </td>
+                              <td><?=esc($row->category_row->category)?></td>
+                              <td><?=esc($row->price_row->name.' '.$row->currency_row->currency)?></td>
+                              <td><span class=""><?=esc($row->course_duration)?></span></td>
+                              <td><span class="badge bg-primary">Created</span></td>
+                              <td>
+                                <a href="<?=ROOT?>/admin/avatar/edit/<?=$row->id?>">
+                                  <i class="bx bx-pencil fs-5 text-success"></i> 
+                                </a>
+                                <a href="<?=ROOT?>/admin/avatar/delete/<?=$row->id?>">
+                                  <i class="bx bx-trash fs-5 text-danger"></i>
                                 </a>
                               </td>
                             </tr>
-                          </tbody>
-                        <?php endif;?>
-                      </table>
-                      <!-- -| ./TEACHER Block\. |- -->
-
-                    </div>
+                          <?php endforeach;?>
+                        </tbody>
+                      <?php else:?>
+                        <tbody>
+                          <tr>
+                            <td class="text-center text-danger" colspan="10">
+                              <span class="fs-3 d-block my-2"><i class="bi bi-emoji-frown"></i> Oh, no! No record found.</span>
+                              <a href="<?=ROOT?>/admin/avatar">
+                                <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
+                              </a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      <?php endif;?>
+                    </table>
                   </div>
-                <?php elseif ($uid->role_id == 3): ?>
-                  <div class="card">
-                    <div class="card-body">
-                      <h5 class="card-title">
-                        <i class="bi bi-mortarboard fs-5"></i> My <?=ucfirst($title)?>
-                        <a href="<?=ROOT?>/admin/courses/add" class="fontAlido">
-                          <button class="btn btn-outline-primary float-end fontClarity"><i class="bx bxs-video-plus"></i> New Course</button>
-                        </a>
-                      </h5>
+                  <!-- -| ./Table with stripped rows\. |- -->
 
-                      <!-- ---| Table with stripped rows |--- -->
-                      <div class="card-body">
-                        <h5 class="card-title"><?=ucfirst($title)?> <span>| All</span></h5>
-                        <table class="table table-border">
-                          <thead>
-                            <tr>
-                              <th class="bg-light" scope="col">#</th>
-                              <th class="bg-light" scope="col">Title</th>
-                              <th class="bg-light" scope="col">Category</th>
-                              <th class="bg-light" scope="col">Price</th>
-                              <th class="bg-light" scope="col">Date</th>
-                              <th class="bg-light" scope="col">Status</th>
-                              <th class="bg-light" scope="col">Action</th>
-                              <!--
-                              id 	|title 	description 	user_id 	|category_id 	sub_category_id 	level_id 	language_id 	|price_id
-                              promo_link 	course_image 	course_image_tmp 	course_promo_video 	primary_subject 	course_duration
-                              total_student 	create_date 	start_date 	end_date 	tags 	congratulations_message 	welcome_message
-                              |approved 	published 	subtitle 	currency_id 	csrf_code 	views 	trending 	slug
-                              -->
-                            </tr>
-                          </thead>
-                          <?php if(!empty($rows)):?>
-                            <tbody>
-                              <?php foreach($rows as $row):?>
-                                <tr>
-                                  <th scope="row"><?=$row->id?></th>
-                                  <td>
-                                    <span class="text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal">
-                                      <?=esc($row->title)?>
-                                    </span>
-                                  </td>
-                                  <td><?=esc($row->category_row->category)?></td>
-                                  <td><?=esc($row->price_row->name.' '.$row->currency_row->currency)?></td>
-                                  <td><span class=""><?=esc($row->course_duration)?></span></td>
-                                  <td><span class="badge bg-primary">Created</span></td>
-                                  <td>
-                                    <a href="<?=ROOT?>/admin/avatar/edit/<?=$row->id?>">
-                                      <i class="bx bx-pencil fs-5 text-success"></i> 
-                                    </a>
-                                    <a href="<?=ROOT?>/admin/avatar/delete/<?=$row->id?>">
-                                      <i class="bx bx-trash fs-5 text-danger"></i>
-                                    </a>
-                                  </td>
-                                </tr>
-                              <?php endforeach;?>
-                            </tbody>
-                          <?php else:?>
-                            <tbody>
-                              <tr>
-                                <td class="text-center text-danger" colspan="10">
-                                  <span class="fs-3 d-block my-2"><i class="bi bi-emoji-frown"></i> Oh, no! No record found.</span>
-                                  <a href="<?=ROOT?>/admin/avatar">
-                                    <button class="btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
-                                  </a>
-                                </td>
-                              </tr>
-                            </tbody>
-                          <?php endif;?>
-                        </table>
-                      </div>
-                      <!-- -| ./Table with stripped rows\. |- -->
-
-                    </div>
-                  </div>
-                <?php else: ?>
-                  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span class="fs-3 d-block my-2">
-                      <i class="bi bi-x-octagon"></i>
-                      As a <?=esc(ucfirst($uid->role_name))?>&comma; You're not allowed here.
-                    </span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                <?php endif; ?>
+                </div>
               </div>
-              <!-- End Courses View -->
             </div>
-          <!-- </div> -->
-          <!-- End Left side columns -->
-        </div>
-      </section>
-      <!-- -------| ./Action=>'READ'\. |------- -->
-    <?php endif; ?>
+            <!-- End Courses View -->
+          </div>
+        <!-- </div> -->
+        <!-- End Left side columns -->
+      </div>
+    </section>
+    <!-- -------| ./Action=>'READ'\. |------- -->
   </main>
   <!-- -------| ./MAIN\. |------- -->
 

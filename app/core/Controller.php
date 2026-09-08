@@ -33,13 +33,13 @@ class controller {
   public function view($view,$data = []) {
     extract($data);
 
-    $filename = "../app/views/".strtolower($view).".view.php";
+    $filename = __DIR__ . '/../views/' . strtolower($view) . '.view.php';
     if (file_exists($filename)) {
       # ...| TRUE Block
       require $filename;
     } else {
       # ...| FALSE Block
-      echo "Error! Could not find view file: ". $filename;
+      echo "Error! Could not find view file: " . $filename;
     }
     # ---| ./IF?ELSE
   }

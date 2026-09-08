@@ -165,6 +165,134 @@ class Admin extends Controller {
     $user = new \Model\User();
     # ---| ./MODELS\. | ---
 
+    # -----| AJAX Handlers |-----
+    if ($_SERVER['REQUEST_METHOD'] == "POST" && !empty($_POST['ajax'])) {
+      $ajax_action = $_POST['ajax'] ?? null;
+      header('Content-Type: application/json');
+
+      if ($ajax_action == 'load_exam_requests') {
+        # ...| Load Exam Enrollment Requests |-----
+        $exam_id = $_POST['exam_id'] ?? null;
+        $exam_join_request = new \Model\Exam_join_request();
+        
+        $query = "SELECT ejr.*, u.firstname, u.lastname, u.email FROM exam_join_requests ejr 
+                  JOIN users u ON ejr.user_id = u.id 
+                  WHERE ejr.exam_id = :exam_id AND ejr.disabled = 0 
+                  ORDER BY ejr.requested_at DESC";
+        $requests = $exam_join_request->query($query, ['exam_id' => $exam_id]);
+        
+        $html = '';
+        if ($requests) {
+          foreach ($requests as $req) {
+            $statusClass = $req->status == 'Approved' ? 'success' : ($req->status == 'Rejected' ? 'danger' : 'warning');
+            $html .= "<tr>";
+            $html .= "<td>" . htmlspecialchars($req->firstname . ' ' . $req->lastname) . "</td>";
+            $html .= "<td>" . htmlspecialchars($req->email) . "</td>";
+            $html .= "<td><span class='badge bg-{$statusClass}'>" . htmlspecialchars($req->status) . "</span></td>";
+            $html .= "<td>";
+            if ($req->status == 'Pending') {
+              $html .= "<form class='request-form' data-exam-id='{$exam_id}' data-user-id='{$req->user_id}'>";
+              $html .= "<select name='status' class='form-select form-select-sm' required>";
+              $html .= "<option value=''>Select action...</option>";
+              $html .= "<option value='Approved'>Approve</option>";
+              $html .= "<option value='Rejected'>Reject</option>";
+              $html .= "</select>";
+              $html .= "</form>";
+            } else {
+              $html .= "<em>No action available</em>";
+            }
+            $html .= "</td>";
+            $html .= "</tr>";
+          }
+        } else {
+          $html = "<tr><td colspan='4' class='text-center text-muted'>No enrollment requests</td></tr>";
+        }
+
+        echo json_encode(['success' => true, 'html' => $html]);
+        exit;
+        # ---| ./Load Exam Requests\. |---
+      } elseif ($ajax_action == 'update_request_status') {
+        # ...| Update Enrollment Request Status |-----
+        $exam_id = $_POST['exam_id'] ?? null;
+        $user_id = $_POST['user_id'] ?? null;
+        $status = $_POST['status'] ?? null;
+        $exam_join_request = new \Model\Exam_join_request();
+        $exam_enroll = new \Model\Exam_enroll();
+
+        if ($status == 'Approved') {
+          # ...| Create enrollment record
+          $enrollment_data = ['user_id' => $user_id, 'exam_id' => $exam_id, 'disabled' => 0];
+          if (!$exam_enroll->exists($user_id, $exam_id)) {
+            $exam_enroll->insert($enrollment_data);
+          }
+        }
+
+        # Update request status
+        $query = "UPDATE exam_join_requests SET status = :status, approved_by = :approved_by, approved_at = :approved_at 
+                  WHERE exam_id = :exam_id AND user_id = :user_id";
+        $exam_join_request->query($query, [
+          'status' => $status,
+          'approved_by' => $user_id,
+          'approved_at' => date('Y-m-d H:i:s'),
+          'exam_id' => $exam_id,
+          'user_id' => $user_id
+        ]);
+
+        echo json_encode(['success' => true, 'message' => 'Request ' . strtolower($status) . ' successfully']);
+        exit;
+        # ---| ./Update Request Status\. |---
+      } elseif ($ajax_action == 'load_exam_results') {
+        # ...| Load Exam Results for Review |-----
+        $exam_id = $_POST['exam_id'] ?? null;
+        $exam_result = new \Model\Exam_result();
+        
+        $results = $exam_result->getResultsByStatus($exam_id, 'Submitted');
+        
+        $html = '';
+        if ($results) {
+          foreach ($results as $result) {
+            $html .= "<tr>";
+            $html .= "<td>" . htmlspecialchars($result->user->firstname . ' ' . $result->user->lastname) . "</td>";
+            $html .= "<td>" . htmlspecialchars($result->user->email) . "</td>";
+            $html .= "<td>" . number_format($result->percentage, 2) . "%</td>";
+            $html .= "<td>" . $result->submitted_at . "</td>";
+            $html .= "<td>";
+            $html .= "<button class='btn btn-sm btn-outline-success approve-result' data-exam-id='{$exam_id}' data-result-id='{$result->id}' data-user-id='{$result->user_id}'>Approve</button>";
+            $html .= "</td>";
+            $html .= "</tr>";
+          }
+        } else {
+          $html = "<tr><td colspan='5' class='text-center text-muted'>No results to review</td></tr>";
+        }
+
+        echo json_encode(['success' => true, 'html' => $html]);
+        exit;
+        # ---| ./Load Exam Results\. |---
+      } elseif ($ajax_action == 'approve_exam_result') {
+        # ...| Approve Exam Result |-----
+        $result_id = $_POST['result_id'] ?? null;
+        $exam_id = $_POST['exam_id'] ?? null;
+        $user_id = $_POST['user_id'] ?? null;
+        $allow_retake = $_POST['allow_retake'] ?? 0;
+        $exam_result = new \Model\Exam_result();
+
+        $query = "UPDATE exam_results SET status = :status, reviewed_by = :reviewed_by, approved_at = :approved_at, retake_allowed = :retake_allowed 
+                  WHERE id = :id";
+        $exam_result->query($query, [
+          'status' => 'Approved',
+          'reviewed_by' => $user_id,
+          'approved_at' => date('Y-m-d H:i:s'),
+          'retake_allowed' => $allow_retake,
+          'id' => $result_id
+        ]);
+
+        echo json_encode(['success' => true, 'message' => 'Result approved successfully']);
+        exit;
+        # ---| ./Approve Exam Result\. |---
+      }
+    }
+    # ---| ./AJAX Handlers\. |---
+
     $question_button = '';
     $data = [];
 
@@ -296,9 +424,34 @@ class Admin extends Controller {
       # ---| ./Action=>VIEW\. |---
     } else {
       # ...| EXAM MAIN PAGE Block
-      $query = "select id, user_id, exam_title, exam_datetime, exam_duration, exam_status, course_id from exam where user_id = :user_id";
-      $rows = $exam->query($query,['user_id'=>$user_id]);
-      $data['rows'] = $rows;
+      $role_id = $uid->role_id ?? 1;
+      
+      # Load teacher's exams
+      $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where created_by = :created_by and disabled = 0 order by exam_created_on desc";
+      $teacher_exams = $exam->query($query, ['created_by' => $user_id]);
+      $data['role_id'] = $role_id;
+      $data['teacher_exams'] = $teacher_exams;
+
+      # Load published exams for all users
+      $published_query = "select id, exam_title, exam_datetime, exam_duration, course_id, created_by from exam where approved = 1 and published = 1 and disabled = 0 order by exam_datetime asc";
+      $published_exams = $exam->query($published_query);
+      $data['published_exams'] = $published_exams;
+
+      # Load student's enrolled exams
+      $student_query = "select distinct e.id, e.exam_title, e.exam_datetime, e.exam_duration from exam_enroll ee 
+                        join exam e on ee.exam_id = e.id 
+                        where ee.user_id = :user_id 
+                        order by e.exam_datetime asc";
+      $student_exams = $exam->query($student_query, ['user_id' => $user_id]);
+      $data['student_exams'] = $student_exams;
+
+      # Load pending exams for admin approval (only for admins)
+      if ($role_id == 3) {
+        $pending_query = "select id, exam_title, created_by, exam_created_on from exam where approved = 0 and published = 0 and disabled = 0 order by exam_created_on desc";
+        $pending_exams = $exam->query($pending_query);
+        $data['pending_exams'] = $pending_exams;
+      }
+
       # ---| ./EXAM MAIN PAGE\. |---
     }
     # ---| ./IF/ELSE(Action)
@@ -571,6 +724,18 @@ class Admin extends Controller {
           $_POST['create_date'] = date("Y-m-d H:i:s");
           $_POST['user_id'] = $user_id;
           // $_POST['price_id'] = 1;
+
+          $base_slug = str_to_url($_POST['title']);
+          $slug = $base_slug;
+          $counter = 2;
+
+          while ($course->first(['slug' => $slug])) {
+            $slug = $base_slug.'-'.$counter;
+            $counter++;
+          }
+          # ---| ./WHILE(SLUG)
+
+          $_POST['slug'] = $slug;
 
           $course->insert($_POST);
 
@@ -1386,6 +1551,72 @@ class Admin extends Controller {
   }
   # ---| ./Lessons()\. | ---
 
+  # -----| Course_Details() | -----
+  public function course_details($slug = null) {
+    if (!Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+    }
+
+    $course = new \Model\Course();
+    $course_meta = new \Model\Course_meta();
+    $user = new \Model\User();
+
+    $data['uid'] = $user->first(['id'=>Auth::getId()]);
+    $data['title'] = "Course Details";
+    $data['course'] = $course->first([
+      'slug' => $slug,
+      'approved' => 1,
+      'published' => 1,
+    ]);
+
+    if (!$data['course']) {
+      message('Course not found.');
+      redirect('admin/lessons');
+    }
+
+    $data['course_sections'] = $course_meta->where([
+      'course_id' => $data['course']->id,
+      'disabled' => 0,
+      'data_type' => 'curriculum',
+    ]) ?: [];
+
+    $data['course_sections'] = array_reverse($data['course_sections']);
+
+    $this->view('admin/course-details', $data);
+  }
+  # ---| ./Course_Details()\. | ---
+
+  # -----| Avatar() | -----
+  public function avatar($action = null, $id = null) {
+    if (!Auth::logged_in()) {
+      # ...| TRUE Block
+      message('Please, log in!');
+      redirect('login');
+    }
+    # ---| ./IF(logged_in())
+
+    $user_id = Auth::getId();
+    $course = new \Model\Course();
+    $category = new \Model\Category();
+    $language = new \Model\Language_model();
+    $level = new \Model\Level_model();
+    $user = new \Model\User();
+    # ---| ./MODELS\. | ---
+
+    $data = [];
+
+    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
+    $data['row'] = $row = $user->first(['id'=>$user_id]);
+
+    $data['action'] = $action;
+    $data['id'] = $id;
+    $data['title'] = "Course Details";
+
+    $this->view('admin/avatar',$data);
+  }
+  # ---| ./Avatar()\. | ---
+
   # -----| Lectures() | -----
   public function lectures($action = null, $id = null) {
     if (!Auth::logged_in()) {
@@ -1899,6 +2130,43 @@ class Admin extends Controller {
   }
   # ---| ./Profile()\. | ---
 
+  public function change_password() {
+    if (!Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      redirect('admin/profile');
+    }
+
+    if (($_POST['csrf_code'] ?? '') !== ($_SESSION['csrf_code'] ?? '')) {
+      message('Security check failed.');
+      redirect('admin/profile');
+    }
+
+    $user = new \Model\User();
+    $user_id = Auth::getId();
+    $current_user = $user->first(['id'=>$user_id]);
+
+    if (!$current_user) {
+      message('User not found.');
+      redirect('admin/profile');
+    }
+
+    if ($user->validate_password_change($_POST, $current_user)) {
+      $user->update($user_id, [
+        'password' => password_hash($_POST['new_password'], PASSWORD_DEFAULT),
+      ]);
+      message('Password changed successfully.');
+    } else {
+      message(implode(' ', $user->errors));
+    }
+
+    redirect('admin/profile');
+  }
+  # ---| ./Change_Password()\. | ---
+
   # -----| Slider_Images() | -----
   public function slider_images($id = null) {
     if (!Auth::logged_in()) {
@@ -1970,10 +2238,19 @@ class Admin extends Controller {
         if (!empty($destination)) {
           # ...| TRUE Block
           move_uploaded_file($_FILES['image']['tmp_name'], $destination);
-          resize_image($destination);
+
+          // Keep the original uploaded file at its native resolution,
+          // and create a smaller thumbnail for previews only.
+          create_slider_thumbnail($destination);
+
           if ($row && file_exists($row->image)) {
             # ...| TRUE Block
             unlink($row->image);
+
+            $old_thumb = slider_thumb_path($row->image);
+            if (file_exists($old_thumb)) {
+              unlink($old_thumb);
+            }
           }
           # ---| ./IF(imageExist)
         }

@@ -41,6 +41,7 @@ class Exam extends Model {
     'id',
     'user_id',
     'exam_title',
+    'exam_description',
     'exam_datetime',
     'exam_duration',
     'total_question',
@@ -48,8 +49,11 @@ class Exam extends Model {
     'wrong_answer_mark',
     'exam_created_on',
     'exam_status',
-    'csrf_code',
+    'created_by',
     'course_id',
+    'approved',
+    'published',
+    'csrf_code',
     'disabled',
   ];
   # ---| ./Properties\. |---
@@ -313,6 +317,54 @@ class Exam extends Model {
 	}
   # ------------|  ./Fill Exam List
 
+
+  # Get Pending Approvals  ---------------
+  public function get_pending_approvals() {
+    $query = "SELECT id, exam_title, created_by, exam_created_on FROM exam WHERE approved = 0 AND published = 0 AND disabled = 0 ORDER BY exam_created_on DESC";
+    return $this->query($query);
+  }
+  # ------------|  ./Get Pending Approvals
+
+
+  # Publish Exam  ---------------
+  public function publish_exam($id) {
+    $query = "UPDATE exam SET approved = 1, published = 1 WHERE id = :id";
+    return $this->query($query, ['id' => $id]);
+  }
+  # ------------|  ./Publish Exam
+
+
+  # Get Published Exams  ---------------
+  public function get_published_exams() {
+    $query = "SELECT id, exam_title, exam_datetime, exam_duration, course_id FROM exam WHERE approved = 1 AND published = 1 AND disabled = 0 ORDER BY exam_datetime ASC";
+    return $this->query($query);
+  }
+  # ------------|  ./Get Published Exams
+
+
+  # Get Teacher Exams  ---------------
+  public function get_teacher_exams($teacher_id) {
+    $query = "SELECT id, exam_title, exam_datetime, exam_duration, approved, published, exam_created_on FROM exam WHERE created_by = :created_by AND disabled = 0 ORDER BY exam_created_on DESC";
+    return $this->query($query, ['created_by' => $teacher_id]);
+  }
+  # ------------|  ./Get Teacher Exams
+
+
+  # Get Exam Results  ---------------
+  public function get_exam_results($exam_id) {
+    $db = new \Database();
+    $query = "SELECT er.*, u.firstname, u.lastname, u.email FROM exam_results er JOIN users u ON er.user_id = u.id WHERE er.exam_id = :exam_id AND er.disabled = 0 ORDER BY er.submitted_at DESC";
+    return $db->query($query, ['exam_id' => $exam_id]);
+  }
+  # ------------|  ./Get Exam Results
+
+
+  # Allow Retake  ---------------
+  public function allow_retake($exam_id, $user_id) {
+    $query = "UPDATE exam_results SET retake_allowed = 1 WHERE exam_id = :exam_id AND user_id = :user_id";
+    return $this->query($query, ['exam_id' => $exam_id, 'user_id' => $user_id]);
+  }
+  # ------------|  ./Allow Retake
 
   #   ---------------
   # ------------|  ./

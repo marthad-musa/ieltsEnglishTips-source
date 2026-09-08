@@ -22,7 +22,7 @@
         <li><a href="<?=ROOT?>/about" class="<?=active_nav('about')?? ''?>">About</a></li>
         <li><a href="<?=ROOT?>/courses" class="<?=active_nav('courses')?? ''?>">Courses</a></li>
         <li><a href="<?=ROOT?>/faculty" class="<?=active_nav('faculty')?? ''?>">Faculty</a></li>
-        <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li>
+        <!-- <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li> -->
         <li><a href="<?=ROOT?>/contact" class="<?=active_nav('contact')?? ''?>">Contact</a></li>
         <?php if(!Auth::logged_in()):?>
           <li><a href="<?=ROOT?>/login">Login</a></li>

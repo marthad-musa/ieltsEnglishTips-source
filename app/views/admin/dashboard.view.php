@@ -16,24 +16,8 @@
   </div>
   <!-- -------| ./Page Title\. |------- -->
   
-  <!-- ---- CHECK Page MESSAGES ---- -->
-  <div class="row">
-    <div class="col-md-6 w-50">
-      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-        <?php if(message()):?>
-          <span class="alert alert-warning">
-            <i class="bi bi-envelope-dash"></i>
-              <span class=""><?=message('',true)?></span>
-          </span>
-        <?php endif;?>
-      </div>
-    </div>
-  </div>
-  <!-- -| ./CHECK Page MESSAGES\. |- -->
-
   <!-- ---------| Main Content |--------- -->
   <?php if ($uid->role_id == 3): ?>
-
     <section class="section dashboard">
       <!-- TOP side columns -->
       <div class="col-lg-12">

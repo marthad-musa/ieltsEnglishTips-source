@@ -19,8 +19,8 @@
             <div class="social-links d-flex mt-4">
               <a href="https://facebook.com/profile.php?id=61589605594479"><i class="bi bi-facebook"></i></a>
               <a href="https://instagram.com/"><i class="bi bi-instagram"></i></a>
-              <a href="https://x.com/"><i class="bi bi-twitter-x"></i></a>
-              <a href="https://tiktok.com/@"><i class="bi bi-tiktok"></i></a>
+              <!-- <a href="https://x.com/"><i class="bi bi-twitter-x"></i></a> -->
+              <!-- <a href="https://tiktok.com/@"><i class="bi bi-tiktok"></i></a> -->
             </div>
           </div>
 
@@ -39,10 +39,9 @@
           <div class="col-lg-2 col-md-3 footer-links">
             <h4>Our Courses</h4>
             <ul>
-              <li><a href="<?=ROOT?>/courses/1">IELTS Academic</a></li>
-              <li><a href="<?=ROOT?>/courses/1">IELTS General Training</a></li>
-              <li><a href="<?=ROOT?>/courses/2">English Headway</a></li>
-              <li><a href="<?=ROOT?>/courses/3">ICDL</a></li>
+              <li><a href="<?=ROOT?>/ielts">IELTS</a></li>
+              <li><a href="<?=ROOT?>/headway">English Headway</a></li>
+              <li><a href="<?=ROOT?>/computer">ICDL</a></li>
               <li><a href="<?=ROOT?>/courses">More courses</a></li>
               <!-- <li><a href="<?=ROOT?>/">Terms of service</a></li>
               <li><a href="<?=ROOT?>/">Privacy policy</a></li> -->

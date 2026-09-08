@@ -329,21 +329,22 @@
         </div>
         <div class="col-md-6 w-50">
           <!-- ---- CHECK Page MESSAGES ---- -->
-          <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
+          <!-- <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
             <?php if(message()):?>
               <span class="alert alert-warning">
                 <i class="bi bi-envelope-dash"></i>
                   <span class=""><?=message('',true)?></span>
               </span>
             <?php endif;?>
-          </div>
+          </div> -->
           <!-- -| ./CHECK Page MESSAGES\. |- -->
         </div>
       </div>
       <!-- End Page Title -->
 
       <!-- ---- Approved Courses ---- -->
-      <?php if ($uid->role_id == '2' || $uid->role_id == '3'): ?>
+      <?php // if ($uid->role_id == '2' || $uid->role_id == '3'): ?>
+      <?php if (in_array((int)$uid->role_id, [1, 2, 3], true)): ?>
         <div class="row">
           <?php if ($approved_courses): ?>
             <div class="col-md-12 row">
@@ -364,7 +365,23 @@
                   </div>
                   <div class="card-footer">
                     <span class="date"><i class="bi bi-calendar2"></i> Starts: <?=get_date($app_course->start_date)?></span> <br>
-                    <button class="btn btn-outline-primary m-1 float-end"><i class="bi bi-box-arrow-in-right"></i> Join now!</button>
+                    <!-- <button class="btn btn-outline-primary m-1 float-end"><i class="bi bi-box-arrow-in-right"></i> Join now!</button> -->
+                    <?php if (in_array((int)$uid->role_id, [2, 3], true)): ?>
+                      <a href="<?=ROOT?>/admin/lessons" class="btn btn-outline-primary m-1 float-end">
+                        <i class="bi bi-box-arrow-in-right"></i> Join now!
+                      </a>
+                    <?php elseif ((int)$uid->role_id === 1): ?>
+                      <form method="post"
+                            action="<?=ROOT?>/course_details/enroll/<?=esc($app_course->slug)?>"
+                            class="d-inline">
+                        <input type="hidden"
+                              name="csrf_code"
+                              value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
+                        <button type="submit" class="btn btn-outline-primary m-1 float-end">
+                          <i class="bi bi-box-arrow-in-right"></i> Join now!
+                        </button>
+                      </form>
+                    <?php endif; ?>
                   </div>
                 </div>
               <?php endforeach; ?>

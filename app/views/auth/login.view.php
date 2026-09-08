@@ -60,12 +60,12 @@
                   <!-- -| ./Password\. |- -->
 
                   <!-- ---- RememberMe ---- -->
-                  <div class="col-12">
+                  <!-- <div class="col-12">
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" name="remember" value="1" id="rememberMe">
                       <label class="form-check-label" for="rememberMe">Remember me</label>
                     </div>
-                  </div>
+                  </div> -->
                   <!-- -| ./RememberMe\. |- -->
 
                   <div class="col-12">

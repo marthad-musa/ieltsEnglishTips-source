@@ -75,7 +75,9 @@ define('NoIMAGE', 'assets/img/noIMG.jpg');
  * DATABASE Configuration
  * *
  */
-if ($_SERVER['SERVER_NAME'] == 'localhost') {
+$is_local = isset($_SERVER['HTTP_HOST']) && stripos($_SERVER['HTTP_HOST'], 'localhost') !== false;
+
+if ($is_local) {
 
   /**
    * --------------------
@@ -84,7 +86,8 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
    */
 
   # DATABASE HOST  ---------------
-  define('DBHOST', 'localhost');
+  // define('DBHOST', 'localhost');
+  define('DBHOST', '127.0.0.1');
   # ------------|  ./DATABASE HOST
 
   # DATABASE NAME  ---------------
@@ -109,7 +112,6 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
    * define('ROOT', ROOTPATH.'public');
    * ----------------------------------
    */
-  // define('ROOT', 'http://localhost/mentor/public_html');
   define('ROOT', 'http://localhost/ieltsenglishtips/public_html');
   # ------------|  ./Full ROOT URL for LOCAL Hosting
 
@@ -123,6 +125,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
 
   # DATABASE HOST  ---------------
   define('DBHOST', 'localhost');
+  // define('DBHOST', '127.0.0.1');
   # ------------|  ./DATABASE HOST
 
   # DATABASE NAME  ---------------
@@ -147,7 +150,8 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
    * define('ROOT', ROOTPATH.'public');
    * ----------------------------------
    */
-  define('ROOT', 'https://www.ieltsenglishtips.com');
+  // define('ROOT', 'https://www.ieltsenglishtips.com');
+  define('ROOT', 'https://ieltsenglishtips.com');
   # ------------|  ./Full ROOT URL for LOCAL Hosting
 }
 # ---| ./IF/ELSE

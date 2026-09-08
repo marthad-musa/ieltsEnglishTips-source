@@ -12,6 +12,7 @@ class Exam_enroll extends Model {
   public $errors = [];
   protected $table = "exam_enroll";
   protected $allowedColumns = [
+    'id',
     'user_id',
     'exam_id',
   ];
@@ -47,4 +48,21 @@ class Exam_enroll extends Model {
     }
     return 0;
   }
+
+  # -----| Get Enrolled Users |-----
+  public function getEnrolledUsers($exam_id) {
+    $query = "SELECT u.id, u.firstname, u.lastname, u.email FROM exam_enroll ee JOIN users u ON ee.user_id = u.id WHERE ee.exam_id = :exam_id";
+    return $this->query($query, ['exam_id' => $exam_id]);
+  }
+  # ---| ./Get Enrolled Users\. | ---
+
+  # -----| Check If Can Take Exam |-----
+  public function canTakeExam($user_id, $exam_id) {
+    $query = "SELECT ee.* FROM exam_enroll ee WHERE ee.user_id = :user_id AND ee.exam_id = :exam_id";
+    $result = $this->query($query, ['user_id' => $user_id, 'exam_id' => $exam_id]);
+    return !empty($result);
+  }
+  # ---| ./Check If Can Take Exam\. | ---
+
 }
+

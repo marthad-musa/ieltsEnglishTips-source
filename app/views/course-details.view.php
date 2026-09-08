@@ -8,7 +8,7 @@
   <!-- ---------| Page Title |--------- -->
   <div class="page-title" data-aos="fade">
     <!-- ---------| Hero Section |--------- -->
-    <!-- <section id="hero" class="hero section dark-background">
+    <section id="hero" class="hero section dark-background">
 
       <img src="<?=ROOT?>/assets/img/hero-3.png" alt="" data-aos="fade-in">
 
@@ -16,7 +16,7 @@
         <h2 data-aos="fade-up" data-aos-delay="100">Course Details</h2>
         <p data-aos="fade-up" data-aos-delay="200">Find out more deteails about this course.</p>
       </div>
-    </section> -->
+    </section>
     <!-- -------| ./Hero Section\. |------- -->
 
     <nav class="breadcrumbs">
@@ -76,6 +76,51 @@
             </div>
           </div>
           <!-- End Course Header -->
+
+          <!-- Course Sections -->
+          <div class="course-curriculum mt-4" data-aos="fade-up" data-aos-delay="300">
+            <h3>Course Sections</h3>
+
+            <?php
+              $course_sections = array_filter($coursesMeta ?? [], function ($section) {
+                return ($section->data_type ?? '') === 'curriculum';
+              });
+            ?>
+
+            <?php if (!empty($course_sections)): ?>
+              <?php foreach ($course_sections as $section): ?>
+                <div class="curriculum-section mb-3">
+                  <div class="section-header">
+                    <h4><?=esc($section->value ?? 'Untitled section')?></h4>
+                  </div>
+
+                  <?php
+                    $lectures = array_filter($section->lectures_row ?? [], function ($lecture) {
+                      return (int)($lecture->disabled ?? 0) === 0;
+                    });
+                  ?>
+
+                  <?php if (!empty($lectures)): ?>
+                    <div class="lessons">
+                      <?php foreach ($lectures as $lecture): ?>
+                        <div class="lesson-item">
+                          <div class="lesson-info">
+                            <i class="bi bi-play-circle"></i>
+                            <span><?=esc($lecture->title)?></span>
+                          </div>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
+                  <?php else: ?>
+                    <p class="text-muted mb-0">No lectures in this section yet.</p>
+                  <?php endif; ?>
+                </div>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <p class="text-muted">No course sections available yet.</p>
+            <?php endif; ?>
+          </div>
+          <!-- End Course Sections -->
 
           <!-- Course Content -->
           <!-- <div class="course-content" data-aos="fade-up" data-aos-delay="300">
@@ -238,6 +283,7 @@
               </div>
 
               <form method="post" action="<?=ROOT?>/course_details/enroll/<?=esc($row->slug)?>">
+                <?php csrf() ?>
                 <button type="submit" class="btn-enroll">Enroll Now</button>
               </form>
               <button class="btn-preview">Preview Course</button>

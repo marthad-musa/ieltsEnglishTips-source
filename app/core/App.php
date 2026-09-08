@@ -31,7 +31,8 @@ class App {
   function __construct() {
     $arr = $this->getURL();
 
-    $filename = "../app/controllers/".ucfirst($arr[0]).".php";
+    // $filename = "../app/controllers/".ucfirst($arr[0]).".php";
+    $filename = __DIR__ . '/../controllers/' . ucfirst($arr[0]) . '.php';
     if (file_exists($filename)) {
       # ...| TRUE Block
       require $filename;
@@ -40,7 +41,8 @@ class App {
       unset($arr[0]);
     } else {
       # ...| FALSE Block
-      require "../app/controllers/".$this->controller.".php";
+      // require "../app/controllers/".$this->controller.".php";
+      require __DIR__ . '/../controllers/' . $this->controller . '.php';
     }
     # ---| ./IF/ELSE
 

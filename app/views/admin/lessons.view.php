@@ -14,21 +14,6 @@
   </div>
   <!-- -------| ./Page Title\. |------- -->
   
-  <!-- ---- CHECK Page MESSAGES ---- -->
-  <div class="row">
-    <div class="col-md-6 w-50">
-      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-        <?php if(message()):?>
-          <span class="alert alert-warning">
-            <i class="bi bi-envelope-dash"></i>
-              <span class=""><?=message('',true)?></span>
-          </span>
-        <?php endif;?>
-      </div>
-    </div>
-  </div>
-  <!-- -| ./CHECK Page MESSAGES\. |- -->
-
   <!-- ---------| Main Content |--------- -->
   <?php if ($uid->role_id == 3): ?>
     <section class="section">
@@ -51,9 +36,9 @@
                       <p class="card-text small mb-3"><?=esc($course_row->description ?? 'No description provided.')?></p>
                     </div>
                     <div class="card-footer bg-white border-0 pt-0">
-                      <button type="button" class="btn btn-sm btn-primary select-course-btn" data-course-id="<?=esc($course_row->id)?>">
+                      <a href="<?=ROOT?>/admin/course-details/<?=esc($course_row->slug)?>" class="btn btn-sm btn-primary">
                         Select Course
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -108,7 +93,7 @@
                       <p class="text-muted small mb-2"><?=esc($course_row->category_row->category ?? 'General')?></p>
                     </div>
                     <div class="card-footer bg-white border-0 pt-0">
-                      <button type="button" class="btn btn-sm btn-outline-primary select-course-btn" data-course-id="<?=esc($course_row->id)?>">Open Course</button>
+                      <a href="<?=ROOT?>/admin/course-details/<?=esc($course_row->slug)?>" class="btn btn-sm btn-outline-primary">Open Course</a>
                     </div>
                   </div>
                 </div>
@@ -237,3 +222,4 @@
     }
   });
 </script>
+<?php $this->view('partials/private.footer',$data) ?>

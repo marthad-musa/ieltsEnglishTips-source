@@ -17,6 +17,21 @@
   </div>
   <!-- End Search Bar -->
 
+  <!-- ---- CHECK Page MESSAGES ---- -->
+  <div class="row ms-5">
+    <div class="col-md-6 w-100">
+      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
+        <?php if(message()):?>
+          <span class="alert alert-warning">
+            <i class="bi bi-envelope-dash"></i>
+              <span class=""><?=message('',true)?></span>
+          </span>
+        <?php endif;?>
+      </div>
+    </div>
+  </div>
+  <!-- -| ./CHECK Page MESSAGES\. |- -->
+
   <nav class="header-nav ms-auto">
     <ul class="d-flex align-items-center">
 
@@ -126,25 +141,25 @@
         <!-- End ENROLLED COURSES Page Nav -->
 
         <!-- ---------- |This should be limited to Admin| ---------- -->
-        <?php // if(user_can('view_ategories')):?>
+        <?php if($uid->role_id == '3' || user_can('view_categories')):?>
           <li class="nav-item">
             <a class="nav-link" href="<?=ROOT?>/admin/categories">
               <i class="bi bi-card-list fs-6"></i>
               <span>Categories</span>
             </a>
           </li>
-        <?php // endif;?>
+        <?php endif;?>
         <!-- End CATEGORIES Page Nav -->
 
         <!-- ---------- |This should be limited to Instructors| ---------- -->
-        <?php // if(user_can('view_material')):?>
+        <?php if(user_can('view_material')):?>
           <li class="nav-item">
             <a class="nav-link" href="<?=ROOT?>/admin/lectures">
               <i class="bi bi-camera-reels fs-6"></i>
               <span>Lectures Materials</span>
             </a>
           </li>
-        <?php // endif;?>
+        <?php endif;?>
         <!-- End LECTURES MATERIALS Page Nav -->
           
         <!-- ---------- |This should be limited to Instructors| ---------- -->

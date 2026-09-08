@@ -228,9 +228,22 @@ function set_checked($key, $value, $default = '') {
 # ---| ./SET_CHECKED()\. | ---
 
 # -----| REDIRECT() | -----
-function redirect($link) {
-  header("Location: ".ROOT."/".$link);
-  die;
+// function redirect($link) {
+//   header("Location: ".ROOT."/".$link);
+//   die;
+// }
+function redirect(string $link = '', int $status = 302): void {
+  if (headers_sent($file, $line)) {
+    error_log("Redirect failed: headers already sent in {$file}:{$line}");
+    return;
+  }
+
+  $location = preg_match('/^https?:\/\//i', $link)
+    ? $link
+    : rtrim(ROOT, '/') . '/' . ltrim($link, '/');
+
+  header('Location: ' . $location, true, $status);
+  exit;
 }
 # ---| ./REDIRECT()\. | ---
 
@@ -383,6 +396,101 @@ function resize_image($filename, $max_size = 700) {
   return $filename;
 }
 # ---| ./ReSize_Image()\. | ---
+
+# -----| Slider_Thumb_Path() | -----
+function slider_thumb_path($file) {
+  if (empty($file)) {
+    return "";
+  }
+
+  $dir = dirname($file);
+  $base = basename($file);
+  return $dir . "/thumb_" . $base;
+}
+# ---| ./Slider_Thumb_Path()\. | ---
+
+# -----| Create_Slider_Thumbnail() | -----
+function create_slider_thumbnail($source, $max_width = 1400, $max_height = 900, $quality = 90) {
+  if (empty($source) || !file_exists($source)) {
+    return false;
+  }
+
+  $mime = mime_content_type($source);
+  if (!in_array($mime, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'])) {
+    return false;
+  }
+
+  $thumb_path = slider_thumb_path($source);
+  if (file_exists($thumb_path)) {
+    return $thumb_path;
+  }
+
+  switch ($mime) {
+    case 'image/png':
+      $src_image = imagecreatefrompng($source);
+      break;
+
+    case 'image/gif':
+      $src_image = imagecreatefromgif($source);
+      break;
+
+    case 'image/jpeg':
+    case 'image/jpg':
+    default:
+      $src_image = imagecreatefromjpeg($source);
+      break;
+  }
+
+  $src_w = imagesx($src_image);
+  $src_h = imagesy($src_image);
+
+  $ratio = min($max_width / $src_w, $max_height / $src_h, 1);
+  $dst_w = max(1, (int) round($src_w * $ratio));
+  $dst_h = max(1, (int) round($src_h * $ratio));
+
+  $dst_image = imagecreatetruecolor($dst_w, $dst_h);
+
+  if ($mime === 'image/png') {
+    imagealphablending($dst_image, false);
+    imagesavealpha($dst_image, true);
+  }
+
+  imagecopyresampled($dst_image, $src_image, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
+
+  switch ($mime) {
+    case 'image/png':
+      imagepng($dst_image, $thumb_path, 9);
+      break;
+
+    case 'image/gif':
+      imagegif($dst_image, $thumb_path);
+      break;
+
+    case 'image/jpeg':
+    case 'image/jpg':
+    default:
+      imagejpeg($dst_image, $thumb_path, $quality);
+      break;
+  }
+
+  imagedestroy($src_image);
+  imagedestroy($dst_image);
+
+  return $thumb_path;
+}
+# ---| ./Create_Slider_Thumbnail()\. | ---
+
+# -----| Get_Slider_Image() | -----
+function get_slider_image($file) {
+  $thumb = slider_thumb_path($file);
+
+  if (!empty($thumb) && file_exists($thumb)) {
+    return ROOT . "/" . $thumb;
+  }
+
+  return get_image($file);
+}
+# ---| ./Get_Slider_Image()\. | ---
 
 # -----| Get_IMAGE() | -----
 function get_image($file) {

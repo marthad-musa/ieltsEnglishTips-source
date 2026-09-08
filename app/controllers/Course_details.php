@@ -69,9 +69,67 @@ class Course_details extends Controller {
     }
     # ---| ./IF(Rows)
 
-    $this->view('course_details',$data);
+    $this->view('course-details',$data);
   }
   # ---| ./Index()\. | ---
+  
+  # -----| Enroll() |-----
+  public function enroll($slug = null) {
+    if (!\Model\Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      redirect('course_details/'.$slug);
+    }
+
+    if (($_POST['csrf_code'] ?? '') !== ($_SESSION['csrf_code'] ?? '')) {
+      message('Security check failed.');
+      redirect('course_details/'.$slug);
+    }
+
+    $course = new \Model\Course();
+    $row = $course->first([
+      'slug' => $slug,
+      'approved' => 1,
+      'published' => 1
+    ]);
+
+    if (!$row) {
+      message('Course not found.');
+      redirect('courses');
+    }
+
+    $user = new \Model\User();
+    $currentUser = $user->first(['id' => \Model\Auth::getId()]);
+
+    if (!$currentUser || (int)$currentUser->role_id !== 1) {
+      redirect('admin/lessons');
+    }
+
+    $enrollment = new \Model\Enrollment();
+    $existing = $enrollment->first([
+      'user_id' => $currentUser->id,
+      'course_id' => $row->id
+    ]);
+
+    if ($existing) {
+      if ((int)$existing->disabled === 1) {
+        $enrollment->update($existing->id, ['disabled' => 0]);
+      }
+    } else {
+      $enrollment->insert([
+        'user_id' => $currentUser->id,
+        'course_id' => $row->id,
+        'disabled' => 0
+      ]);
+    }
+
+    message('You have been enrolled successfully.');
+    redirect('course_details/'.$row->slug);
+  }
+  # ---| ./Enroll()\. | ---
 
   # -----| Constructor |-----
   // function __construct() {

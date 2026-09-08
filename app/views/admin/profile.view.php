@@ -24,21 +24,6 @@
   </div>
   <!-- -------| ./Page Title\. |------- -->
   
-  <!-- ---- CHECK Page MESSAGES ---- -->
-  <div class="row">
-    <div class="col-md-6 w-50">
-      <div class="<?=!message() ? 'd-none' : ''?> text-center my-4">
-        <?php if(message()):?>
-          <span class="alert alert-warning">
-            <i class="bi bi-envelope-dash"></i>
-              <span class=""><?=message('',true)?></span>
-          </span>
-        <?php endif;?>
-      </div>
-    </div>
-  </div>
-  <!-- -| ./CHECK Page MESSAGES\. |- -->
-
   <!-- ---------| Main Content |--------- -->
   <?php if(!empty($uid)): ?>
     <section class="section profile">
@@ -78,9 +63,9 @@
                   <button onclick="set_tab(this.getAttribute('data-bs-target'))" class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings" id="profile-settings-tab">Settings</button>
                 </li> -->
 
-                <!-- <li class="nav-item">
+                <li class="nav-item">
                   <button onclick="set_tab(this.getAttribute('data-bs-target'))" class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password" id="profile-change-password-tab">Change Password</button>
-                </li> -->
+                </li>
 
               </ul>
               <div class="tab-content pt-2">
@@ -367,7 +352,7 @@
                       <a href="<?=ROOT?>/admin/dashboard">
                         <button type="button" class="btn btn-secondary w-25 float-start">Go back!</button>
                       </a>
-                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end">Save Changes</button>
+                      <button type="button" onclick="save_profile(event)" class="btn btn-success w-25 float-end">Save Changes</button>
                     </div>
                     <!-- -| ./Submit\. |- -->
                   </form>
@@ -406,70 +391,68 @@
 
                 <!-- </div> -->
 
-                <!-- <div class="tab-pane fade pt-3" id="profile-change-password"> -->
+                <div class="tab-pane fade pt-3" id="profile-change-password">
 
                   <!-- ---------| Change Password |--------- -->
-                  <!-- <form method="post"> -->
+                  <form method="post" action="<?=ROOT?>/admin/change_password">
+                    <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
                     <!-- ---| Current Password |--- -->
-                    <!-- <div class="row mb-3">
+                    <div class="row mb-3">
                       <label for="current-Password" class="col-md-4 col-lg-3 col-form-label">Current Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="current-password" type="password" class="form-control <?=!empty($errors['current-password']) ? 'border-danger' : '';?>" id="current-password" value="<?=set_value('password',$uid->password)?>" placeholder="Type your current password, please!" required>
-                      </div> -->
+                        <input name="current_password" type="password" class="form-control <?=!empty($errors['current_password']) ? 'border-danger' : '';?>" id="current-password" placeholder="Type your current password, please!" required>
+                      </div>
                       <!-- ---- Password Error ---- -->
-                      <!-- <?php if(!empty($errors['current-password'])):?>
-                        <small class="js-error-password text-danger"><?=$errors['current-password']?>.</small>
+                      <?php if(!empty($errors['current_password'])):?>
+                        <small class="text-danger"><?=$errors['current_password']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-password text-danger"></small> -->
                       <!-- -| ./Password Error\. |- -->
-                    <!-- </div> -->
+                    </div>
                     <!-- -| ./Current Password\. |- -->
 
                     <!-- ---| New Password |--- -->
-                    <!-- <div class="row mb-3">
+                    <div class="row mb-3">
                       <label for="new-Password" class="col-md-4 col-lg-3 col-form-label">New Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="new-password" type="password" class="form-control <?=!empty($errors['new-password']) ? 'border-danger' : '';?>" id="new-password" value="" placeholder="Type your new password, please!" required>
-                      </div> -->
+                        <input name="new_password" type="password" class="form-control <?=!empty($errors['new_password']) ? 'border-danger' : '';?>" id="new-password" placeholder="Type your new password, please!" required>
+                      </div>
                       <!-- ---- Password Error ---- -->
-                      <!-- <?php if(!empty($errors['new-password'])):?>
-                        <small class="js-error-password text-danger"><?=$errors['new-password']?>.</small>
+                      <?php if(!empty($errors['new_password'])):?>
+                        <small class="text-danger"><?=$errors['new_password']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-password text-danger"></small> -->
                       <!-- -| ./Password Error\. |- -->
-                    <!-- </div> -->
+                    </div>
                     <!-- -| ./New Password\. |- -->
 
                     <!-- ---| Retype Password |--- -->
-                    <!-- <div class="row mb-3">
+                    <div class="row mb-3">
                       <label for="retype-Password" class="col-md-4 col-lg-3 col-form-label">Re-Type Password</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="retype-password" type="password" class="form-control <?=!empty($errors['retype-password']) ? 'border-danger' : '';?>" id="retype-password" value="" placeholder="Re-type your password, please!" required>
-                      </div> -->
+                        <input name="confirm_password" type="password" class="form-control <?=!empty($errors['confirm_password']) ? 'border-danger' : '';?>" id="retype-password" placeholder="Re-type your password, please!" required>
+                      </div>
                       <!-- ---- Password Error ---- -->
-                      <!-- <?php if(!empty($errors['retype-password'])):?>
-                        <small class="js-error-password text-danger"><?=$errors['retype-password']?>.</small>
+                      <?php if(!empty($errors['confirm_password'])):?>
+                        <small class="text-danger"><?=$errors['confirm_password']?>.</small>
                       <?php endif;?>
-                      <small class="js-error-password text-danger"></small> -->
                       <!-- -| ./Password Error\. |- -->
-                    <!-- </div> -->
+                    </div>
                     <!-- -| ./Retype Password\. |- -->
 
                     <!-- ---| FORM PROGRESS BAR |--- -->
-                    <!-- <div class="js-prog progress my-4 hide">
+                    <div class="js-prog progress my-4 hide">
                       <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">Saving.. 0%</div>
-                    </div> -->
+                    </div>
                     <!-- -| ./FORM PROGRESS BAR\. |- -->
 
                     <!-- ---| Submit |--- -->
-                    <!-- <div class="text-center">
+                    <div class="text-center">
                       <a href="<?=ROOT?>/admin/dashboard">
                         <button type="button" class="btn btn-secondary w-25 float-start">Go back!</button>
                       </a>
-                      <button type="button" onclick="save_profile(event)" type="submit" class="btn btn-success w-25 float-end">Save Changes</button>
-                    </div> -->
+                      <button type="submit" class="btn btn-success w-25 float-end">Change Password</button>
+                    </div>
                     <!-- -| ./Submit\. |- -->
-                  <!-- </form> -->
+                  </form>
                   <!-- -------| ./Change Password\. |------- -->
 
                 <!-- </div> -->
@@ -527,7 +510,7 @@
     /* -----| Upload Functions | ----- */
     function save_profile(e){
       var form = e.currentTarget.form;
-      var inputs = form.querySelectorAll("input,textarea");
+      var inputs = form.querySelectorAll("input,textarea,select");
       var obj = {};
       var image_added = false;
 

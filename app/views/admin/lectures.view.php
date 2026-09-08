@@ -81,3 +81,5 @@
     </div>
   </section>
 </main>
+
+<?php $this->view('partials/private.footer',$data) ?>
