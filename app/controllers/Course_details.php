@@ -127,6 +127,11 @@ class Course_details extends Controller {
     }
 
     message('You have been enrolled successfully.');
+
+    if ((int)$currentUser->role_id === 1) {
+      redirect('admin/lessons');
+    }
+
     redirect('course_details/'.$row->slug);
   }
   # ---| ./Enroll()\. | ---

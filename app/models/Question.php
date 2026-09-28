@@ -68,6 +68,10 @@ class Question extends Model {
     }
     # ---| ./IF(Category_ID)
 
+    if (!in_array((string)($data['answer_option'] ?? ''), ['1', '2', '3', '4'], true)) {
+      $this->errors['answer_option'] = 'Select the correct answer option.';
+    }
+
     if(empty($this->errors)) {
       # ...| TRUE Block
       return true;
@@ -197,22 +201,35 @@ class Question extends Model {
   protected function get_question_option($rows) {
     $db = new \Database();
     if (!empty($rows[0]->id)) {
-      # ...| TRUE Block
       foreach ($rows as $key => $row) {
-        $query = "select * from question_option where question_id = :question_id limit 1";
-        // $question_option = $db->query($query,['question_id'=>$row->question_id]);
-        if (!empty($question_option)) {
-          # ...| TRUE Block
-          $rows[$key]->question_option_row = $question_option[0];
-        }
-        # ---| ./IF(EXAM)
+        $rows[$key]->question_options = $db->query(
+          "SELECT id, question_id, option_number, option_title FROM question_option WHERE question_id = :question_id ORDER BY option_number ASC",
+          ['question_id' => (int)($row->id ?? 0)]
+        ) ?: [];
       }
-      # ---| ./FOREACH(ROWS)
     }
-    # ---| ./IF(ROWS)
-
     return $rows;
   } # ---| ./Get_QUESTION_OPTION() |---
+
+  public function getForExam(int $exam_id): array {
+    $database = new \Database();
+    return $database->query(
+      "SELECT id, exam_id, question_title FROM question WHERE exam_id = :exam_id ORDER BY id ASC",
+      ['exam_id' => $exam_id]
+    ) ?: [];
+  }
+
+  public function getForStudent(int $exam_id): array {
+    $database = new \Database();
+    return $database->query(
+      "SELECT q.id, q.question_title, qo.id AS option_id, qo.option_number, qo.option_title
+       FROM question q
+       JOIN question_option qo ON qo.question_id = q.id
+       WHERE q.exam_id = :exam_id
+       ORDER BY q.id ASC, qo.option_number ASC",
+      ['exam_id' => $exam_id]
+    ) ?: [];
+  }
   # ---| ./AfterSELECT Functions\. |---
 
 

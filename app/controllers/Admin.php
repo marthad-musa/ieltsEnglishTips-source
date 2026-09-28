@@ -163,6 +163,12 @@ class Admin extends Controller {
     $exam = new \Model\exam();
     $course = new \Model\Course();
     $user = new \Model\User();
+    $current_user = $user->first(['id' => $user_id]);
+    $role_id = (int)($current_user->role_id ?? 0);
+    $can_manage_exam = function($exam_id) use ($exam, $role_id, $user_id) {
+      $row = $exam->first(['id' => (int)$exam_id, 'disabled' => 0]);
+      return $row && \Model\Exam::canManageExam($role_id, (int)$user_id, $row) ? $row : false;
+    };
     # ---| ./MODELS\. | ---
 
     # -----| AJAX Handlers |-----
@@ -170,9 +176,92 @@ class Admin extends Controller {
       $ajax_action = $_POST['ajax'] ?? null;
       header('Content-Type: application/json');
 
+      $respond = function(array $payload, int $status = 200) {
+        http_response_code($status);
+        echo json_encode($payload);
+        exit;
+      };
+      $require_csrf = function() use ($respond) {
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          $respond(['success' => false, 'message' => 'Security check failed.'], 403);
+        }
+      };
+
+      if ($ajax_action === 'publish_exam') {
+        $require_csrf();
+        if (!\Model\Exam::canApprove($role_id)) $respond(['success' => false, 'message' => 'Only admins can publish exams.'], 403);
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        $exam_row = $exam->first(['id' => $exam_id, 'disabled' => 0]);
+        if (!$exam_row || (int)$exam_row->published === 1 || $exam->getScheduleState($exam_row) !== 'waiting' || !$exam->hasValidQuestionSet($exam_id, (int)$exam_row->total_question)) {
+          $respond(['success' => false, 'message' => 'Exam needs its configured number of questions, each with four options, before publishing.'], 422);
+        }
+        $exam->query("UPDATE exam SET approved = 1, published = 1, exam_status = 'Created' WHERE id = :id", ['id' => $exam_id]);
+        $respond(['success' => true, 'message' => 'Exam approved and published.']);
+      }
+
+      if ($ajax_action === 'unpublish_exam') {
+        $require_csrf();
+        if (!\Model\Exam::canApprove($role_id)) $respond(['success' => false, 'message' => 'Only admins can unpublish exams.'], 403);
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        $exam_row = $exam->first(['id' => $exam_id, 'disabled' => 0]);
+        if (!$exam_row || (int)$exam_row->published !== 1 || in_array($exam->getScheduleState($exam_row), ['active', 'ended'], true)) {
+          $respond(['success' => false, 'message' => 'Only exams that have not started can be unpublished.'], 409);
+        }
+        $exam->query("UPDATE exam SET approved = 0, published = 0, exam_status = 'Created' WHERE id = :id", ['id' => $exam_id]);
+        $respond(['success' => true, 'message' => 'Exam unpublished. It can now be edited and submitted for approval again.']);
+      }
+
+      if (in_array($ajax_action, ['nominate_student', 'admin_enroll_student', 'admin_remove_student'], true)) {
+        $require_csrf();
+        if (!\Model\Exam::canCreateOrEdit($role_id)) $respond(['success' => false, 'message' => 'You cannot manage exam enrollment.'], 403);
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        $managed_exam = $can_manage_exam($exam_id);
+        if (!$managed_exam) $respond(['success' => false, 'message' => 'Exam not found or access denied.'], 404);
+        if ($exam->getScheduleState($managed_exam) !== 'waiting') {
+          $respond(['success' => false, 'message' => 'The exam roster is locked after the exam starts.'], 409);
+        }
+        $student_id = (int)($_POST['student_id'] ?? 0);
+        $student_email = trim((string)($_POST['student_email'] ?? ''));
+        $student = $student_id ? $user->first(['id' => $student_id, 'role_id' => 1]) : ($student_email !== '' ? $user->first(['email' => $student_email, 'role_id' => 1]) : false);
+        if (!$student) $respond(['success' => false, 'message' => 'Enter a valid student ID or email.'], 422);
+
+        $enrollment = new \Model\Exam_enroll();
+        $request_model = new \Model\Exam_join_request();
+        $request = $request_model->first(['exam_id' => $exam_id, 'user_id' => (int)$student->id]);
+        if ($ajax_action === 'nominate_student' && $role_id === 2) {
+          if ($request) {
+            $request_model->query("UPDATE exam_join_requests SET status = 'Pending', requested_by = :requested_by, requested_at = NOW(), approved_by = NULL, approved_at = NULL, disabled = 0 WHERE id = :id", ['requested_by' => $user_id, 'id' => $request->id]);
+          } else {
+            $request_model->insert(['exam_id' => $exam_id, 'user_id' => (int)$student->id, 'status' => 'Pending', 'requested_by' => $user_id, 'requested_at' => date('Y-m-d H:i:s'), 'disabled' => 0]);
+          }
+          $respond(['success' => true, 'message' => 'Student nomination sent to an admin for approval.']);
+        }
+        if ($ajax_action === 'nominate_student') {
+          $respond(['success' => false, 'message' => 'Admins must directly add students to the approved roster.'], 422);
+        }
+
+        if (!\Model\Exam::canApprove($role_id)) $respond(['success' => false, 'message' => 'Only admins can directly change the approved roster.'], 403);
+        if ($ajax_action === 'admin_enroll_student') {
+          $enrollment->setEnrollment((int)$student->id, $exam_id, false);
+          if ($request) {
+            $request_model->query("UPDATE exam_join_requests SET status = 'Approved', approved_by = :admin_id, approved_at = NOW(), disabled = 0 WHERE id = :id", ['admin_id' => $user_id, 'id' => $request->id]);
+          } else {
+            $request_model->insert(['exam_id' => $exam_id, 'user_id' => (int)$student->id, 'status' => 'Approved', 'requested_by' => $user_id, 'requested_at' => date('Y-m-d H:i:s'), 'approved_by' => $user_id, 'approved_at' => date('Y-m-d H:i:s'), 'disabled' => 0]);
+          }
+          $respond(['success' => true, 'message' => 'Student added to the approved exam roster.']);
+        }
+
+        $enrollment->setEnrollment((int)$student->id, $exam_id, true);
+        if ($request) $request_model->query("UPDATE exam_join_requests SET status = 'Rejected', approved_by = :admin_id, approved_at = NOW() WHERE id = :id", ['admin_id' => $user_id, 'id' => $request->id]);
+        $respond(['success' => true, 'message' => 'Student removed from the approved exam roster.']);
+      }
+
       if ($ajax_action == 'load_exam_requests') {
         # ...| Load Exam Enrollment Requests |-----
-        $exam_id = $_POST['exam_id'] ?? null;
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        if (!\Model\Exam::canCreateOrEdit($role_id) || !$can_manage_exam($exam_id)) {
+          $respond(['success' => false, 'message' => 'Access denied.'], 403);
+        }
         $exam_join_request = new \Model\Exam_join_request();
         
         $query = "SELECT ejr.*, u.firstname, u.lastname, u.email FROM exam_join_requests ejr 
@@ -190,7 +279,7 @@ class Admin extends Controller {
             $html .= "<td>" . htmlspecialchars($req->email) . "</td>";
             $html .= "<td><span class='badge bg-{$statusClass}'>" . htmlspecialchars($req->status) . "</span></td>";
             $html .= "<td>";
-            if ($req->status == 'Pending') {
+            if ($req->status == 'Pending' && \Model\Exam::canApprove($role_id)) {
               $html .= "<form class='request-form' data-exam-id='{$exam_id}' data-user-id='{$req->user_id}'>";
               $html .= "<select name='status' class='form-select form-select-sm' required>";
               $html .= "<option value=''>Select action...</option>";
@@ -213,18 +302,23 @@ class Admin extends Controller {
         # ---| ./Load Exam Requests\. |---
       } elseif ($ajax_action == 'update_request_status') {
         # ...| Update Enrollment Request Status |-----
-        $exam_id = $_POST['exam_id'] ?? null;
-        $user_id = $_POST['user_id'] ?? null;
+        $require_csrf();
+        if (!\Model\Exam::canApprove($role_id)) $respond(['success' => false, 'message' => 'Only admins can approve student enrollment.'], 403);
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        $student_id = (int)($_POST['user_id'] ?? 0);
         $status = $_POST['status'] ?? null;
         $exam_join_request = new \Model\Exam_join_request();
         $exam_enroll = new \Model\Exam_enroll();
+        $request = $exam_join_request->first(['exam_id' => $exam_id, 'user_id' => $student_id, 'disabled' => 0]);
+        $request_exam = $exam->first(['id' => $exam_id, 'disabled' => 0]);
+        if (!$request_exam || $exam->getScheduleState($request_exam) !== 'waiting' || !$request || !in_array($status, ['Approved', 'Rejected'], true)) {
+          $respond(['success' => false, 'message' => 'Invalid enrollment request.'], 422);
+        }
 
         if ($status == 'Approved') {
-          # ...| Create enrollment record
-          $enrollment_data = ['user_id' => $user_id, 'exam_id' => $exam_id, 'disabled' => 0];
-          if (!$exam_enroll->exists($user_id, $exam_id)) {
-            $exam_enroll->insert($enrollment_data);
-          }
+          $exam_enroll->setEnrollment($student_id, $exam_id, false);
+        } else {
+          $exam_enroll->setEnrollment($student_id, $exam_id, true);
         }
 
         # Update request status
@@ -235,7 +329,7 @@ class Admin extends Controller {
           'approved_by' => $user_id,
           'approved_at' => date('Y-m-d H:i:s'),
           'exam_id' => $exam_id,
-          'user_id' => $user_id
+          'user_id' => $student_id
         ]);
 
         echo json_encode(['success' => true, 'message' => 'Request ' . strtolower($status) . ' successfully']);
@@ -243,7 +337,10 @@ class Admin extends Controller {
         # ---| ./Update Request Status\. |---
       } elseif ($ajax_action == 'load_exam_results') {
         # ...| Load Exam Results for Review |-----
-        $exam_id = $_POST['exam_id'] ?? null;
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        if (!\Model\Exam::canCreateOrEdit($role_id) || !$can_manage_exam($exam_id)) {
+          $respond(['success' => false, 'message' => 'Access denied.'], 403);
+        }
         $exam_result = new \Model\Exam_result();
         
         $results = $exam_result->getResultsByStatus($exam_id, 'Submitted');
@@ -270,13 +367,18 @@ class Admin extends Controller {
         # ---| ./Load Exam Results\. |---
       } elseif ($ajax_action == 'approve_exam_result') {
         # ...| Approve Exam Result |-----
-        $result_id = $_POST['result_id'] ?? null;
-        $exam_id = $_POST['exam_id'] ?? null;
-        $user_id = $_POST['user_id'] ?? null;
+        $require_csrf();
+        if (!\Model\Exam::canApprove($role_id)) $respond(['success' => false, 'message' => 'Only admins can approve results.'], 403);
+        $result_id = (int)($_POST['result_id'] ?? 0);
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
         $allow_retake = $_POST['allow_retake'] ?? 0;
+        $allow_retake = in_array((string)$allow_retake, ['0', '1'], true) ? (int)$allow_retake : 0;
         $exam_result = new \Model\Exam_result();
+        $result_row = $exam_result->first(['id' => $result_id, 'exam_id' => $exam_id, 'disabled' => 0]);
+        if (!$result_row) $respond(['success' => false, 'message' => 'Result not found.'], 404);
+        if ($result_row->status !== 'Submitted') $respond(['success' => false, 'message' => 'Only submitted results can be reviewed.'], 409);
 
-        $query = "UPDATE exam_results SET status = :status, reviewed_by = :reviewed_by, approved_at = :approved_at, retake_allowed = :retake_allowed 
+        $query = "UPDATE exam_results SET status = :status, reviewed_by = :reviewed_by, approved_at = :approved_at, retake_allowed = :retake_allowed, retake_started_at = NULL 
                   WHERE id = :id";
         $exam_result->query($query, [
           'status' => 'Approved',
@@ -303,18 +405,37 @@ class Admin extends Controller {
     $data['title'] = "Exam";
 
     if ($action == 'add') {
+      if (!\Model\Exam::canCreateOrEdit($role_id)) {
+        message('You are not allowed to create exams.');
+        redirect('admin/exams');
+      }
       # ...| ADD Block
       $data['courses'] = $course->findAll();
 
       if ($_SERVER['REQUEST_METHOD'] == "POST") {
-        # ...| TRUE Block
-        if ($exam->validate($_POST)) {
-          # ...| TRUE Block
-          $_POST['exam_created_on'] = date("Y-m-d H:i:s");
-          $_POST['user_id'] = $user_id;
-          $_POST['exam_status'] = "Created";
-
-          $exam->insert($_POST);
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          message('Security check failed.');
+          redirect('admin/exams/add');
+        }
+        $exam_input = [
+          'exam_title' => trim((string)($_POST['exam_title'] ?? '')),
+          'exam_description' => trim((string)($_POST['exam_description'] ?? '')),
+          'exam_datetime' => str_replace('T', ' ', (string)($_POST['exam_datetime'] ?? '')),
+          'exam_duration' => $_POST['exam_duration'] ?? '',
+          'total_question' => $_POST['total_question'] ?? '',
+          'right_answer_mark' => $_POST['right_answer_mark'] ?? '',
+          'wrong_answer_mark' => $_POST['wrong_answer_mark'] ?? '',
+          'course_id' => $_POST['course_id'] ?? '',
+        ];
+        if ($exam->validate($exam_input)) {
+          $exam->insert($exam_input + [
+            'exam_created_on' => date('Y-m-d H:i:s'),
+            'user_id' => $user_id,
+            'created_by' => $user_id,
+            'exam_status' => 'Created',
+            'approved' => 0,
+            'published' => 0,
+          ]);
 
           message("Exam created! Please, complete EXAM information.");
           redirect('admin/exams');
@@ -327,108 +448,87 @@ class Admin extends Controller {
 
       # ---| ./Action=>ADD\. |---
     } elseif ($action == 'delete') {
+      if (!\Model\Exam::canApprove($role_id)) {
+        message('Only admins can delete exams.');
+        redirect('admin/exams');
+      }
       # ...| DELETE Block | Get Exam Information | -----
-      $row = $exam->first(['user_id'=>$user_id,'id'=>$id]);
+      $row = $exam->first(['id'=>(int)$id,'disabled'=>0]);
       $data['row'] = $row = $row;
       # ---| ./Get Exam Information\. | ---
 
       if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
-        # ...| TRUE Block
-        $query = "delete from exam where id = :id limit 1";
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          message('Security check failed.');
+          redirect('admin/exams');
+        }
+        $query = "UPDATE exam SET disabled = 1 WHERE id = :id";
         $exam->query($query,['id'=>$row->id]);
         message("Exam deleted successfully!");
         redirect('admin/exams');
       } # ---| ./IF(POST)
       # ---| ./Action=>DELETE\. |---
     } elseif ($action == 'edit') {
+      if (!\Model\Exam::canCreateOrEdit($role_id)) {
+        message('You are not allowed to edit exams.');
+        redirect('admin/exams');
+      }
       # ...| EDIT Block | Get Exam Information | -----
-      // $row = $exam->first(['user_id'=>$user_id,'id'=>$id]);
-      $query = "select * from exam where user_id = :user_id && id = :id";
-      $row = $exam->query($query,['user_id'=>$user_id,'id'=>$id]);
-      $data['row'] = $row = $row[0];
+      $row = $can_manage_exam($id);
+      if ($row && ((int)$row->published === 1 || in_array($exam->getScheduleState($row), ['active', 'ended'], true) || in_array($row->exam_status, ['Started', 'Completed'], true))) {
+        message('Published or started exams are locked. An admin must unpublish a future exam before editing it.');
+        redirect('admin/exams');
+      }
+      $data['row'] = $row;
       # ---| ./Get Exam Information\. | ---
-      
-      $id = $row->id;
       $data['courses'] = $course->findAll();
 
       if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
-        # ...| SAVE Block 
-        $exam->update($id,$_POST);
-        
-        message("Exam was saved successfully!");
-        redirect('admin/exams');
-        # ------------|  ./UPDATE()
-  
-        # Exam Questions  ---------------
-        if ($exam->allowed_question_add($id)) {
-          # ...| Adding Questions Block
-          $data['question_button'] = true;
-          // $question_button = `
-          //   <div class="col-md-6">
-          //     <label for="add_question" class="ms-2 fontClarity">Exam Qustions</label>
-          //     <button type="button" name="add_question" class="btn btn-sm btn-outline-info add_question w-100" id="`.$row->id.`"><i class="bi bi-question-circle"></i> Add Question</button>
-          //   </div>
-          // `;
-        // } else {
-          # ...| Viewing Question Block
-          // $question_button = `
-          //   <div class="col-md-6">
-          //     <label for="add_question" class="ms-2 fontClarity">Exam Qustions</label>
-          //     <a href="`.ROOT.`/admin/question/`.$row->csrf_code.`" class="btn btn-sm btn-outline-warning w-100"></a>
-          //   </div>
-          // `;
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          message('Security check failed.');
+          redirect('admin/exams');
         }
-        # ---| ./IF/ELSE(Allowed Question Add)
+        $exam_input = [
+          'exam_title' => trim((string)($_POST['exam_title'] ?? '')),
+          'exam_description' => trim((string)($_POST['exam_description'] ?? '')),
+          'exam_datetime' => str_replace('T', ' ', (string)($_POST['exam_datetime'] ?? '')),
+          'exam_duration' => $_POST['exam_duration'] ?? '',
+          'total_question' => $_POST['total_question'] ?? '',
+          'right_answer_mark' => $_POST['right_answer_mark'] ?? '',
+          'wrong_answer_mark' => $_POST['wrong_answer_mark'] ?? '',
+          'course_id' => $_POST['course_id'] ?? '',
+        ];
+        if ($exam->validate($exam_input)) {
+          $exam->update((int)$row->id, $exam_input);
+          message('Exam was saved successfully!');
+          redirect('admin/exams');
+        }
+        $data['errors'] = $exam->errors;
       } # ---| ./IF(POST)
       # ---| ./Action=>EDIT\. |---
     } elseif ($action == 'view') {
       # ...| EDIT Block | Get Exam Information | -----
-      // $row = $exam->first(['user_id'=>$user_id,'id'=>$id]);
-      $query = "select * from exam where user_id = :user_id && id = :id";
-      $row = $exam->query($query,['user_id'=>$user_id,'id'=>$id]);
-      $data['row'] = $row = $row[0];
-      # ---| ./Get Exam Information\. | ---
-      
-      $id = $row->id;
-      $data['courses'] = $course->findAll();
-
-      if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
-        # ...| SAVE Block 
-        $exam->update($id,$_POST);
-        
-        message("Exam was saved successfully!");
+      if (!\Model\Exam::canCreateOrEdit($role_id)) {
+        message('You are not allowed to view exam management details.');
         redirect('admin/exams');
-        # ------------|  ./UPDATE()
-  
-        # Exam Questions  ---------------
-        if ($exam->allowed_question_add($id)) {
-          # ...| Adding Questions Block
-          $data['question_button'] = true;
-          // $question_button = `
-          //   <div class="col-md-6">
-          //     <label for="add_question" class="ms-2 fontClarity">Exam Qustions</label>
-          //     <button type="button" name="add_question" class="btn btn-sm btn-outline-info add_question w-100" id="`.$row->id.`"><i class="bi bi-question-circle"></i> Add Question</button>
-          //   </div>
-          // `;
-        // } else {
-          # ...| Viewing Question Block
-          // $question_button = `
-          //   <div class="col-md-6">
-          //     <label for="add_question" class="ms-2 fontClarity">Exam Qustions</label>
-          //     <a href="`.ROOT.`/admin/question/`.$row->csrf_code.`" class="btn btn-sm btn-outline-warning w-100"></a>
-          //   </div>
-          // `;
-        }
-        # ---| ./IF/ELSE(Allowed Question Add)
-      } # ---| ./IF(POST)
+      }
+      $row = $can_manage_exam($id);
+      $data['row'] = $row;
+      # ---| ./Get Exam Information\. | ---
+      $data['courses'] = $course->findAll();
       # ---| ./Action=>VIEW\. |---
     } else {
       # ...| EXAM MAIN PAGE Block
-      $role_id = $uid->role_id ?? 1;
+      $role_id = (int)($uid->role_id ?? 0);
       
-      # Load teacher's exams
-      $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where created_by = :created_by and disabled = 0 order by exam_created_on desc";
-      $teacher_exams = $exam->query($query, ['created_by' => $user_id]);
+      # Load exams available to the current staff member
+      if (\Model\Exam::canApprove($role_id)) {
+        $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where disabled = 0 order by exam_created_on desc";
+        $teacher_exams = $exam->query($query);
+      } else {
+        $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where (created_by = :created_by OR user_id = :legacy_owner) and disabled = 0 order by exam_created_on desc";
+        $teacher_exams = $exam->query($query, ['created_by' => $user_id, 'legacy_owner' => $user_id]);
+      }
       $data['role_id'] = $role_id;
       $data['teacher_exams'] = $teacher_exams;
 
@@ -440,7 +540,7 @@ class Admin extends Controller {
       # Load student's enrolled exams
       $student_query = "select distinct e.id, e.exam_title, e.exam_datetime, e.exam_duration from exam_enroll ee 
                         join exam e on ee.exam_id = e.id 
-                        where ee.user_id = :user_id 
+                        where ee.user_id = :user_id and ee.disabled = 0 and e.approved = 1 and e.published = 1 and e.disabled = 0
                         order by e.exam_datetime asc";
       $student_exams = $exam->query($student_query, ['user_id' => $user_id]);
       $data['student_exams'] = $student_exams;
@@ -478,11 +578,20 @@ class Admin extends Controller {
     # ---| ./MODELS\. | ---
 
     $data = [];
-    
-    $target_exam = $exam->first(['id'=>$id]);
-
     $uid = $uid ?? $user->first(['id'=>$user_id]);
     $data['uid'] = $uid;
+    $role_id = (int)($uid->role_id ?? 0);
+    if (!\Model\Exam::canCreateOrEdit($role_id)) {
+      message('Only teachers and admins can manage exam questions.');
+      redirect('admin/exams');
+    }
+    $can_edit_exam_questions = function($exam_id, $allow_published_read = false) use ($exam, $role_id, $user_id) {
+      $exam_row = $exam->first(['id' => (int)$exam_id, 'disabled' => 0]);
+      if (!$exam_row) return false;
+      if (!$allow_published_read && ((int)$exam_row->published === 1 || in_array($exam->getScheduleState($exam_row), ['active', 'ended'], true) || in_array($exam_row->exam_status, ['Started', 'Completed'], true))) return false;
+      if (\Model\Exam::canManageExam($role_id, (int)$user_id, $exam_row)) return $exam_row;
+      return false;
+    };
 
     $data['action'] = $action = strtolower($action);
     $data['title'] = "Questions";
@@ -490,55 +599,85 @@ class Admin extends Controller {
     if ($action == 'add') {
       # ...| ADD Block
       $data['target_id'] = $target_id = str_replace('admin/question/add/','',$_GET['url']);
+      $target_exam = $can_edit_exam_questions($target_id);
+      if (!$target_exam) {
+        message('Questions can only be changed by the exam owner or an admin before publishing.');
+        redirect('admin/exams');
+      }
 
       $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
 
       if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        # ... SAVE Block
-        if ($target_id == $_POST['exam_id']) {
-          # ...| TRUE Block
-          if ($_POST['add_question'] == 'save') {
-            # ...| TRUE Block
-            $result = $question->insert($_POST);
-            $required_id = $question->get_last_id($target_id);
-
-            if (!empty($required_id)) {
-              # ...| TRUE Block
-              message('Question added successfully!');
-              redirect('admin/question/'.$target_id);
-            }
-            # ---| ./IF(RequiredID)
-          }
-          # ---| ./IF(SAVE)
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          message('Security check failed.');
+          redirect('admin/question/add/'.$target_id);
         }
-        # ---| ./IF(EXAM ID)
+        $question_data = [
+          'exam_id' => (int)$target_id,
+          'question_title' => trim((string)($_POST['question_title'] ?? '')),
+          'answer_option' => (string)($_POST['answer_option'] ?? ''),
+        ];
+        $options = [];
+        for ($option_number = 1; $option_number <= 4; $option_number++) {
+          $options[$option_number] = trim((string)($_POST['option_number_'.$option_number] ?? ''));
+        }
+        $question_count = count($question->getForExam((int)$target_id));
+        if ($question_count >= (int)$target_exam->total_question) {
+          message('This exam already has its configured number of questions.');
+          redirect('admin/question/'.$target_id);
+        }
+        if (!$question->validate($question_data) || !in_array($question_data['answer_option'], ['1', '2', '3', '4'], true) || in_array('', $options, true)) {
+          $data['errors'] = $question->errors;
+          if (!in_array($question_data['answer_option'], ['1', '2', '3', '4'], true)) $data['errors']['answer_option'] = 'Select the correct option.';
+          if (in_array('', $options, true)) $data['errors']['options'] = 'Enter all four answer options.';
+        } else {
+          $question->query(
+            "INSERT INTO question (exam_id, question_title, answer_option) VALUES (:exam_id, :question_title, :answer_option)",
+            $question_data
+          );
+          $new_question = $question->query('SELECT LAST_INSERT_ID() AS id');
+                    $new_question = $question->query(
+                      'SELECT id, exam_id FROM question WHERE exam_id = :exam_id ORDER BY id DESC LIMIT 1',
+                      ['exam_id' => (int)$target_id]
+                    );
+            $role_id = (int)($uid->role_id ?? 0);
+          $new_question_id = (int)($new_question[0]->id ?? 0);
+          if ($new_question_id) {
+            foreach ($options as $option_number => $option_title) {
+              $question_option->query(
+                "INSERT INTO question_option (question_id, option_number, option_title) VALUES (:question_id, :option_number, :option_title)",
+                ['question_id' => $new_question_id, 'option_number' => $option_number, 'option_title' => $option_title]
+              );
+            }
+            message('Question added successfully!');
+            redirect('admin/question/'.$target_id);
+          }
+          $data['errors']['question_title'] = 'Question could not be saved.';
+        }
       } # ---| ./IF(POST)
       # ---| ./Action=>ADD\. |---
     } elseif ($action == 'delete') {
       # ...| DELETE Block
       $data['target_question'] = $target_question = str_replace('admin/question/delete/','',$_GET['url']);
-      // $data['target_id'] = $target_id = $rows->exam_id;
       $data['question_options'] = $question_options = $question_option->where(['question_id'=>$target_question]);
-
-      $data['rows'] = $rows = $question->where(['id'=>$target_question]);
+      $data['rows'] = $rows = $question->first(['id'=>(int)$target_question]);
+      if (!$rows || !$can_edit_exam_questions($rows->exam_id)) {
+        message('Question not found or cannot be changed after publication.');
+        redirect('admin/exams');
+      }
+      $data['target_id'] = $target_id = (int)$rows->exam_id;
       # ---| ./Get Question Information\. | ---
 
-      if (!empty($rows)) {
-        # ...| ROWS Block
-        if ($_SERVER['REQUEST_METHOD'] == "GET") {
-          # ...| DELETE Options Block
-          $option_result = $question_option->delete($target_question);
-          if ($option_result) {
-            # ...| DELETE Question
-            $question_result = $question->delete($target_question);
-          }
-          # ---| ./IF(Option)
-
-          message("Question successfully deleted!");
-          redirect('admin/exams');
+      if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          message('Security check failed.');
+          redirect('admin/question/delete/'.$target_question);
         }
-        # ---| ./IF(SERVER)
-      } # ---| ./IF(ROWS)
+        $question_option->query('DELETE FROM question_option WHERE question_id = :question_id', ['question_id' => (int)$target_question]);
+        $question->delete((int)$target_question);
+        message('Question successfully deleted!');
+        redirect('admin/question/'.$rows->exam_id);
+      }
       # ---| ./Action=>DELETE\. |---
     } elseif ($action == 'edit') {
       # ...| EDIT Block
@@ -554,58 +693,51 @@ class Admin extends Controller {
       $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
 
       $data['rows'] = $rows = $question->first(['id'=>$target_id]);
+      if (!$rows || !$can_edit_exam_questions($rows->exam_id)) {
+        message('Question not found or cannot be changed after publication.');
+        redirect('admin/exams');
+      }
       $Update = false;
       $option_inputs = [];
 
       if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($rows)) {
+        if (empty($_SESSION['csrf_code']) || !hash_equals((string)$_SESSION['csrf_code'], (string)($_POST['csrf_code'] ?? ''))) {
+          http_response_code(403);
+          header('Content-Type: application/json');
+          echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+          exit;
+        }
         # ...| Post Block
         if (!empty($_POST['data_type']) && $_POST['data_type'] == "save") {
-          # ...| Data_type = Save Block | Update Question Table |...
-          $question->update($target_id,$_POST);
-          $info['data'] = "";
-
-          $options = [
-            'option_number_1' => $_POST['option_number_1'],
-            'option_number_2' => $_POST['option_number_2'],
-            'option_number_3' => $_POST['option_number_3'],
-            'option_number_4' => $_POST['option_number_4'],
+          $question_data = [
+            'exam_id' => (int)$rows->exam_id,
+            'question_title' => trim((string)($_POST['question_title'] ?? '')),
+            'answer_option' => (string)($_POST['answer_option'] ?? ''),
           ];
-
-          if (!empty($question_options)) {
-            # ...| Check if Record is Not Empty (Update)
-            $query = "update question_option set option_title = :option_title where question_id = :question_id && option_number = :option_number";
-
-            # ...| Insert into Question Option Table |...
-            for ($i=1; $i < 5; $i++) { 
-              $result = $question_option->query(
-                $query,[
-                  'question_id'=>$target_id,
-                  'option_number'=>$i,
-                  'option_title'=>$options['option_number_'.$i]
-                ]
-              );
-            }
-            # ---| ./FOR(Result)
-          } else {
-            # ...| If Record is Empty (Insert)
-            $query = "insert into question_option (question_id,option_number,option_title) values (:question_id,:option_number,:option_title)";
-
-            # ...| Insert into Question Option Table |...
-            foreach ($options as $key => $option) {
-              # ...| Insert New Record
-              $option_inputs = [
-                'option_number'=>str_replace('option_number_','',$key),
-                'option_title'=>$_POST['option_number'.str_replace('option_number','',$key)]
-              ];
-              $result = $question_option->query($query,['question_id'=>$target_id,'option_number'=>$option_inputs['option_number'],'option_title'=>$option_inputs['option_title']]);
-            }
-            # ---| ./FOREACH(Options)
+          $options = [];
+          for ($option_number = 1; $option_number <= 4; $option_number++) {
+            $options[$option_number] = trim((string)($_POST['option_number_'.$option_number] ?? ''));
           }
-          # ---| ./IF/ELSE(Options)
+          if (!$question->validate($question_data) || in_array('', $options, true)) {
+            http_response_code(422);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Enter the question, all four options, and its correct answer.']);
+            exit;
+          }
+          $question->update((int)$target_id, [
+            'question_title' => $question_data['question_title'],
+            'answer_option' => $question_data['answer_option'],
+          ]);
+          foreach ($options as $option_number => $option_title) {
+            $question_option->query(
+              "INSERT INTO question_option (question_id, option_number, option_title) VALUES (:question_id, :option_number, :option_title)
+               ON DUPLICATE KEY UPDATE option_title = VALUES(option_title)",
+              ['question_id' => (int)$target_id, 'option_number' => $option_number, 'option_title' => $option_title]
+            );
+          }
 
-          $info['data_type'] = "save";
-          $info['data_url'] = $rows->exam_id;
-          echo json_encode($info);die;
+          echo json_encode(['data_type' => 'save', 'data_url' => $rows->exam_id]);
+          exit;
 
           // if ($Update) {
           //   # ...| Everything SAVED
@@ -637,6 +769,10 @@ class Admin extends Controller {
       $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
 
       $data['rows'] = $rows = $question->first(['id'=>$target_id]);
+      if (!$rows || !$can_edit_exam_questions($rows->exam_id, true)) {
+        message('Question not found or access denied.');
+        redirect('admin/exams');
+      }
 
       $data['errors'] = $question->errors;
       # ---| ./Action=>EDIT\. |---
@@ -644,6 +780,10 @@ class Admin extends Controller {
       # ...| Question MAIN PAGE Block
       $target_id = str_replace('admin/question/','',$_GET['url']);
       $data['target_id'] = $target_id;
+      if (!$can_edit_exam_questions($target_id, true)) {
+        message('Exam not found or access denied.');
+        redirect('admin/exams');
+      }
 
       $query = "select * from question where exam_id = :exam_id";
       $rows = $question->query($query,['exam_id'=>$target_id]);

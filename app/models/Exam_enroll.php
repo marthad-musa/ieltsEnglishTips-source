@@ -15,6 +15,9 @@ class Exam_enroll extends Model {
     'id',
     'user_id',
     'exam_id',
+    'attendance_status',
+    'disabled',
+    'created_at'
   ];
 
   public function validate($data) {
@@ -35,9 +38,32 @@ class Exam_enroll extends Model {
   }
 
   public function exists(int $user_id, int $exam_id): bool {
-    $query = "select * from exam_enroll where user_id = :user_id && exam_id = :exam_id limit 1";
+    $query = "select id from exam_enroll where user_id = :user_id && exam_id = :exam_id limit 1";
     $result = $this->query($query, ['user_id' => $user_id, 'exam_id' => $exam_id]);
     return !empty($result);
+  }
+
+  public function setEnrollment(int $user_id, int $exam_id, bool $disabled = false): void {
+    $existing = $this->query(
+      "SELECT id FROM exam_enroll WHERE user_id = :user_id AND exam_id = :exam_id LIMIT 1",
+      ['user_id' => $user_id, 'exam_id' => $exam_id]
+    );
+
+    if ($existing) {
+      $this->query(
+        "UPDATE exam_enroll SET disabled = :disabled WHERE id = :id",
+        ['disabled' => $disabled ? 1 : 0, 'id' => $existing[0]->id]
+      );
+      return;
+    }
+
+    $this->insert([
+      'user_id' => $user_id,
+      'exam_id' => $exam_id,
+      'attendance_status' => 'Absent',
+      'disabled' => $disabled ? 1 : 0,
+      'created_at' => date('Y-m-d H:i:s'),
+    ]);
   }
 
   public function countByExam(int $exam_id): int {
@@ -51,14 +77,14 @@ class Exam_enroll extends Model {
 
   # -----| Get Enrolled Users |-----
   public function getEnrolledUsers($exam_id) {
-    $query = "SELECT u.id, u.firstname, u.lastname, u.email FROM exam_enroll ee JOIN users u ON ee.user_id = u.id WHERE ee.exam_id = :exam_id";
+    $query = "SELECT u.id, u.firstname, u.lastname, u.email FROM exam_enroll ee JOIN users u ON ee.user_id = u.id WHERE ee.exam_id = :exam_id AND ee.disabled = 0 ORDER BY u.lastname, u.firstname";
     return $this->query($query, ['exam_id' => $exam_id]);
   }
   # ---| ./Get Enrolled Users\. | ---
 
   # -----| Check If Can Take Exam |-----
   public function canTakeExam($user_id, $exam_id) {
-    $query = "SELECT ee.* FROM exam_enroll ee WHERE ee.user_id = :user_id AND ee.exam_id = :exam_id";
+    $query = "SELECT ee.id FROM exam_enroll ee WHERE ee.user_id = :user_id AND ee.exam_id = :exam_id AND ee.disabled = 0 LIMIT 1";
     $result = $this->query($query, ['user_id' => $user_id, 'exam_id' => $exam_id]);
     return !empty($result);
   }

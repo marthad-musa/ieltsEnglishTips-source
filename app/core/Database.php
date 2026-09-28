@@ -81,6 +81,24 @@ class Database {
   }
   # ---| ./QUERY()\. | ---
 
+  public function beginTransaction(): void {
+    if (!$this->connect()->beginTransaction()) {
+      throw new \RuntimeException('Could not start database transaction.');
+    }
+  }
+
+  public function commitTransaction(): void {
+    if ($this->connect()->inTransaction() && !$this->connect()->commit()) {
+      throw new \RuntimeException('Could not commit database transaction.');
+    }
+  }
+
+  public function rollBackTransaction(): void {
+    if ($this->connect()->inTransaction()) {
+      $this->connect()->rollBack();
+    }
+  }
+
   # -----| CREATE Tables() | -----
   public function create_tables() {
     /**
@@ -309,10 +327,10 @@ class Database {
         `exam_title` varchar(250) NOT NULL,
         `exam_description` text DEFAULT NULL,
         `exam_datetime` datetime DEFAULT NULL,
-        `exam_duration` varchar(30) DEFAULT NULL,
+        `exam_duration` smallint unsigned DEFAULT NULL,
         `total_question` int(5) DEFAULT NULL,
-        `right_answer_mark` varchar(30) DEFAULT NULL,
-        `wrong_answer_mark` varchar(30) DEFAULT NULL,
+        `right_answer_mark` decimal(8,2) DEFAULT NULL,
+        `wrong_answer_mark` decimal(8,2) DEFAULT NULL,
         `exam_created_on` datetime NOT NULL,
         `exam_status` enum('Pending','Created','Started','Completed') NOT NULL,
         `created_by` int(11) NOT NULL DEFAULT 1,
@@ -355,6 +373,7 @@ class Database {
       `is_correct` tinyint(1) NOT NULL DEFAULT 0,
       `submitted_at` datetime DEFAULT NULL,
       `disabled` tinyint(1) NOT NULL DEFAULT 0,
+      UNIQUE KEY `unique_exam_user_question` (`exam_id`, `user_id`, `question_id`),
       KEY `exam_id` (`exam_id`),
       KEY `user_id` (`user_id`),
       KEY `question_id` (`question_id`),
@@ -372,10 +391,16 @@ class Database {
      */
     $query = "
       CREATE TABLE IF NOT EXISTS `exam_enroll` (
-        `exam_enroll_id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `id` int(11) NOT NULL AUTO_INCREMENT,
         `user_id` int(11) NOT NULL,
         `exam_id` int(11) NOT NULL,
-        `attendance_status` enum('Absent','Present') NOT NULL,
+        `attendance_status` enum('Absent','Present') NOT NULL DEFAULT 'Absent',
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        `created_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_exam_user` (`exam_id`, `user_id`),
+        KEY `user_id` (`user_id`),
+        KEY `disabled` (`disabled`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
     ";
 
@@ -395,6 +420,7 @@ class Database {
         `requested_at` datetime DEFAULT NULL,
         `approved_by` int(11) DEFAULT NULL,
         `approved_at` datetime DEFAULT NULL,
+        `requested_by` int(11) DEFAULT NULL,
         `notes` varchar(1024) DEFAULT NULL,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
         KEY `exam_id` (`exam_id`),
@@ -413,25 +439,30 @@ class Database {
      */
     $query = "
       CREATE TABLE IF NOT EXISTS `exam_results` (
-        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `id` int(11) NOT NULL AUTO_INCREMENT,
         `exam_id` int(11) NOT NULL,
         `user_id` int(11) NOT NULL,
-        `score` decimal(5,2) NOT NULL DEFAULT 0.00,
+        `score` decimal(10,2) NOT NULL DEFAULT 0.00,
         `percentage` decimal(5,2) NOT NULL DEFAULT 0.00,
         `status` varchar(50) NOT NULL DEFAULT 'Submitted',
         `submitted_at` datetime DEFAULT NULL,
         `reviewed_by` int(11) DEFAULT NULL,
         `approved_at` datetime DEFAULT NULL,
         `retake_allowed` tinyint(1) NOT NULL DEFAULT 0,
+        `retake_started_at` datetime DEFAULT NULL,
         `notes` varchar(1024) DEFAULT NULL,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        `correct_count` int(11) NOT NULL DEFAULT 0,
+        `wrong_count` int(11) NOT NULL DEFAULT 0,
+        `unanswered_count` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`),
         UNIQUE KEY `unique_exam_user` (`exam_id`,`user_id`),
         KEY `user_id` (`user_id`),
         KEY `status` (`status`),
         KEY `percentage` (`percentage`),
         KEY `submitted_at` (`submitted_at`),
         KEY `disabled` (`disabled`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
     ";
 
     $this->query($query);
@@ -542,6 +573,7 @@ class Database {
         `question_id` int(11) NOT NULL,
         `option_number` int(2) NOT NULL,
         `option_title` varchar(250) NOT NULL,
+        UNIQUE KEY `unique_question_option_number` (`question_id`, `option_number`),
         KEY `question_id` (`question_id`),
         KEY `option_number` (`option_number`),
         KEY `option_title` (`option_title`)

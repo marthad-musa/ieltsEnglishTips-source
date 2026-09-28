@@ -80,6 +80,22 @@ class Exam extends Model {
     }
     # ---| ./IF(Category_ID)
 
+    if (empty($data['exam_datetime']) || strtotime($data['exam_datetime']) === false) {
+      $this->errors['exam_datetime'] = 'A valid exam date and time is required.';
+    }
+    if (!isset($data['exam_duration']) || filter_var($data['exam_duration'], FILTER_VALIDATE_INT) === false || (int)$data['exam_duration'] < 1) {
+      $this->errors['exam_duration'] = 'Duration must be a positive number of minutes.';
+    }
+    if (!isset($data['total_question']) || filter_var($data['total_question'], FILTER_VALIDATE_INT) === false || (int)$data['total_question'] < 1) {
+      $this->errors['total_question'] = 'Question count must be a positive whole number.';
+    }
+    if (!isset($data['right_answer_mark']) || !is_numeric($data['right_answer_mark']) || (float)$data['right_answer_mark'] <= 0) {
+      $this->errors['right_answer_mark'] = 'Right-answer marks must be greater than zero.';
+    }
+    if (!isset($data['wrong_answer_mark']) || !is_numeric($data['wrong_answer_mark'])) {
+      $this->errors['wrong_answer_mark'] = 'Wrong-answer marks must be numeric.';
+    }
+
     if(empty($this->errors)) {
       # ...| TRUE Block
       return true;
@@ -330,6 +346,83 @@ class Exam extends Model {
   public function publish_exam($id) {
     $query = "UPDATE exam SET approved = 1, published = 1 WHERE id = :id";
     return $this->query($query, ['id' => $id]);
+  }
+
+  public function getRuntimeExam(int $id): ?object {
+    $database = new \Database();
+    $rows = $database->query(
+      "SELECT id, exam_title, exam_datetime, exam_duration, total_question, right_answer_mark, wrong_answer_mark, exam_status
+       FROM exam WHERE id = :id AND approved = 1 AND published = 1 AND disabled = 0 LIMIT 1",
+      ['id' => $id]
+    );
+    return $rows[0] ?? null;
+  }
+
+  public static function canCreateOrEdit(int $role_id): bool {
+    return in_array($role_id, [2, 3], true);
+  }
+
+  public static function canApprove(int $role_id): bool {
+    return $role_id === 3;
+  }
+
+  public static function canTakeForRole(int $role_id): bool {
+    return $role_id === 1;
+  }
+
+  public static function canManageExam(int $role_id, int $user_id, object $exam): bool {
+    return $role_id === 3 || ($role_id === 2 && (
+      (int)($exam->created_by ?? 0) === $user_id || (int)($exam->user_id ?? 0) === $user_id
+    ));
+  }
+
+  public function getDeadline(object $exam, ?object $attempt = null): ?int {
+    if (empty($exam->exam_datetime) || (int)$exam->exam_duration < 1) {
+      return null;
+    }
+    $start_datetime = ($attempt && ($attempt->status ?? '') === 'In Progress' && !empty($attempt->retake_started_at))
+      ? $attempt->retake_started_at
+      : $exam->exam_datetime;
+    if (empty($start_datetime)) return null;
+    $start = strtotime($start_datetime);
+    return $start === false ? null : $start + ((int)$exam->exam_duration * 60);
+  }
+
+  public function getScheduleState(object $exam, ?object $attempt = null, ?int $now = null): string {
+    $deadline = $this->getDeadline($exam, $attempt);
+    if ($deadline === null) {
+      return 'invalid';
+    }
+    $start_datetime = ($attempt && ($attempt->status ?? '') === 'In Progress' && !empty($attempt->retake_started_at))
+      ? $attempt->retake_started_at
+      : $exam->exam_datetime;
+    $start = strtotime($start_datetime);
+    if ($start === false) {
+      return 'invalid';
+    }
+    $now = $now ?? time();
+    if ($now < $start) {
+      return 'waiting';
+    }
+    return $now >= $deadline ? 'ended' : 'active';
+  }
+
+  public function hasValidQuestionSet(int $exam_id, int $expected_count): bool {
+    if ($expected_count < 1) return false;
+    $database = new \Database();
+    $query = "SELECT q.id, q.answer_option, COUNT(qo.id) AS option_count, GROUP_CONCAT(qo.option_number ORDER BY qo.option_number) AS option_numbers
+      FROM question q LEFT JOIN question_option qo ON qo.question_id = q.id
+      WHERE q.exam_id = :exam_id GROUP BY q.id, q.answer_option ORDER BY q.id";
+    $rows = $database->query($query, ['exam_id' => $exam_id]);
+    if (!$rows || count($rows) !== $expected_count) return false;
+    foreach ($rows as $row) {
+      if (!in_array((string)$row->answer_option, ['1', '2', '3', '4'], true)
+        || (int)$row->option_count !== 4
+        || !\Model\Question_option::hasExactOptionNumbers(explode(',', (string)$row->option_numbers))) {
+        return false;
+      }
+    }
+    return true;
   }
   # ------------|  ./Publish Exam
 

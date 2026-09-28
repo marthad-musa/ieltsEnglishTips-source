@@ -72,6 +72,7 @@
               <?php endif; ?>
 
               <form method="POST" action="" class="needs-validation">
+                <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label for="exam_title" class="form-label">Exam Title *</label>
@@ -106,7 +107,7 @@
                 <div class="row mb-3">
                   <div class="col-md-4">
                     <label for="total_question" class="form-label">Total Questions *</label>
-                    <input type="number" id="total_question" name="total_question" class="form-control" value="0" required>
+                    <input type="number" id="total_question" name="total_question" class="form-control" value="1" min="1" required>
                   </div>
                   <div class="col-md-4">
                     <label for="right_answer_mark" class="form-label">Right Answer Mark *</label>
@@ -150,6 +151,7 @@
 
               <?php if (!empty($data['row'])): ?>
                 <form method="POST" action="" class="needs-validation">
+                  <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
                   <div class="row mb-3">
                     <div class="col-md-6">
                       <label for="exam_title" class="form-label">Exam Title</label>
@@ -176,7 +178,7 @@
                     <div class="col-md-6">
                       <label for="exam_datetime" class="form-label">Exam Date & Time</label>
                       <input type="datetime-local" id="exam_datetime" name="exam_datetime" class="form-control" 
-                        value="<?= $data['row']->exam_datetime ?? ''; ?>" required>
+                        value="<?= !empty($data['row']->exam_datetime) ? date('Y-m-d\\TH:i', strtotime($data['row']->exam_datetime)) : ''; ?>" required>
                     </div>
                     <div class="col-md-6">
                       <label for="exam_duration" class="form-label">Duration (minutes)</label>
@@ -237,6 +239,7 @@
                 <p><strong>Created:</strong> <?=$data['row']->exam_created_on?></p>
                 
                 <form method="POST" action="">
+                  <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
                   <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
                     <a href="<?=ROOT?>/admin/exams" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
@@ -253,6 +256,27 @@
 
         <!-- Main List View -->
         <?php else: ?>
+          <?php if ((int)$uid->role_id === 1 && !empty($data['student_exams'])): ?>
+            <div class="card mb-4">
+              <div class="card-header"><h5 class="mb-0">My Exams</h5></div>
+              <div class="card-body table-responsive">
+                <table class="table align-middle">
+                  <thead><tr><th>Exam</th><th>Date &amp; Time</th><th>Duration</th><th></th></tr></thead>
+                  <tbody>
+                    <?php foreach ($data['student_exams'] as $student_exam): ?>
+                      <tr>
+                        <td><?=esc($student_exam->exam_title)?></td>
+                        <td><?=esc($student_exam->exam_datetime)?></td>
+                        <td><?=esc($student_exam->exam_duration)?> min</td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="<?=ROOT?>/exam/take/<?= (int)$student_exam->id ?>">Open Exam</a></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          <?php endif; ?>
+
           <!-- Teacher's Exams Card -->
           <?php if (!empty($data['teacher_exams'])): ?>
             <div class="card mb-4">
@@ -293,9 +317,16 @@
                             <a href="<?=ROOT?>/admin/exams/edit/<?=$exam->id?>" class="btn btn-sm btn-outline-secondary">
                               <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="<?=ROOT?>/admin/exams/delete/<?=$exam->id?>" class="btn btn-sm btn-outline-danger">
-                              <i class="bi bi-trash"></i>
-                            </a>
+                            <?php if ((int)$uid->role_id === 3 && (int)$exam->published === 1): ?>
+                              <button type="button" class="btn btn-sm btn-outline-warning unpublish-exam" data-exam-id="<?= (int)$exam->id ?>" title="Unpublish before editing">
+                                <i class="bi bi-unlock"></i>
+                              </button>
+                            <?php endif; ?>
+                            <?php if ((int)$uid->role_id === 3): ?>
+                              <a href="<?=ROOT?>/admin/exams/delete/<?=$exam->id?>" class="btn btn-sm btn-outline-danger" aria-label="Delete exam">
+                                <i class="bi bi-trash"></i>
+                              </a>
+                            <?php endif; ?>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -322,6 +353,26 @@
                     <?php endforeach; ?>
                   </select>
                 </div>
+
+                <div class="row g-2 align-items-end mb-3">
+                  <div class="col-md-6">
+                    <label for="exam-student-email" class="form-label">Student email</label>
+                    <input type="email" id="exam-student-email" class="form-control" autocomplete="off">
+                  </div>
+                  <?php if ((int)$uid->role_id === 2): ?>
+                    <div class="col-auto">
+                      <button type="button" id="nominate-student" class="btn btn-outline-primary">Nominate Student</button>
+                    </div>
+                  <?php elseif ((int)$uid->role_id === 3): ?>
+                    <div class="col-auto">
+                      <button type="button" id="admin-enroll-student" class="btn btn-primary">Add to Roster</button>
+                    </div>
+                    <div class="col-auto">
+                      <button type="button" id="admin-remove-student" class="btn btn-outline-danger">Remove from Roster</button>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <div id="enrollment-action-message" class="small mb-3" aria-live="polite"></div>
                 
                 <div id="requests-panel" class="table-responsive" style="display: none;">
                   <table class="table table-striped">
@@ -414,6 +465,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function enrollmentAction(action) {
+    const examId = selectExamEl?.value;
+    const studentEmail = document.getElementById('exam-student-email')?.value.trim();
+    const messageEl = document.getElementById('enrollment-action-message');
+    if (!examId || !studentEmail) {
+      if (messageEl) messageEl.textContent = 'Select an exam and enter a student email.';
+      return;
+    }
+    safeFetch('<?=ROOT?>/admin/exams', {ajax: action, exam_id: examId, student_email: studentEmail})
+      .then(data => {
+        if (messageEl) messageEl.textContent = data.message || '';
+        if (data.success && action !== 'nominate_student') loadExamRequests(examId);
+      })
+      .catch(() => { if (messageEl) messageEl.textContent = 'The request could not be completed.'; });
+  }
+
+  document.getElementById('nominate-student')?.addEventListener('click', () => enrollmentAction('nominate_student'));
+  document.getElementById('admin-enroll-student')?.addEventListener('click', () => enrollmentAction('admin_enroll_student'));
+  document.getElementById('admin-remove-student')?.addEventListener('click', () => enrollmentAction('admin_remove_student'));
+
   function updateRequestStatus(examId, userId, status) {
     safeFetch('<?=ROOT?>/admin/exams', {
       exam_id: examId,
@@ -446,7 +517,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  document.querySelectorAll('.unpublish-exam').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const examId = this.dataset.examId;
+      if (!window.confirm('Unpublish this future exam so it can be edited?')) return;
+      safeFetch('<?=ROOT?>/admin/exams', {exam_id: examId, ajax: 'unpublish_exam'})
+        .then(data => {
+          if (data.success) {
+            alert(data.message);
+            location.reload();
+          } else {
+            alert(data.message || 'The exam could not be unpublished.');
+          }
+        });
+    });
+  });
+
   function safeFetch(url, data) {
+    data.csrf_code = '<?=esc($_SESSION['csrf_code'] ?? '')?>';
     const formData = new URLSearchParams(data);
     return fetch(url, {
       method: 'POST',

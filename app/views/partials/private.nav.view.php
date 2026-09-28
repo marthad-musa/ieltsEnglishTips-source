@@ -176,7 +176,7 @@
         <!-- ---------- |This should be limited to Instructors| ---------- -->
         <?php // if(user_can('view_final_score')):?>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="<?=ROOT?>/exam/final-scores">
               <i class="fa fa-trophy fs-6"></i>
               <span>Final Scores</span>
             </a>

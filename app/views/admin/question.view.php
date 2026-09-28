@@ -35,6 +35,12 @@
 
                     <!-- Form with No Lables -->
                     <form class="row g-3 py-2" method="post">
+                      <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
+                      <?php if (!empty($errors)): ?>
+                        <div class="col-12 alert alert-danger mb-0">
+                          <?php foreach ($errors as $error): ?><div><?=esc($error)?></div><?php endforeach; ?>
+                        </div>
+                      <?php endif; ?>
 
                       <div class="col-md-12">
                         <label for="question_title" class="ms-2">Qustion Title&colon;</label><br>
@@ -63,21 +69,28 @@
                         <!-- -| ./Exam_ID Error\. |- -->
                       </div>
 
-                      <!-- <div class="col-md-12">
+                      <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
+                        <div class="col-md-6">
+                          <label for="option_number_<?=$option_number?>" class="ms-2">Option <?=$option_number?>&colon;</label>
+                          <input type="text" name="option_number_<?=$option_number?>" id="option_number_<?=$option_number?>" class="form-control" required>
+                        </div>
+                      <?php endfor; ?>
+
+                      <div class="col-md-12">
                         <label for="answer_option" class="ms-2">Rigth Answer</label><br>
-                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>">
-                          <option value="" selected="" disabled>Select an option...</option>
+                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>" required>
+                          <option value="" selected disabled>Select the correct option...</option>
                           <option value="1">Option 1</option>
                           <option value="2">Option 2</option>
                           <option value="3">Option 3</option>
                           <option value="4">Option 4</option>
-                        </select> -->
+                        </select>
                         <!-- ---- ANSWER_Option Error ---- -->
-                        <!-- <?php if(!empty($errors['answer_option'])):?>
+                        <?php if(!empty($errors['answer_option'])):?>
                           <small class="text-danger"><?=$errors['answer_option']?>.</small>
-                        <?php endif;?> -->
+                        <?php endif;?>
                         <!-- -| ./ANSWER_Option Error\. |- -->
-                      <!-- </div> -->
+                      </div>
 
                       <!-- ---- Hidden Inputs ---- -->
                       <input type="hidden" name="exam_id" value="<?=$target_id?>">
@@ -131,10 +144,11 @@
                   <div class="card-body">
                     <h5 class="card-title text-danger"><i class="bi bi-trash fs-5"></i> Are you sure you want to&nbsp;<?=$data['action']?>&nbsp;this record&quest;</h5>
 
-                    <form class="row g-3 py-2" method="get">
+                    <form class="row g-3 py-2" method="post">
+                      <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
 
                       <?php if (!empty($rows)) :?>
-                        <?php foreach ($rows as $key => $row) :?>
+                          <?php $row = $rows; ?>
                           <div class="col-md-12">
                             <label for="question_title" class="ms-2">Qustion Title&colon;</label><br>
                             <input type="text" name="question_title" id="question_title" value="<?=esc($row->question_title)?>" class="form-control" disabled>
@@ -156,7 +170,6 @@
                               <button type="button" class="mx-3 btn btn-secondary"><i class="bi bi-box-arrow-left"></i> Back</button>
                             </a>
                           </div>
-                        <?php endforeach;?>
                       <?php else:?>
                         <div class="text-center">
                           <h5 class="alert alert-danger"><i class="bi bi-emoji-frown"></i> Oh, no! Record not found.</h5>
@@ -201,6 +214,7 @@
 
             <!-- Form with No Lables -->
             <form class="row g-3 mt-3 py-2" method="post">
+              <input type="hidden" name="csrf_code" value="<?=esc($_SESSION['csrf_code'] ?? '')?>">
 
               <div class="col-md-12">
                 <label for="exam_id">Question ID&colon;&nbsp;</label>
@@ -209,7 +223,7 @@
 
               <div class="col-md-6">
                 <label for="question_title" class="ms-2">Qustion Title&colon;</label><br>
-                <input type="text" name="question_title" id="question_title" value="<?=$rows->question_title ?? ''?>" oninput="something_changed(event)" class="form-control <?=!empty($errors['question_title']) ? 'border-danger' : '';?>" disabled placeholder="Question Title">
+                <input type="text" name="question_title" id="question_title" value="<?=esc($rows->question_title ?? '')?>" oninput="something_changed(event)" class="form-control <?=!empty($errors['question_title']) ? 'border-danger' : '';?>" required placeholder="Question Title">
                 <!-- ---- EXAM Title Error ---- -->
                 <?php if(!empty($errors['question_title'])):?>
                   <small class="text-danger"><?=$errors['question_title']?>.</small>
@@ -234,59 +248,22 @@
                 <!-- -| ./Exam_ID Error\. |- -->
               </div>
 
-              <?php if (!empty($question_options)) : ?>
-                <?php foreach ($question_options as $key => $value) : ?>
-                  <div class="col-md-6">
-                    <label for="option_number_<?=$value->option_number?>" class="ms-2">Option <?=$value->option_number?>&colon;</label><br>
-                    <input type="text" name="option_number_<?=$value->option_number?>" id="option_number_<?=$value->option_number?>" oninput="something_changed(event)" value="<?=esc($value->option_title ?? '')?>" class="form-control <?=!empty($errors['option_'.$value->option_number]) ? 'border-danger' : '';?>" placeholder="First Option">
-                    <!-- ---- EXAM Title Error ---- -->
-                    <?php if(!empty($errors['option_'.$value->option_number])):?>
-                      <small class="text-danger"><?=$errors['option_'.$value->option_number]?>.</small>
-                    <?php endif;?>
-                    <!-- -| ./EXAM Title Error\. |- -->
-                  </div>
-                <?php endforeach; ?>
-              <?php else: ?>
+              <?php
+                $option_titles = [];
+                foreach ($question_options ?? [] as $option_row) {
+                  $option_titles[(int)$option_row->option_number] = $option_row->option_title;
+                }
+              ?>
+              <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
+                <?php $option_error = $errors['option_'.$option_number] ?? ''; ?>
                 <div class="col-md-6">
-                  <label for="option_number_1" class="ms-2">Option 1&colon;</label><br>
-                  <input type="text" name="option_number_1" id="option_number_1" value="" oninput="something_changed(event)" class="form-control <?=!empty($errors['option_1']) ? 'border-danger' : '';?>" placeholder="First Option">
-                  <!-- ---- EXAM Title Error ---- -->
-                  <?php if(!empty($errors['option_1'])):?>
-                    <small class="text-danger"><?=$errors['option_1']?>.</small>
+                  <label for="option_number_<?=$option_number?>" class="ms-2">Option <?=$option_number?>&colon;</label><br>
+                  <input type="text" name="option_number_<?=$option_number?>" id="option_number_<?=$option_number?>" oninput="something_changed(event)" value="<?=esc($option_titles[$option_number] ?? '')?>" class="form-control <?=!empty($option_error) ? 'border-danger' : '';?>" required>
+                  <?php if(!empty($option_error)):?>
+                    <small class="text-danger"><?=esc($option_error)?>.</small>
                   <?php endif;?>
-                  <!-- -| ./EXAM Title Error\. |- -->
                 </div>
-
-                <div class="col-md-6">
-                  <label for="option_number_2" class="ms-2">Option 2&colon;</label><br>
-                  <input type="text" name="option_number_2" id="option_number_2" value="" oninput="something_changed(event)" class="form-control <?=!empty($errors['option_2']) ? 'border-danger' : '';?>" placeholder="Second Option">
-                  <!-- ---- EXAM Title Error ---- -->
-                  <?php if(!empty($errors['option_2'])):?>
-                    <small class="text-danger"><?=$errors['option_2']?>.</small>
-                  <?php endif;?>
-                  <!-- -| ./EXAM Title Error\. |- -->
-                </div>
-
-                <div class="col-md-6">
-                  <label for="option_number_3" class="ms-2">Option 3&colon;</label><br>
-                  <input type="text" name="option_number_3" id="option_number_3" value="" oninput="something_changed(event)" class="form-control <?=!empty($errors['option_3']) ? 'border-danger' : '';?>" placeholder="Third Option">
-                  <!-- ---- EXAM Title Error ---- -->
-                  <?php if(!empty($errors['option_3'])):?>
-                    <small class="text-danger"><?=$errors['option_3']?>.</small>
-                  <?php endif;?>
-                  <!-- -| ./EXAM Title Error\. |- -->
-                </div>
-
-                <div class="col-md-6">
-                  <label for="option_number_4" class="ms-2">Option 4&colon;</label><br>
-                  <input type="text" name="option_number_4" id="option_number_4" value="" oninput="something_changed(event)" class="form-control <?=!empty($errors['option_4']) ? 'border-danger' : '';?>" placeholder="Fourth Option">
-                  <!-- ---- EXAM Title Error ---- -->
-                  <?php if(!empty($errors['option_4'])):?>
-                    <small class="text-danger"><?=$errors['option_4']?>.</small>
-                  <?php endif;?>
-                  <!-- -| ./EXAM Title Error\. |- -->
-                </div>
-              <?php endif; ?>
+              <?php endfor; ?>
 
               <div class="col-md-12">
                 <label for="answer_option" class="ms-2">Rigth Answer</label><br>

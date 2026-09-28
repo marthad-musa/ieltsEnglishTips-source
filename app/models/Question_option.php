@@ -118,6 +118,28 @@ class Question_option extends Model {
 
     return $rows;
   } # ---| ./Get_USER() |---
+
+  public function getByQuestionId(int $question_id): array {
+    $database = new \Database();
+    return $database->query(
+      "SELECT id, question_id, option_number, option_title FROM question_option WHERE question_id = :question_id ORDER BY option_number ASC",
+      ['question_id' => $question_id]
+    ) ?: [];
+  }
+
+  public function hasFourOptions(int $question_id): bool {
+    $options = $this->getByQuestionId($question_id);
+    return self::hasExactOptionNumbers(array_map(static function($option) {
+      return $option->option_number;
+    }, $options));
+  }
+
+  public static function hasExactOptionNumbers(array $numbers): bool {
+    if (count($numbers) !== 4) return false;
+    $numbers = array_map('intval', $numbers);
+    sort($numbers, SORT_NUMERIC);
+    return $numbers === [1, 2, 3, 4];
+  }
   # ---| ./AfterSELECT Functions\. |---
 }
 # -----| ./Question_Option()

@@ -39,6 +39,7 @@ class Exam_join_request extends Model {
     'requested_at',
     'approved_by',
     'approved_at',
+    'requested_by',
     'notes',
     'disabled',
   ];
