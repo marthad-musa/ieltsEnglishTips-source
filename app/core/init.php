@@ -39,9 +39,9 @@ spl_autoload_register(
 require __DIR__ . '/config.php';
 require __DIR__ . '/permissions.php';
 require __DIR__ . '/functions.php';
-require __DIR__ . '/database.php';
+require __DIR__ . '/Database.php';
 require __DIR__ . '/model.php';
-require __DIR__ . '/controller.php';
-require __DIR__ . '/app.php';
+require __DIR__ . '/Controller.php';
+require __DIR__ . '/App.php';
 # ------------|  ./Core Files REQUIRED
 
