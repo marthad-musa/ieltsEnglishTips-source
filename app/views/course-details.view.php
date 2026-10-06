@@ -2,6 +2,21 @@
 <?php $this->view('partials/public.navbar', $data) ?>
 <!-- ----------| ./INCLUDES\. |---------- -->
 
+<?php
+  $course_image = !empty($row->course_image) && file_exists($row->course_image)
+    ? get_image($row->course_image)
+    : null;
+  $hero_image = !empty($row->hero_background_image) && file_exists($row->hero_background_image)
+    ? get_image($row->hero_background_image)
+    : ROOT . '/assets/img/hero-3.png';
+  $promo_video = !empty($row->course_promo_video) && file_exists($row->course_promo_video)
+    ? get_video($row->course_promo_video)
+    : null;
+  $course_tags = !empty($row->tags)
+    ? array_filter(array_map('trim', explode(',', $row->tags)))
+    : [];
+?>
+
 <!-- ------------- MAIN ------------- -->
 <main class="main">
 
@@ -10,11 +25,13 @@
     <!-- ---------| Hero Section |--------- -->
     <section id="hero" class="hero section dark-background">
 
-      <img src="<?=ROOT?>/assets/img/hero-3.png" alt="" data-aos="fade-in">
+      <img src="<?=esc($hero_image)?>" alt="" data-aos="fade-in" class="opacity-50">
 
       <div class="container">
-        <h2 data-aos="fade-up" data-aos-delay="100">Course Details</h2>
-        <p data-aos="fade-up" data-aos-delay="200">Find out more deteails about this course.</p>
+        <h2 data-aos="fade-up" data-aos-delay="100"><?=esc($row->title)?></h2>
+        <?php if (!empty($row->subtitle)): ?>
+          <p data-aos="fade-up" data-aos-delay="200"><?=esc($row->subtitle)?></p>
+        <?php endif; ?>
       </div>
     </section>
     <!-- -------| ./Hero Section\. |------- -->
@@ -23,7 +40,7 @@
       <div class="container">
         <ol>
           <li><a href="<?=ROOT?>">Home</a></li>
-          <li class="current">Course Details<br></li>
+          <li class="current"><?=esc($row->title)?></li>
         </ol>
       </div>
     </nav>
@@ -48,34 +65,116 @@
 
           <!-- Course Header -->
           <div class="course-header" data-aos="fade-up" data-aos-delay="200">
-            <div class="course-image">
-              <img src="<?=ROOT?>/assets/img/slide-1.jpg" alt="Course Image" class="img-fluid">
-            </div>
-            <div class="course-meta">
-              <div class="instructor">
-                <img src="<?=ROOT?>/assets/img/teachers-3.png" alt="Instructor" class="instructor-avatar">
-                <div class="instructor-info">
-                  <h6>Mohammed Abbo</h6>
-                  <span>Founder of <strong style="color: crimson;">IELTS</strong> <strong style="color: #5578ff;">English</strong> <strong style="color: orangered;">Tips</strong></span>
-                </div>
+            <?php if ($course_image): ?>
+              <div class="course-image">
+                <img src="<?=esc($course_image)?>" alt="<?=esc($row->title)?>" class="img-fluid">
               </div>
+            <?php endif; ?>
+            <div class="course-meta">
+              <?php if (!empty($row->user_row->name)): ?>
+                <div class="instructor">
+                  <?php if (!empty($row->user_row->image)): ?>
+                    <img src="<?=esc(get_image($row->user_row->image))?>" alt="<?=esc($row->user_row->name)?>" class="instructor-avatar">
+                  <?php endif; ?>
+                  <div class="instructor-info">
+                    <h6><?=esc($row->user_row->name)?></h6>
+                    <span>Course instructor</span>
+                  </div>
+                </div>
+              <?php endif; ?>
               <div class="course-stats">
-                <div class="stat-item">
-                  <i class="bi bi-people"></i>
-                  <span><?=esc($course_students ?: '0')?> students</span>
-                </div>
-                <div class="stat-item">
-                  <i class="bi bi-clock"></i>
-                  <span>40 hours</span>
-                </div>
-                <div class="stat-item">
-                  <i class="bi bi-calendar"></i>
-                  <span>12 weeks</span>
-                </div>
+                <?php if (!empty($row->course_duration)): ?>
+                  <div class="stat-item">
+                    <i class="bi bi-calendar"></i>
+                    <span><?=esc($row->course_duration)?> <?=((int)$row->course_duration === 1) ? 'week' : 'weeks'?></span>
+                  </div>
+                <?php endif; ?>
               </div>
             </div>
           </div>
           <!-- End Course Header -->
+
+          <?php if ($promo_video): ?>
+            <div class="course-content mb-4" data-aos="fade-up" data-aos-delay="250">
+              <h3>Course preview</h3>
+              <video controls preload="metadata" class="w-100" style="max-height: 420px;">
+                <source src="<?=esc($promo_video)?>" type="video/mp4">
+                Your browser does not support video playback.
+              </video>
+            </div>
+          <?php endif; ?>
+
+          <?php if (!empty($row->primary_subject) || !empty($row->category_row->category)): ?>
+            <div class="course-content" data-aos="fade-up" data-aos-delay="275">
+              <h2>About this course</h2>
+              <?php if (!empty($row->primary_subject) || !empty($row->category_row->category)): ?>
+                <div class="course-tags">
+                  <div class="tags-list">
+                    <?php if (!empty($row->primary_subject)): ?>
+                      <span class="tag"><?=esc($row->primary_subject)?></span>
+                    <?php endif; ?>
+                    <?php if (!empty($row->category_row->category)): ?>
+                      <span class="tag"><?=esc($row->category_row->category)?></span>
+                    <?php endif; ?>
+                  </div>
+                </div>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+
+          <?php
+            $intended_learner_items = array_filter($coursesMeta ?? [], function ($item) {
+              return ($item->tab ?? '') === 'intended-learners'
+                && (int)($item->disabled ?? 0) === 0
+                && !empty(trim($item->value ?? ''));
+            });
+            $learning_outcomes = array_values(array_filter($intended_learner_items, function ($item) {
+              return ($item->data_type ?? '') === 'students-learn';
+            }));
+            $course_prerequisites = array_values(array_filter($intended_learner_items, function ($item) {
+              return ($item->data_type ?? '') === 'prerequisites';
+            }));
+            $target_audience = array_values(array_filter($intended_learner_items, function ($item) {
+              return ($item->data_type ?? '') === 'description';
+            }));
+          ?>
+
+          <?php if ($learning_outcomes || $course_prerequisites || $target_audience): ?>
+            <div class="course-content intended-learners-content" data-aos="fade-up" data-aos-delay="290">
+              <?php if ($learning_outcomes): ?>
+                <div class="what-you-learn mb-4">
+                  <h3>What you’ll learn</h3>
+                  <ul class="learn-list list-unstyled">
+                    <?php foreach ($learning_outcomes as $outcome): ?>
+                      <li><i class="bi bi-check-circle" aria-hidden="true"></i> <?=esc($outcome->value)?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              <?php endif; ?>
+
+              <?php if ($course_prerequisites): ?>
+                <div class="course-prerequisites mb-4">
+                  <h3>Prerequisites</h3>
+                  <ul>
+                    <?php foreach ($course_prerequisites as $prerequisite): ?>
+                      <li><?=esc($prerequisite->value)?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              <?php endif; ?>
+
+              <?php if ($target_audience): ?>
+                <div class="course-target-audience mb-4">
+                  <h3>Who this course is for</h3>
+                  <ul>
+                    <?php foreach ($target_audience as $audience_item): ?>
+                      <li><?=esc($audience_item->value)?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
 
           <!-- Course Sections -->
           <div class="course-curriculum mt-4" data-aos="fade-up" data-aos-delay="300">
@@ -93,6 +192,9 @@
                   <div class="section-header">
                     <h4><?=esc($section->value ?? 'Untitled section')?></h4>
                   </div>
+                  <?php if (!empty($section->description)): ?>
+                    <p class="section-description"><?=nl2br(esc($section->description))?></p>
+                  <?php endif; ?>
 
                   <?php
                     $lectures = array_filter($section->lectures_row ?? [], function ($lecture) {
@@ -103,16 +205,52 @@
                   <?php if (!empty($lectures)): ?>
                     <div class="lessons">
                       <?php foreach ($lectures as $lecture): ?>
-                        <div class="lesson-item">
+                        <?php
+                          $item_type = $lecture->item_type ?? 'video';
+                          $item_type_labels = [
+                            'video' => 'Video lesson',
+                            'reading' => 'Reading',
+                            'quiz' => 'Quiz',
+                            'assignment' => 'Assignment',
+                          ];
+                          $item_type_label = $item_type_labels[$item_type] ?? 'Course item';
+                          $is_preview = (int)($lecture->is_preview ?? 0) === 1;
+                          $lesson_file = $is_preview && !empty($lecture->file) ? get_video($lecture->file) : '';
+                        ?>
+                        <div class="lesson-item curriculum-item">
                           <div class="lesson-info">
-                            <i class="bi bi-play-circle"></i>
-                            <span><?=esc($lecture->title)?></span>
+                            <i class="bi <?=$item_type === 'video' ? 'bi-play-circle' : 'bi-file-text'?>" aria-hidden="true"></i>
+                            <div>
+                              <strong><?=esc($lecture->title)?></strong>
+                              <?php if ($is_preview && !empty($lecture->description)): ?>
+                                <p class="mb-1"><?=nl2br(esc($lecture->description))?></p>
+                              <?php endif; ?>
+                              <small class="text-muted">
+                                <?=esc($item_type_label)?>
+                                <?php if (!empty($lecture->duration_minutes)): ?>
+                                  &middot; <?=esc($lecture->duration_minutes)?> min
+                                <?php endif; ?>
+                              </small>
+                            </div>
                           </div>
+                          <?php if ($is_preview): ?>
+                            <span class="badge bg-success">Preview</span>
+                            <?php if ($item_type === 'video' && $lesson_file): ?>
+                              <video class="w-100 mt-2" controls preload="none">
+                                <source src="<?=esc($lesson_file)?>" type="video/mp4">
+                                Your browser does not support video playback.
+                              </video>
+                            <?php elseif (!empty($lecture->file)): ?>
+                              <a class="btn btn-sm btn-outline-primary mt-2" href="<?=esc(get_video($lecture->file))?>" target="_blank" rel="noopener">Open preview material</a>
+                            <?php endif; ?>
+                          <?php else: ?>
+                            <span class="text-muted"><i class="bi bi-lock" aria-hidden="true"></i> Enrolled learners</span>
+                          <?php endif; ?>
                         </div>
                       <?php endforeach; ?>
                     </div>
                   <?php else: ?>
-                    <p class="text-muted mb-0">No lectures in this section yet.</p>
+                    <p class="text-muted mb-0">No curriculum items in this section yet.</p>
                   <?php endif; ?>
                 </div>
               <?php endforeach; ?>
@@ -256,75 +394,73 @@
 
             <!-- Pricing Card -->
             <div class="pricing-card">
-              <div class="price">
-                <span class="currency">£</span>
-                <span class="amount">750</span>
-                <span class="period">/course</span>
-              </div>
-              <div class="original-price">£1000</div>
-
-              <div class="course-features">
-                <div class="feature">
-                  <i class="bi bi-clock"></i>
-                  <span>40 hours of content</span>
+              <h3 class="course-pricing-title text-primary fontAlido"><?=esc($row->title)?></h3>
+              <?php if (!empty($row->description)): ?>
+                <p class="course-pricing-description"><?=nl2br(esc($row->description))?></p>
+              <?php endif; ?>
+              <?php if (isset($row->price_row->price) && is_numeric($row->price_row->price)): ?>
+                <div class="price">
+                  <?php if ((float)$row->price_row->price === 0.0): ?>
+                    <span class="amount">Free</span>
+                  <?php else: ?>
+                    <?php if (!empty($row->currency_row->symbol)): ?>
+                      <span class="currency"><?=esc($row->currency_row->symbol)?></span>
+                    <?php endif; ?>
+                    <span class="amount"><?=esc($row->price_row->price)?></span>
+                  <?php endif; ?>
+                  <span class="period">/course</span>
                 </div>
-                <!-- <div class="feature">
-                  <i class="bi bi-trophy"></i>
-                  <span>Certificate of completion</span>
-                </div> -->
-                <div class="feature">
-                  <i class="bi bi-phone"></i>
-                  <span>Mobile and desktop access</span>
-                </div>
-                <!-- <div class="feature">
-                  <i class="bi bi-infinity"></i>
-                  <span>Lifetime access</span>
-                </div> -->
-              </div>
+              <?php endif; ?>
 
               <form method="post" action="<?=ROOT?>/course_details/enroll/<?=esc($row->slug)?>">
                 <?php csrf() ?>
                 <button type="submit" class="btn-enroll">Enroll Now</button>
               </form>
-              <button class="btn-preview">Preview Course</button>
             </div>
             <!-- End Pricing Card -->
 
             <!-- Course Info -->
+            <?php if (!empty($row->category_row->category) || !empty($row->primary_subject) || !empty($row->sub_category_row->level) || !empty($row->language_row->language)): ?>
             <div class="course-info-card">
-              <h4>Course Information</h4>
-              <div class="info-item">
-                <span class="label">Level:</span>
-                <span class="value">Intermediate</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Students:</span>
-                <span class="value">27 enrolled</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Language:</span>
-                <span class="value">English</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Prerequisites:</span>
-                <span class="value">Basic English</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Last Updated:</span>
-                <span class="value">November 2025</span>
-              </div>
+              <h4 class="fontClarity text-primary fs-4">Course Information</h4>
+              <?php if (!empty($row->category_row->category)): ?>
+                <div class="info-item">
+                  <span class="label">Category:</span>
+                  <span class="value"><?=esc($row->category_row->category)?></span>
+                </div>
+              <?php endif; ?>
+              <?php if (!empty($row->primary_subject)): ?>
+                <div class="info-item">
+                  <span class="label">Subject:</span>
+                  <span class="value"><?=esc($row->primary_subject)?></span>
+                </div>
+              <?php endif; ?>
+              <?php if (!empty($row->sub_category_row->level)): ?>
+                <div class="info-item">
+                  <span class="label">Subcategory:</span>
+                  <span class="value"><?=esc($row->sub_category_row->level)?></span>
+                </div>
+              <?php endif; ?>
+              <?php if (!empty($row->language_row->language)): ?>
+                <div class="info-item">
+                  <span class="label">Language:</span>
+                  <span class="value"><?=esc($row->language_row->language)?></span>
+                </div>
+              <?php endif; ?>
             </div>
+            <?php endif; ?>
             <!-- End Course Info -->
 
-            <!-- Tags -->
-            <div class="course-tags">
-              <h4>Tags</h4>
-              <div class="tags-list">
-                <span class="tag">English</span>
-                <span class="tag">IELTS</span>
-                <span class="tag">IELTS Speaking TEST</span>
+            <?php if (!empty($course_tags)): ?>
+              <div class="course-tags">
+                <h4>Tags</h4>
+                <div class="tags-list">
+                  <?php foreach ($course_tags as $tag): ?>
+                    <span class="tag"><?=esc($tag)?></span>
+                  <?php endforeach; ?>
+                </div>
               </div>
-            </div><!-- End Tags -->
+            <?php endif; ?>
 
           </div>
           <!-- End Course Sidebar -->

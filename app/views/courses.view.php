@@ -10,7 +10,7 @@
     <!-- ---------| Hero Section |--------- -->
     <section id="hero" class="hero section dark-background">
 
-      <img src="<?=ROOT?>/assets/img/hero-11.png" alt="" data-aos="fade-in">
+      <img src="<?=ROOT?>/assets/img/hero-11.png" alt="" data-aos="fade-in" class="opacity-50">
 
       <div class="container text-start">
         <h2 data-aos="fade-up" data-aos-delay="100">Courses</h2>
@@ -41,89 +41,41 @@
           <?php foreach ($rows as $row): ?>
             <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
               <div class="course-item">
-                <img src="<?=get_image($row->course_image)?>" class="img-fluid" alt="<?=esc($row->title)?>">
+                <?php if (!empty($row->course_image) && file_exists($row->course_image)): ?>
+                  <img src="<?=esc(get_image($row->course_image))?>" class="img-fluid" alt="<?=esc($row->title)?>">
+                <?php endif; ?>
                 <div class="course-content">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <p class="category"><a href="<?=ROOT?>/<?php
-                      if(esc($row->id) == 1) {
-                        echo 'ielts';
-                      } elseif (esc($row->id) == 2) {
-                        echo 'headway';
-                      } elseif (esc($row->id) == 3) {
-                        echo 'computer';
-                      } else {
-                        echo '#';
-                      }?>
-                    " class="text-white"><?=esc($row->category_row->category)?></a></p>
-                    <p class="price">
-                      <?=esc($row->currency_row->symbol)?><?=esc($row->price_row->price)?> <sup><?=esc($row->currency_row->currency)?></sup>
-                    </p>
+                    <?php if (!empty($row->category_row->category)): ?>
+                      <p class="category"><a href="<?=ROOT?>/course_details/<?=esc($row->slug)?>" class="text-white"><?=esc($row->category_row->category)?></a></p>
+                    <?php endif; ?>
+                    <?php if (isset($row->price_row->price) && is_numeric($row->price_row->price)): ?>
+                      <p class="price">
+                        <?php if ((float)$row->price_row->price === 0.0): ?>
+                          Free
+                        <?php else: ?>
+                          <?=esc($row->currency_row->symbol ?? '')?><?=esc($row->price_row->price)?>
+                          <?php if (!empty($row->currency_row->currency)): ?>
+                            <sup><?=esc($row->currency_row->currency)?></sup>
+                          <?php endif; ?>
+                        <?php endif; ?>
+                      </p>
+                    <?php endif; ?>
                   </div>
     
-                  <h3><a href="<?=ROOT?>/<?php
-                    if(esc($row->id) == 1) {
-                      echo 'ielts';
-                    } elseif (esc($row->id) == 2) {
-                      echo 'headway';
-                    } elseif (esc($row->id) == 3) {
-                      echo 'computer';
-                    } else {
-                      echo '#';
-                    }?>
-                  "><?=esc($row->title)?></a></h3>
+                  <h3><a href="<?=ROOT?>/course_details/<?=esc($row->slug)?>"><?=esc($row->title)?></a></h3>
+                  <?php if (!empty($row->subtitle)): ?>
+                    <p class="description"><?=esc($row->subtitle)?></p>
+                  <?php endif; ?>
                   <p class="description"><?=esc($row->description)?></p>
                 </div>
               </div>
             </div>
           <?php endforeach; ?>
         <?php else: ?>
-          <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
-            <div class="course-item">
-              <img src="./assets/img/course-1.png" class="img-fluid" alt="...">
-              <div class="course-content">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <p class="category"><a href="<?=ROOT?>/courses/1" class="text-white">IELTS Preparation</a></p>
-                  <p class="price">1000 <sup>EGP</sup></p>
-                </div>
-  
-                <h3><a href="#">IELTS Intensive Course</a></h3>
-                <p class="description">Boost your score quickly with our intensive preparation course.</p>
-              </div>
-            </div>
+          <div class="col-12">
+            <p class="text-center">No courses are available right now.</p>
           </div>
-          <!-- End Course Item-->
-  
-          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
-            <div class="course-item">
-              <img src="./assets/img/course-2.png" class="img-fluid" alt="...">
-              <div class="course-content">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <p class="category"><a href="<?=ROOT?>/courses/2" class="text-white">English Course</a></p>
-                  <p class="price">750 <sup>EGP</sup></p>
-                </div>
-  
-                <h3><a href="#">Headway Curriculum</a></h3>
-                <p class="description">Get ready for journey in learining the English language.</p>
-              </div>
-            </div>
-          </div>
-          <!-- End Course Item-->
-  
-          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="300">
-            <div class="course-item">
-              <img src="./assets/img/course-3.png" class="img-fluid" alt="...">
-              <div class="course-content">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <p class="category"><a href="<?=ROOT?>/courses/3" class="text-white">I.T</a></p>
-                  <p class="price">750 <sup>EGP</sup></p>
-                </div>
-  
-                <h3><a href="#">Computer Science</a></h3>
-                <p class="description">Learn how devices work and connect with the rest of the world.</p>
-              </div>
-            </div>
-          </div>
-          <!-- End Course Item-->
         <?php endif; ?>
 
       </div>

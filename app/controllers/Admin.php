@@ -160,7 +160,7 @@ class Admin extends Controller {
     # ---| ./IF(logged_in())
 
     $user_id = Auth::getId();
-    $exam = new \Model\exam();
+    $exam = new \Model\Exam();
     $course = new \Model\Course();
     $user = new \Model\User();
     # ---| ./MODELS\. | ---
@@ -312,6 +312,7 @@ class Admin extends Controller {
           # ...| TRUE Block
           $_POST['exam_created_on'] = date("Y-m-d H:i:s");
           $_POST['user_id'] = $user_id;
+          $_POST['created_by'] = $user_id;
           $_POST['exam_status'] = "Created";
 
           $exam->insert($_POST);
@@ -427,8 +428,8 @@ class Admin extends Controller {
       $role_id = $uid->role_id ?? 1;
       
       # Load teacher's exams
-      $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where created_by = :created_by and disabled = 0 order by exam_created_on desc";
-      $teacher_exams = $exam->query($query, ['created_by' => $user_id]);
+      $query = "select id, exam_title, exam_datetime, exam_duration, exam_status, approved, published, exam_created_on from exam where (created_by = :created_by or user_id = :user_id) and disabled = 0 order by exam_created_on desc";
+      $teacher_exams = $exam->query($query, ['created_by' => $user_id, 'user_id' => $user_id]);
       $data['role_id'] = $role_id;
       $data['teacher_exams'] = $teacher_exams;
 
@@ -478,45 +479,65 @@ class Admin extends Controller {
     # ---| ./MODELS\. | ---
 
     $data = [];
-    
-    $target_exam = $exam->first(['id'=>$id]);
+
+    if ($action !== null && ctype_digit((string)$action)) {
+      $id = $action;
+      $action = null;
+    }
+
+    $action = strtolower((string)$action);
+    $target_id = ctype_digit((string)$id) ? (int)$id : 0;
+    $target_exam = $target_id > 0 ? $exam->first(['id' => $target_id]) : false;
 
     $uid = $uid ?? $user->first(['id'=>$user_id]);
     $data['uid'] = $uid;
 
-    $data['action'] = $action = strtolower($action);
+    $data['action'] = $action;
     $data['title'] = "Questions";
 
     if ($action == 'add') {
       # ...| ADD Block
-      $data['target_id'] = $target_id = str_replace('admin/question/add/','',$_GET['url']);
+      if (!$target_exam) {
+        message('Exam not found.');
+        redirect('admin/exams');
+      }
+      $data['target_id'] = $target_id;
 
-      $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
+      $data['target_exam'] = $target_exam;
 
       if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        # ... SAVE Block
-        if ($target_id == $_POST['exam_id']) {
-          # ...| TRUE Block
-          if ($_POST['add_question'] == 'save') {
-            # ...| TRUE Block
-            $result = $question->insert($_POST);
-            $required_id = $question->get_last_id($target_id);
+        if ($target_exam && (string)$target_id === (string)($_POST['exam_id'] ?? '') && ($_POST['add_question'] ?? '') === 'save') {
+          if ($question->validate($_POST)) {
+            $question->insert([
+              'exam_id' => (int)$target_id,
+              'question_title' => trim($_POST['question_title']),
+              'answer_option' => $_POST['answer_option'],
+            ]);
 
-            if (!empty($required_id)) {
-              # ...| TRUE Block
+            $question_id = (int)$question->lastInsertId();
+            if ($question_id > 0) {
+              for ($option_number = 1; $option_number <= 4; $option_number++) {
+                $question_option->insert([
+                  'question_id' => $question_id,
+                  'option_number' => $option_number,
+                  'option_title' => trim($_POST['option_number_' . $option_number]),
+                ]);
+              }
+
               message('Question added successfully!');
               redirect('admin/question/'.$target_id);
             }
-            # ---| ./IF(RequiredID)
+
+            $question->errors['question_title'] = 'The question could not be saved. Please try again.';
           }
-          # ---| ./IF(SAVE)
         }
-        # ---| ./IF(EXAM ID)
-      } # ---| ./IF(POST)
+        $data['errors'] = $question->errors;
+      }
       # ---| ./Action=>ADD\. |---
     } elseif ($action == 'delete') {
       # ...| DELETE Block
-      $data['target_question'] = $target_question = str_replace('admin/question/delete/','',$_GET['url']);
+      $target_question = $target_id;
+      $data['target_question'] = $target_question;
       // $data['target_id'] = $target_id = $rows->exam_id;
       $data['question_options'] = $question_options = $question_option->where(['question_id'=>$target_question]);
 
@@ -527,11 +548,11 @@ class Admin extends Controller {
         # ...| ROWS Block
         if ($_SERVER['REQUEST_METHOD'] == "GET") {
           # ...| DELETE Options Block
-          $option_result = $question_option->delete($target_question);
-          if ($option_result) {
-            # ...| DELETE Question
-            $question_result = $question->delete($target_question);
-          }
+          $question_option->query(
+            'DELETE FROM question_option WHERE question_id = :question_id',
+            ['question_id' => $target_question]
+          );
+          $question->delete((int)$target_question);
           # ---| ./IF(Option)
 
           message("Question successfully deleted!");
@@ -542,7 +563,7 @@ class Admin extends Controller {
       # ---| ./Action=>DELETE\. |---
     } elseif ($action == 'edit') {
       # ...| EDIT Block
-      $data['target_id'] = $target_id = str_replace('admin/question/edit/','',$_GET['url']);
+      $data['target_id'] = $target_id;
       $question_options = $question_option->where(['question_id'=>$target_id]);
       if (!empty($question_options)) {
         # ...| TRUE Block
@@ -551,7 +572,8 @@ class Admin extends Controller {
       }
       # ---| ./IF(Question Options)
 
-      $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
+      $exam_rows = $exam->findAll('asc');
+      $data['exam_rows'] = is_array($exam_rows) ? array_reverse($exam_rows) : [];
 
       $data['rows'] = $rows = $question->first(['id'=>$target_id]);
       $Update = false;
@@ -625,7 +647,7 @@ class Admin extends Controller {
       # ---| ./Action=>EDIT\. |---
     } elseif ($action == 'view') {
       # ...| EDIT Block
-      $data['target_id'] = $target_id = str_replace('admin/question/view/','',$_GET['url']);
+      $data['target_id'] = $target_id;
       $question_options = $question_option->where(['question_id'=>$target_id]);
       if (!empty($question_options)) {
         # ...| TRUE Block
@@ -634,7 +656,8 @@ class Admin extends Controller {
       }
       # ---| ./IF(Question Options)
 
-      $data['exam_rows'] = $exam_rows = array_reverse($exam->findAll('asc'));
+      $exam_rows = $exam->findAll('asc');
+      $data['exam_rows'] = is_array($exam_rows) ? array_reverse($exam_rows) : [];
 
       $data['rows'] = $rows = $question->first(['id'=>$target_id]);
 
@@ -642,13 +665,16 @@ class Admin extends Controller {
       # ---| ./Action=>EDIT\. |---
     } else {
       # ...| Question MAIN PAGE Block
-      $target_id = str_replace('admin/question/','',$_GET['url']);
+      if (!$target_exam) {
+        message('Exam not found.');
+        redirect('admin/exams');
+      }
       $data['target_id'] = $target_id;
 
       $query = "select * from question where exam_id = :exam_id";
       $rows = $question->query($query,['exam_id'=>$target_id]);
       $data['rows'] = $rows;
-      $data['exam_total_question'] = $exam_total_question = $exam->get_exam_question_limit($target_id);
+      $data['exam_total_question'] = $exam_total_question = (int)$exam->get_exam_question_limit($target_id);
     }
     # ---| ./IF/ELSE(Action)
 
@@ -809,6 +835,8 @@ class Admin extends Controller {
       # ---| ./Action=>STATUS\. |---
     } elseif ($action == 'edit') {
       # ...| EDIT Block
+      $database = new \Database();
+      $database->ensure_course_subcategories();
       $data['categories'] = $categories = array_reverse($category->findAll('asc'));
       $data['languages'] = $languages = array_reverse($language->findAll('asc'));
       $data['levels'] = $levels = array_reverse($level->findAll('asc'));
@@ -976,6 +1004,9 @@ class Admin extends Controller {
                 $lecture_data = [];
                 $lecture_data_unids = [];
                 $lecture_data_descriptions = [];
+                $lecture_data_types = [];
+                $lecture_data_durations = [];
+                $lecture_data_previews = [];
                 $lecture_data_files = [];
                 $lecture_data_new_files = [];
                 $lecture_data_index = [];
@@ -1015,34 +1046,36 @@ class Admin extends Controller {
                    * | For Lectures |
                    * ----------------
                    */
-                  if (preg_match("/^lecture_[0-9]+_curriculum_[0-9]+$/", $key)) {
-                    # ...| TRUE Block
-                    $key = preg_replace("/^lecture_[0-9]+_curriculum_/", "", $key);
-                    $lecture_data[$key][] = $value;
+                  if (preg_match("/^lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data[$matches[2]][$matches[1]] = trim($value);
                   }
                   # ---| ./IF(Curriculum)
 
-                  if (preg_match("/^description_lecture_[0-9]+_curriculum_[0-9]+$/", $key)) {
-                    # ...| TRUE Block
-                    $key = preg_replace("/^description_lecture_[0-9]+_curriculum_/", "", $key);
-                    $lecture_data_descriptions[$key][] = $value;
+                  if (preg_match("/^description_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data_descriptions[$matches[2]][$matches[1]] = trim($value);
                   }
                   # ---| ./IF(Lecture Description)
 
-                  if (preg_match("/^file_lecture_[0-9]+_curriculum_[0-9]+$/", $key)) {
-                    # ...| TRUE Block
-                    $key = preg_replace("/^file_lecture_[0-9]+_curriculum_/", "", $key);
-                    $lecture_data_files[$key][] = $value;
-                    $lecture_data_new_files[$key][] = "";
+                  if (preg_match("/^item_type_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data_types[$matches[2]][$matches[1]] = $value;
+                  }
 
-                    /**
-                     * -----------------------------
-                     * | Check for NEW Video Files |
-                     * -----------------------------
-                     */
+                  if (preg_match("/^duration_minutes_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data_durations[$matches[2]][$matches[1]] = $value;
+                  }
+
+                  if (preg_match("/^is_preview_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data_previews[$matches[2]][$matches[1]] = $value;
+                  }
+
+                  if (preg_match("/^file_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $item_index = $matches[1];
+                    $section_index = $matches[2];
+                    $lecture_data_files[$section_index][$item_index] = $value;
+                    $lecture_data_new_files[$section_index][$item_index] = "";
+
                     foreach ($_FILES as $newKey => $file) {
-                      if (preg_match("/^new_file_lecture_[0-9]+_curriculum_{$key}$/", $newKey)) {
-                        # ...| TRUE Block
+                      if (preg_match("/^new_file_lecture_{$item_index}_curriculum_{$section_index}$/", $newKey)) {
                         $filename = "";
                         $folder = "uploads/courses/";
                         if (!file_exists($folder)) {
@@ -1052,20 +1085,19 @@ class Admin extends Controller {
                         # ---| ./IF(Folder)
                         
                         if (!empty($file['name'])) {
-                          # ...| TRUE Block
                           $filename = $folder . time() . $file['name'];
-                          move_uploaded_file($file['tmp_name'], $filename);
+                          if (!move_uploaded_file($file['tmp_name'], $filename)) {
+                            $info['errors'] = ['curriculum' => 'A lesson file could not be uploaded.'];
+                            $info['data'] = "Please, try uploading the lesson file again.";
+                            $info['data_type'] = "save";
+                            echo json_encode($info);
+                            die;
+                          }
                         }
-                        # ---| ./IF(FILE)
-    
-                        $thiskey = str_replace(['new_file_lecture_', '_curriculum_'.$key], "", $newKey);
-                        $lecture_data_new_files[$key][$thiskey] = $filename;
+                        $lecture_data_new_files[$section_index][$item_index] = $filename;
                       }
-                      # ---| ./IF(Lecture File)
                     }
-                    # ---| ./FOREACH(FILES)
                   }
-                  # ---| ./IF(Lecture File)
                 }
                 # ---| ./FOREACH()
 
@@ -1160,12 +1192,21 @@ class Admin extends Controller {
                         # ---| ./IF(Old_Records)
 
                         foreach ($lecture_data[$key2] as $key3 => $lec_title) {
+                          if ($lec_title === '') {
+                            continue;
+                          }
+
                           # ...| Lectures Block
                           $arr = [];
                           $arr['unid'] = $myunid;
                           $arr['disabled'] = 0;
                           $arr['title'] = $lec_title;
                           $arr['description'] = $lecture_data_descriptions[$key2][$key3] ?? "";
+                          $arr['item_type'] = $lecture_data_types[$key2][$key3] ?? 'video';
+                          $arr['duration_minutes'] = ($lecture_data_durations[$key2][$key3] ?? '') !== ''
+                            ? (int)$lecture_data_durations[$key2][$key3]
+                            : null;
+                          $arr['is_preview'] = !empty($lecture_data_previews[$key2][$key3]) ? 1 : 0;
                           $arr['file'] = $lecture_data_new_files[$key2][$key3] ?? "";
 
                           $delete_old_file = false;
@@ -1216,21 +1257,47 @@ class Admin extends Controller {
               } else
               if ($_POST['tab_name'] == "course-landing-page") {
                 # ...| TAB: (Course Landing Page) Block
-                if ($row->course_image_tmp != "" && file_exists($row->course_image_tmp) && $row->csrf_code == $_POST['csrf_code']) {
-                  # --/ Check if TMP Image exists.. then, Move it to an Image location \--
-                  if (file_exists($row->course_image)) {
-                    # ...| Delete Current Course Image Block
-                    unlink($row->course_image);
-                  }
-                  # ---| ./IF(FILE Exists)
-    
-                  $_POST['course_image'] = $row->course_image_tmp;
-                  $_POST['course_image_tmp'] = "";
+                $landing_fields = [
+                  'title',
+                  'subtitle',
+                  'description',
+                  'language_id',
+                  'sub_category_id',
+                  'category_id',
+                  'currency_id',
+                  'price_id',
+                  'primary_subject',
+                ];
+                $update_data = array_intersect_key($_POST, array_flip($landing_fields));
+                $old_course_image = '';
+
+                if (!empty($row->course_image_tmp) && file_exists($row->course_image_tmp) && $row->csrf_code == ($_POST['csrf_code'] ?? '')) {
+                  $old_course_image = $row->course_image ?? '';
+                  $update_data['course_image'] = $row->course_image_tmp;
+                  $update_data['course_image_tmp'] = '';
                 }
-                # ---| ./IF(TMP Image)
     
-                $course->update($id,$_POST);
-    
+                $effective_category_id = $update_data['category_id'] ?? ($row->category_id ?? null);
+                if (!empty($effective_category_id)) {
+                  $selected_category = $category->first(['id' => $effective_category_id]);
+                  if ($selected_category && strcasecmp(trim($selected_category->category), 'IT & Software') === 0) {
+                    $update_data['sub_category_id'] = null;
+                  }
+                }
+
+                if (array_key_exists('category_id', $update_data)) {
+                  if ((int)$update_data['category_id'] !== (int)$row->category_id) {
+                    $update_data['sub_category_id'] = null;
+                  }
+                }
+
+                if (!empty($update_data)) {
+                  $course->update($id, $update_data);
+                  if ($old_course_image && file_exists($old_course_image)) {
+                    unlink($old_course_image);
+                  }
+                }
+
                 $info['data'] = "Course saved successfully!";
                 $info['data_type'] = "save";
               } else
@@ -1317,6 +1384,60 @@ class Admin extends Controller {
               $course->update($id,['course_promo_video'=>$destination,'csrf_code'=>$_POST['csrf_code']]);
             }
           }
+        } else
+        if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_hero_image") {
+          header('Content-Type: application/json; charset=utf-8');
+          $csrf_code = $_POST['csrf_code'] ?? '';
+          if (empty($csrf_code) || !hash_equals($_SESSION['csrf_code'] ?? '', $csrf_code)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+            die;
+          }
+
+          $image = $_FILES['hero_image'] ?? null;
+          if (!$image || ($image['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($image['tmp_name'] ?? '')) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Select a valid image to upload.']);
+            die;
+          }
+
+          $image_info = getimagesize($image['tmp_name']);
+          $allowed_image_types = [
+            IMAGETYPE_JPEG => 'jpg',
+            IMAGETYPE_PNG => 'png',
+            IMAGETYPE_WEBP => 'webp',
+          ];
+          if (!$image_info || !isset($allowed_image_types[$image_info[2]])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Only JPG, PNG, and WebP images are allowed.']);
+            die;
+          }
+
+          $folder = "uploads/courses/hero/";
+          if (!is_dir($folder) && !mkdir($folder, 0775, true) && !is_dir($folder)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Could not create the hero image upload directory.']);
+            die;
+          }
+
+          $destination = $folder . 'hero_' . bin2hex(random_bytes(12)) . '.' . $allowed_image_types[$image_info[2]];
+          if (!move_uploaded_file($image['tmp_name'], $destination)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Could not save the uploaded hero image.']);
+            die;
+          }
+
+          $old_hero_image = $row->hero_background_image ?? '';
+          $course->update($id, ['hero_background_image' => $destination]);
+          if ($old_hero_image && file_exists($old_hero_image)) {
+            unlink($old_hero_image);
+          }
+
+          echo json_encode([
+            'success' => true,
+            'image' => get_image($destination),
+            'message' => 'Hero background image updated.',
+          ]);
         }
         # ---| ./IF/ELSE/IF(Data_Type)
 
@@ -1575,6 +1696,21 @@ class Admin extends Controller {
       redirect('admin/lessons');
     }
 
+    $enrollment = new \Model\Enrollment();
+    $user_id = Auth::getId();
+    $is_course_owner = (int)$data['course']->user_id === (int)$user_id;
+    $is_admin = (int)($data['uid']->role_id ?? 0) === 3;
+    $is_enrolled = $enrollment->first([
+      'user_id' => $user_id,
+      'course_id' => $data['course']->id,
+      'disabled' => 0,
+    ]);
+
+    if (!$is_course_owner && !$is_admin && !$is_enrolled) {
+      message('Enroll in this course to access its lessons.');
+      redirect('course_details/' . $data['course']->slug);
+    }
+
     $data['course_sections'] = $course_meta->where([
       'course_id' => $data['course']->id,
       'disabled' => 0,
@@ -1586,36 +1722,6 @@ class Admin extends Controller {
     $this->view('admin/course-details', $data);
   }
   # ---| ./Course_Details()\. | ---
-
-  # -----| Avatar() | -----
-  public function avatar($action = null, $id = null) {
-    if (!Auth::logged_in()) {
-      # ...| TRUE Block
-      message('Please, log in!');
-      redirect('login');
-    }
-    # ---| ./IF(logged_in())
-
-    $user_id = Auth::getId();
-    $course = new \Model\Course();
-    $category = new \Model\Category();
-    $language = new \Model\Language_model();
-    $level = new \Model\Level_model();
-    $user = new \Model\User();
-    # ---| ./MODELS\. | ---
-
-    $data = [];
-
-    $data['uid'] = $uid = $user->first(['id'=>$user_id]);
-    $data['row'] = $row = $user->first(['id'=>$user_id]);
-
-    $data['action'] = $action;
-    $data['id'] = $id;
-    $data['title'] = "Course Details";
-
-    $this->view('admin/avatar',$data);
-  }
-  # ---| ./Avatar()\. | ---
 
   # -----| Lectures() | -----
   public function lectures($action = null, $id = null) {

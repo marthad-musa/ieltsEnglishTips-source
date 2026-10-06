@@ -41,6 +41,9 @@
                         <td><?= htmlspecialchars($exam->created_by) ?></td>
                         <td><?= $exam->exam_created_on ?></td>
                         <td>
+                          <a href="<?=ROOT?>/admin/question/<?=$exam->id?>" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-question-circle"></i> Questions
+                          </a>
                           <button class="btn btn-sm btn-outline-success publish-exam" data-exam-id="<?= $exam->id ?>">
                             <i class="bi bi-check-circle"></i> Publish
                           </button>
@@ -295,6 +298,9 @@
                             </a>
                             <a href="<?=ROOT?>/admin/exams/delete/<?=$exam->id?>" class="btn btn-sm btn-outline-danger">
                               <i class="bi bi-trash"></i>
+                            </a>
+                            <a href="<?=ROOT?>/admin/question/<?=$exam->id?>" class="btn btn-sm btn-outline-info">
+                              <i class="bi bi-question-circle"></i> Questions
                             </a>
                           </td>
                         </tr>

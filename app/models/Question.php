@@ -54,10 +54,9 @@ class Question extends Model {
 
     # -----| Error Handler |-----
     # ...| TITLE Block
-    if(empty($data['question_title'])) {
+    if (!isset($data['question_title']) || !is_string($data['question_title']) || trim($data['question_title']) === '') {
       $this->errors['question_title'] = "Question title is required!";
-    } else
-    if(!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['question_title']))) {
+    } elseif (!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['question_title']))) {
       $this->errors['question_title'] = "Invalid Charactors!";
     }
     # ---| ./IF/ELSE(TITLE)
@@ -67,6 +66,17 @@ class Question extends Model {
       $this->errors['exam_id'] = "Exam is required!";
     }
     # ---| ./IF(Category_ID)
+
+    foreach (range(1, 4) as $option_number) {
+      $field = 'option_number_' . $option_number;
+      if (!isset($data[$field]) || !is_string($data[$field]) || trim($data[$field]) === '') {
+        $this->errors[$field] = "All four answer options are required!";
+      }
+    }
+
+    if (!in_array($data['answer_option'] ?? null, ['1', '2', '3', '4'], true)) {
+      $this->errors['answer_option'] = "Select the correct answer option!";
+    }
 
     if(empty($this->errors)) {
       # ...| TRUE Block
@@ -249,10 +259,10 @@ class Question extends Model {
 	public function get_total_question(int $id) :mixed {
     $db = new \Database();
 
-		$query = "SELECT question_id FROM question WHERE exam_id = :exam_id";
+		$query = "SELECT COUNT(*) AS total FROM question WHERE exam_id = :exam_id";
     $total_questions = $db->query($query,['exam_id'=>$id]);
 
-		return rowCount($total_questions);
+		return (int)($total_questions[0]->total ?? 0);
 	}
   # ------------|  ./Get Total Question
 

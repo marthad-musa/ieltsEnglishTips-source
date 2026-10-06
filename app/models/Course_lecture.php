@@ -33,6 +33,9 @@ class Course_lecture extends Model {
     'title',
     'description',
     'file',
+    'item_type',
+    'duration_minutes',
+    'is_preview',
     'disabled',
   ];
   # ---| ./Properties\. | ---

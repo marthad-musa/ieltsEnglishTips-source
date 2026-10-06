@@ -253,10 +253,10 @@ class Exam extends Model {
 	public function Get_total_question(int $id) :mixed {
     $db = new \Database();
 
-		$query = "SELECT question_id FROM questions WHERE exam_id = :exam_id";
+		$query = "SELECT COUNT(*) AS total FROM question WHERE exam_id = :exam_id";
     $total_questions = $db->query($query,['exam_id'=>$id]);
 
-		return rowCount($total_questions);
+		return (int)($total_questions[0]->total ?? 0);
 	}
   # ------------|  ./Get Total Question
 
@@ -344,8 +344,8 @@ class Exam extends Model {
 
   # Get Teacher Exams  ---------------
   public function get_teacher_exams($teacher_id) {
-    $query = "SELECT id, exam_title, exam_datetime, exam_duration, approved, published, exam_created_on FROM exam WHERE created_by = :created_by AND disabled = 0 ORDER BY exam_created_on DESC";
-    return $this->query($query, ['created_by' => $teacher_id]);
+    $query = "SELECT id, exam_title, exam_datetime, exam_duration, approved, published, exam_created_on FROM exam WHERE (created_by = :created_by OR user_id = :user_id) AND disabled = 0 ORDER BY exam_created_on DESC";
+    return $this->query($query, ['created_by' => $teacher_id, 'user_id' => $teacher_id]);
   }
   # ------------|  ./Get Teacher Exams
 

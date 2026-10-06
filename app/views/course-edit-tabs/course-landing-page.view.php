@@ -52,26 +52,12 @@
         <!-- -| ./Language_ID Error\. |- -->
       </div>
       <div class="col-sm-6 my-1">
-        <label class="col-form-label">Course Level:</label>
-        <select name="level_id" class="form-select">
-          <option disabled>Please, choose a level</option>
-          <?php if(!empty($levels)): ?>
-            <?php foreach($levels as $lvl): ?>
-              <option <?=set_select('level_id',$lvl->id,($row->level_id ?? 1))?> value="<?=$lvl->id?>"><?=esc($lvl->level)?></option>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </select>
-        <!-- ---- Level_ID Error ---- -->
-        <small class="error error-level_id w-100 text-danger fontClarity"></small>
-        <!-- -| ./Level_ID Error\. |- -->
-      </div>
-      <div class="col-sm-6 my-1">
         <label class="col-form-label">Course Category:</label>
-        <select name="category_id" class="form-select">
-          <option disabled>Please, choose a category</option>
+        <select name="category_id" id="course-category-select" class="form-select" onchange="course_category_changed(this)">
+          <option value="">Please, choose a category</option>
           <?php if(!empty($categories)): ?>
             <?php foreach($categories as $cat): ?>
-              <option <?=set_select('category_id',$cat->id,($row->category_id ?? 1))?> value="<?=$cat->id?>"><?=esc($cat->category)?></option>
+              <option <?=set_select('category_id',$cat->id,($row->category_id ?? 1))?> value="<?=$cat->id?>" data-category="<?=esc($cat->category)?>"><?=esc($cat->category)?></option>
             <?php endforeach; ?>
           <?php endif; ?>
         </select>
@@ -81,17 +67,24 @@
       </div>
       <div class="col-sm-6 my-1">
         <label class="col-form-label">Course Subcategory:</label>
-        <select name="sub_category_id" class="form-select">
-          <option disabled>Please, choose a subcategory</option>
-          <?php if(!empty($subcategories)): ?>
-            <?php foreach($subcategories as $cat): ?>
-              <option <?=set_select('subcategory_id',$cat->id,($row->category_id ?? 1))?> value="<?=$cat->id?>"><?=esc($cat->category)?></option>
-            <?php endforeach; ?>
-          <?php endif; ?>
+        <select name="sub_category_id" id="course-subcategory-select" class="form-select">
+          <option value="">Choose a category first</option>
+          <?php
+            $seen_subcategories = [];
+            if (!empty($levels)):
+              foreach ($levels as $lvl):
+                if (in_array($lvl->level, $seen_subcategories, true)) {
+                  continue;
+                }
+                $seen_subcategories[] = $lvl->level;
+          ?>
+                <option <?=set_select('sub_category_id',$lvl->id,($row->sub_category_id ?? ''))?> value="<?=$lvl->id?>" data-subcategory="<?=esc($lvl->level)?>"><?=esc($lvl->level)?></option>
+          <?php
+              endforeach;
+            endif;
+          ?>
         </select>
-        <!-- ---- Sub_Category_ID Error ---- -->
         <small class="error error-sub_category_id w-100 text-danger fontClarity"></small>
-        <!-- -| ./Sub_Category_ID Error\. |- -->
       </div>
     </div>
     <!-- -| ./Basic Info\. |- -->
@@ -147,7 +140,7 @@
         <h5 class="h5 fw-bold">Course Image:</h5>
         <p class="fontClarity">Upload your course image here. It must meet our <span class="text-primary">course image quality standards</span> to be accepted. Important guidelines: 750x422 pixels; .jpg, .jpeg, .gif, or .png. No text on the image.</p>
         <input onchange="upload_course_image(this.files[0])" class="js-image-upload-input" type="file" name="course_image">
-        <div class="progress my-4">
+        <div class="progress my-4 js-image-upload-progress-container hide">
           <div class="progress-bar progress-bar-image" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
         <div class="js-image-upload-info hide"></div>
@@ -155,6 +148,28 @@
       </div>
     </div>
     <!-- -| ./Course Image\. |- -->
+
+    <!-- ---- Course Hero Background ---- -->
+    <div class="my-4 row">
+      <div class="col-sm-4">
+        <img
+          class="js-hero-image-preview"
+          src="<?=!empty($row->hero_background_image) ? get_image($row->hero_background_image) : ROOT . '/assets/img/hero-3.png'?>"
+          alt="<?=esc($row->title)?> hero background"
+          style="width: 100%;height: 200px;object-fit: cover;"
+        >
+      </div>
+      <div class="col-sm-8">
+        <h5 class="h5 fw-bold">Course Hero Background Image:</h5>
+        <p class="fontClarity">Choose the background image shown behind the course title on its public details page. JPG, PNG, or WebP images are supported.</p>
+        <input onchange="upload_course_hero_image(this.files[0])" class="js-hero-image-input form-control" type="file" accept="image/jpeg,image/png,image/webp">
+        <div class="progress my-4 js-hero-image-progress-container hide">
+          <div class="progress-bar js-hero-image-progress" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        </div>
+        <div class="js-hero-image-upload-info hide"></div>
+      </div>
+    </div>
+    <!-- -| ./Course Hero Background\. |- -->
 
     <!-- ---- Course Promotion Video ---- -->
     <div class="my-4 row">
@@ -172,7 +187,7 @@
         <h5 class="h5 fw-bold">Course Promotion Video:</h5>
         <p class="fontClarity">Students who watch a well-made promo video are <span class="fw-b">5X more likely to enroll</span> in your course. We've seen that statistic go up to 10X for exceptionally awesome videos. <span class="text-primary">Learn how to make yours awesome</span>!.</p>
         <input onchange="upload_course_video(this.files[0])" class="js-video-upload-input" type="file" name="course_promo_video">
-        <div class="progress my-4">
+        <div class="progress my-4 js-video-upload-progress-container hide">
           <div class="progress-bar progress-bar-video" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
         <div class="js-video-upload-info hide"></div>

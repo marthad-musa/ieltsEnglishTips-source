@@ -81,6 +81,10 @@ class Database {
   }
   # ---| ./QUERY()\. | ---
 
+  public function lastInsertId() {
+    return $this->connect()->lastInsertId();
+  }
+
   # -----| CREATE Tables() | -----
   public function create_tables() {
     /**
@@ -120,11 +124,11 @@ class Database {
         `user_id` int(11) NOT NULL,
         `category_id` int(11) NOT NULL,
         `sub_category_id` int(11) DEFAULT NULL,
-        `level_id` int(11) DEFAULT NULL,
         `language_id` int(11) DEFAULT NULL,
         `price_id` int(11) DEFAULT NULL,
         `promo_link` varchar(1024) DEFAULT NULL,
         `course_image` varchar(1024) DEFAULT NULL,
+        `hero_background_image` varchar(1024) DEFAULT NULL,
         `course_image_tmp` varchar(1024) NOT NULL,
         `course_promo_video` varchar(1024) DEFAULT NULL,
         `primary_subject` varchar(100) DEFAULT NULL,
@@ -149,7 +153,6 @@ class Database {
         KEY `user_id` (`user_id`),
         KEY `category_id` (`category_id`),
         KEY `sub_category_id` (`sub_category_id`),
-        KEY `level_id` (`level_id`),
         KEY `language_id` (`language_id`),
         KEY `price_id` (`price_id`),
         KEY `course_duration` (`course_duration`),
@@ -182,6 +185,9 @@ class Database {
         `title` varchar(100) NOT NULL,
         `description` varchar(2048) NOT NULL,
         `file` varchar(1024) NOT NULL,
+        `item_type` varchar(30) NOT NULL DEFAULT 'video' AFTER `file`,
+        `duration_minutes` smallint unsigned DEFAULT NULL AFTER `item_type`,
+        `is_preview` tinyint(1) NOT NULL DEFAULT 0 AFTER `duration_minutes`,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
         KEY `unid` (`unid`),
         KEY `disabled` (`disabled`)
@@ -211,6 +217,29 @@ class Database {
         KEY `unid` (`unid`),
         KEY `disabled` (`disabled`)
       ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * -------------------------------
+     * | COURSE_CONTENT_BLOCKS Table |
+     * -------------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `course_content_blocks` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `course_id` int(11) NOT NULL,
+        `block_type` varchar(30) NOT NULL DEFAULT 'paragraph',
+        `title` varchar(255) DEFAULT NULL,
+        `content` mediumtext NOT NULL,
+        `url` varchar(2048) DEFAULT NULL,
+        `sort_order` int(11) NOT NULL DEFAULT 0,
+        `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        KEY `course_id` (`course_id`),
+        KEY `course_id_sort_order` (`course_id`, `sort_order`),
+        KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
     ";
 
     $this->query($query);
@@ -275,10 +304,7 @@ class Database {
 
     $this->query($query);
 
-    /** ---|INSERTING INTO COURSE_LEVELS TABLE|--- **/
-    $query = "INSERT INTO `course_levels` (`level`, `disabled`) VALUES ('Beginner Level', 0), ('Intermediate Level', 0), ('Expert Level', 0), ('All Levels', 0)";
-
-    $this->query($query);
+    $this->ensure_course_subcategories();
 
     /**
      * --------------------
@@ -375,7 +401,7 @@ class Database {
         `exam_enroll_id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `user_id` int(11) NOT NULL,
         `exam_id` int(11) NOT NULL,
-        `attendance_status` enum('Absent','Present') NOT NULL,
+        `attendance_status` enum('Absent','Present') NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
     ";
 
@@ -651,5 +677,34 @@ class Database {
     $this->query($query);
   }
   # ---| ./CREATE Tables()\. | ---
+
+  public function ensure_course_subcategories(): void {
+    $this->query("
+      UPDATE `course_levels`
+      SET `level` = 'Advance'
+      WHERE `level` IN ('Advanced', 'Expert Level')
+    ");
+
+    $this->query("
+      INSERT INTO `course_levels` (`level`, `disabled`)
+      SELECT requested_subcategories.`level`, 0
+      FROM (
+        SELECT 'Academic' AS `level`
+        UNION ALL SELECT 'General Training'
+        UNION ALL SELECT 'Beginner'
+        UNION ALL SELECT 'Elementary'
+        UNION ALL SELECT 'Pre-Intermediate'
+        UNION ALL SELECT 'Intermediate'
+        UNION ALL SELECT 'Upper-Intermediate'
+        UNION ALL SELECT 'Advance'
+      ) AS requested_subcategories
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM `course_levels` existing_subcategories
+        WHERE existing_subcategories.`level` = requested_subcategories.`level`
+          AND existing_subcategories.`disabled` = 0
+      )
+    ");
+  }
 }
 # -----|  ./DATABASE()

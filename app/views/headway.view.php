@@ -416,7 +416,7 @@
                   </div>
                   <div class="feature">
                     <i class="bi bi-cast"></i>
-                    <em>Course Level</em>
+                    <em>Course Subcategory</em>
                     <span><?=esc(ucfirst($rows[1]->level_row->level))?></span>
                   </div>
                   <div class="feature">

@@ -33,7 +33,6 @@ class Course extends Model {
     'get_user',
     'get_category',
     'get_sub_category',
-    'get_level',
     'get_language',
     'get_currency',
     'get_price',
@@ -49,11 +48,11 @@ class Course extends Model {
     'user_id',
     'category_id',
     'sub_category_id',
-    'level_id',
     'language_id',
     'price_id',
     'promo_link',
     'course_image',
+    'hero_background_image',
     'course_image_tmp',
     'course_promo_video',
     'primary_subject',
@@ -119,97 +118,109 @@ class Course extends Model {
 
   # -----| EDIT_Validate() |-----
   public function edit_validate($data,$id = null,$tab_name = null) {
-    # -----| Reset Errors Array() |-----
     $this->errors = [];
-    # ---| ./Reset Errors Array()\. |---
 
-    # -----| Error Handler Depending on TAB-Names |-----
-    if($tab_name == "course-landing-page") {
-      # ...| TITLE Block
-      if(empty($data['title'])) {
-        $this->errors['title'] = "Course title is required!";
-      } else
-      if(!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['title']))) {
-        $this->errors['title'] = "Invalid Charactors!";
+    if ($tab_name === "course-landing-page") {
+      $text_fields = ['title', 'subtitle', 'description', 'primary_subject'];
+      foreach ($text_fields as $field) {
+        if (!array_key_exists($field, $data)) {
+          continue;
+        }
+
+        $value = trim((string)$data[$field]);
+        if ($field === 'title' && $value === '') {
+          $this->errors[$field] = "Course title is required!";
+        } elseif ($value !== '' && !preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", $value)) {
+          $this->errors[$field] = "Invalid characters!";
+        }
       }
-      # ---| ./IF/ELSE(TITLE)
 
-      # ...| SUBTITLE Block
-      if(empty($data['subtitle'])) {
-        $this->errors['subtitle'] = "Course subtitle is required!";
-      } else
-      if(!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['subtitle']))) {
-        $this->errors['subtitle'] = "Invalid Charactors!";
+      foreach (['language_id', 'currency_id', 'price_id'] as $field) {
+        if (array_key_exists($field, $data) && empty($data[$field])) {
+          $this->errors[$field] = ucfirst(str_replace('_id', '', $field)) . " is required!";
+        }
       }
-      # ---| ./IF/ELSE(SUBTITLE)
 
-      # ...| DESCRIPTION Block
-      if(empty($data['description'])) {
-        $this->errors['description'] = "Course description is required!";
-      } else
-      if(!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['description']))) {
-        $this->errors['description'] = "Invalid Charactors!";
+      if (array_key_exists('category_id', $data) || array_key_exists('sub_category_id', $data)) {
+        $current_course = $this->first(['id' => $id]);
+        $category_id = $data['category_id'] ?? ($current_course->category_id ?? null);
+        $category = false;
+
+        if (!empty($category_id)) {
+          $db = new \Database();
+          $category = $db->query(
+            "SELECT `category` FROM `categories` WHERE `id` = :id AND `disabled` = 0 LIMIT 1",
+            ['id' => $category_id]
+          );
+        }
+
+        if (empty($category)) {
+          $this->errors['category_id'] = "Select a valid course category!";
+        } else {
+          $category_name = strtolower(trim($category[0]->category));
+          $allowed_subcategories = [];
+          if ($category_name === 'ielts preparation') {
+            $allowed_subcategories = ['Academic', 'General Training'];
+          } elseif ($category_name === 'english course') {
+            $allowed_subcategories = ['Beginner', 'Elementary', 'Pre-Intermediate', 'Intermediate', 'Upper-Intermediate', 'Advance'];
+          } elseif ($category_name !== 'it & software') {
+            $this->errors['category_id'] = "No course subcategories are configured for this category!";
+          }
+
+          $category_changed = !empty($current_course)
+            && (int)$category_id !== (int)$current_course->category_id;
+          $subcategory_was_submitted = array_key_exists('sub_category_id', $data);
+          $subcategory_id = $subcategory_was_submitted
+            ? $data['sub_category_id']
+            : ($category_changed ? null : ($current_course->sub_category_id ?? null));
+
+          if ($category_name === 'it & software') {
+            if ($subcategory_was_submitted && !empty($subcategory_id)) {
+              $this->errors['sub_category_id'] = "IT & Software courses do not use a subcategory.";
+            }
+          } elseif (!empty($allowed_subcategories) && ($subcategory_was_submitted || $category_changed)) {
+            $subcategory = false;
+            if (!empty($subcategory_id)) {
+              $db = $db ?? new \Database();
+              $subcategory = $db->query(
+                "SELECT `level` FROM `course_levels` WHERE `id` = :id AND `disabled` = 0 LIMIT 1",
+                ['id' => $subcategory_id]
+              );
+            }
+
+            if (empty($subcategory) || !in_array($subcategory[0]->level, $allowed_subcategories, true)) {
+              $this->errors['sub_category_id'] = "Select a subcategory that matches the course category!";
+            }
+          }
+        }
       }
-      # ---| ./IF/ELSE(DESCRIPTION)
-
-      # ...| Language_ID Block
-      if(empty($data['language_id'])) {
-        $this->errors['language_id'] = "Course Language is required!";
-      }
-      # ---| ./IF(Language_ID)
-
-      # ...| Level_ID Block
-      if(empty($data['level_id'])) {
-        $this->errors['level_id'] = "Course Level is required!";
-      }
-      # ---| ./IF(Level_ID)
-
-      # ...| Category_ID Block
-      if(empty($data['category_id'])) {
-        $this->errors['category_id'] = "Course category is required!";
-      }
-      # ---| ./IF(Category_ID)
-
-      # ...| Sub_Category_ID Block
-      // if(empty($data['sub_category_id'])) {
-      //   $this->errors['sub_category_id'] = "Course Subcategory is required!";
-      // }
-      # ---| ./IF(Sub_Category_ID)
-
-      # ...| Currency_ID Block
-      if(empty($data['currency_id'])) {
-        $this->errors['currency_id'] = "Price Currency is required!";
-      }
-      # ---| ./IF(Currency_ID)
-
-      # ...| Price_ID Block
-      if(empty($data['price_id'])) {
-        $this->errors['price_id'] = "Course Price is required!";
-      }
-      # ---| ./IF(Price_ID)
-
-      # ...| Primary-Subject Block
-      if(empty($data['primary_subject'])) {
-        $this->errors['primary_subject'] = "Course primary_subject is required!";
-      } else
-      if(!preg_match("/^[a-zA-Z0-9 \-\_\&\!\#\$\%\?\.\(\)\{\}\[\]\'\"\/\,]+$/", trim($data['primary_subject']))) {
-        $this->errors['primary_subject'] = "Invalid Charactors!";
-      }
-      # ---| ./IF/ELSE(Primary-Subject)
-    } else
-    if ($tab_name == "course-messages") {
-      # ...| Welcome Message Block
-      # ...| Congratulations Message Block
     }
-    # ---| ./IF/ELSE/IF(Tab_Name Error Handling)
 
-    if(empty($this->errors)) {
-      # ...| TRUE Block
-      return true;
+    if ($tab_name === "curriculum") {
+      $allowed_item_types = ['video', 'reading', 'quiz', 'assignment'];
+      foreach ($data as $field => $value) {
+        if (preg_match('/^item_type_lecture_[0-9]+_curriculum_[0-9]+$/', $field)
+          && !in_array($value, $allowed_item_types, true)) {
+          $this->errors['curriculum'] = "Choose a valid curriculum item type.";
+          break;
+        }
+
+        if (preg_match('/^duration_minutes_lecture_[0-9]+_curriculum_[0-9]+$/', $field)
+          && $value !== ''
+          && (!ctype_digit((string)$value) || (int)$value > 65535)) {
+          $this->errors['curriculum'] = "Enter a valid duration in minutes.";
+          break;
+        }
+
+        if (preg_match('/^is_preview_lecture_[0-9]+_curriculum_[0-9]+$/', $field)
+          && !in_array((string)$value, ['0', '1'], true)) {
+          $this->errors['curriculum'] = "Choose whether the curriculum item is available as a preview.";
+          break;
+        }
+      }
     }
-    # ---| ./IF(ERRORS)
 
-    return false;
+    return empty($this->errors);
   }
   # ---| ./EDIT_Validate()\. |---
 
@@ -256,19 +267,16 @@ class Course extends Model {
   } # ---| ./Get_CATEGORY() |---
 
   protected function get_sub_category($rows) {
-    return $rows;
-  } # ---| ./Get_SubCATEGORY() |---
-
-  protected function get_level($rows) {
     $db = new \Database();
-    if (!empty($rows[0]->level_id)) {
+    if (!empty($rows[0]->sub_category_id)) {
       # ...| TRUE Block
       foreach ($rows as $key => $row) {
         $query = "select * from course_levels where id = :id limit 1";
-        $level = $db->query($query,['id'=>$row->level_id]);
-        if (!empty($level)) {
+        $subcategory = $db->query($query,['id'=>$row->sub_category_id]);
+        if (!empty($subcategory)) {
           # ...| TRUE Block
-          $rows[$key]->level_row = $level[0];
+          $rows[$key]->sub_category_row = $subcategory[0];
+          $rows[$key]->level_row = $subcategory[0];
         }
         # ---| ./IF(USERS)
       }
@@ -277,7 +285,7 @@ class Course extends Model {
     # ---| ./IF(ROWS)
 
     return $rows;
-  } # ---| ./Get_LEVEL() |---
+  } # ---| ./Get_SubCATEGORY() |---
 
   protected function get_language($rows) {
     $db = new \Database();

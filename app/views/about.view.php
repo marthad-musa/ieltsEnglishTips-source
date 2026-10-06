@@ -10,7 +10,7 @@
     <!-- ---------| Hero Section |--------- -->
     <section id="hero" class="hero section dark-background">
 
-      <img src="<?=ROOT?>/assets/img/hero-9.png" alt="" data-aos="fade-in" class="opacity-75">
+      <img src="<?=ROOT?>/assets/img/hero-9.png" alt="" data-aos="fade-in" class="opacity-50">
 
       <div class="container">
         <h2 data-aos="fade-up" data-aos-delay="100">About Us</h2>

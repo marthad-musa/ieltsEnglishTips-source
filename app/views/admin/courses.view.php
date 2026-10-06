@@ -101,7 +101,7 @@
             <div class="row mb-5">
 
               <!-- Customers Card -->
-              <div class="col-xxl-4 col-xl-12 row">
+              <div class="col-xxl-12 col-xl-12 row">
 
                 <!-- ---------- New-Course ---------- -->
                 <div class="card col-md-5 mx-auto">
@@ -189,7 +189,7 @@
             <div class="row">
 
               <!-- Customers Card -->
-              <div class="col-xxl-4 col-xl-12">
+              <div class="col-xxl-12 col-xl-12">
 
                 <!-- -----| Delete Course Tabs |----- -->
                 <div class="card col-md-8 mx-auto">
@@ -257,7 +257,7 @@
           <div class="row">
 
             <!-- Customers Card -->
-            <div class="col-xxl-4 col-xl-12">
+            <div class="col-xxl-12 col-xl-12">
 
               <!-- -----| Edit Course Tabs |----- -->
               <div class="card">
@@ -289,7 +289,7 @@
                     <!-- -| ./Tabs\. |- -->
 
                     <!-- ---- Div-Tabs ---- -->
-                    <div oninput="something_changed(event)" class="">
+                    <div oninput="something_changed(event)" onchange="something_changed(event)" class="">
                       <div id="tabs-content">
                         <!-- ---- ./Loader\. ---- -->
                       </div>
@@ -398,7 +398,7 @@
           <div class="row">
 
             <!-- Courses View -->
-            <div class="col-xl-12">
+            <div class="col-xxl-12 col-xl-12">
 
               <?php if ($uid->role_id == 1): ?>
                 <!-- <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -597,6 +597,7 @@
     // Variables  ---------------
     var tab = sessionStorage.getItem("tab") ? sessionStorage.getItem("tab") : "intended-learners";
     var dirty = false;
+    var dirtyLandingFields = {};
     var get_meta = true;
     // ------------|  ./Variables
 
@@ -709,6 +710,7 @@
               // ...| FALSE Block
               disable_save_button(false);
               dirty = false;
+              dirtyLandingFields = {};
               alert(obj.data);
               window.location.reload();
             }
@@ -726,6 +728,9 @@
         // ...| FALSE Block | LOAD TAB CONTENT
         var contentDiv = document.querySelector("#tabs-content");
         contentDiv.innerHTML = result;
+        if (tab == "course-landing-page") {
+          initialize_course_subcategory_options();
+        }
 
         // -----| Do Stuff After TAB is Loaded |-----
         var obj_name = tab.replace("-","_");
@@ -733,7 +738,9 @@
         if (get_meta) {
           // ...| TRUE Block
           get_meta = false;
-          window[obj_name].get_meta(<?=$row->id?>);
+          if (window[obj_name] && typeof window[obj_name].get_meta == "function") {
+            window[obj_name].get_meta(<?=$row->id?>);
+          }
         }
         // ---| ./IF(Get_Meta)
       }
@@ -757,6 +764,7 @@
       sessionStorage.setItem("tab", tab_name);
 
       dirty = false;
+      dirtyLandingFields = {};
       show_tab(tab_name);
     }
     // ---| ./Set_Tab()
@@ -766,9 +774,64 @@
        * if an input was edited in a tab, we must locate it
        */
       dirty = tab;
+      if (tab == "course-landing-page" && e.target && e.target.name) {
+        dirtyLandingFields[e.target.name] = true;
+      }
       disable_save_button(true);
     }
     // ---| ./Something_Changed()
+
+    function initialize_course_subcategory_options() {
+      var categorySelect = document.querySelector("#course-category-select");
+      var subcategorySelect = document.querySelector("#course-subcategory-select");
+      if (!categorySelect || !subcategorySelect) {
+        return;
+      }
+
+      var categoryOption = categorySelect.options[categorySelect.selectedIndex];
+      var categoryName = categoryOption ? (categoryOption.dataset.category || "").toLowerCase() : "";
+      var isIelts = categoryName == "ielts preparation";
+      var isEnglish = categoryName == "english course";
+      var isIt = categoryName == "it & software";
+      var hasSubcategories = isIelts || isEnglish;
+      var selectedSubcategoryAllowed = false;
+
+      Array.prototype.forEach.call(subcategorySelect.options, function(option) {
+        if (!option.value) {
+          option.hidden = false;
+          return;
+        }
+
+        var subcategoryName = (option.dataset.subcategory || "").toLowerCase();
+        var allowed = isIelts
+          ? ["academic", "general training"].includes(subcategoryName)
+          : (isEnglish
+            ? ["beginner", "elementary", "pre-intermediate", "intermediate", "upper-intermediate", "advance"].includes(subcategoryName)
+            : false);
+        option.hidden = !allowed;
+        option.disabled = !allowed;
+        if (option.selected && allowed) {
+          selectedSubcategoryAllowed = true;
+        }
+      });
+
+      subcategorySelect.disabled = isIt || !hasSubcategories;
+      subcategorySelect.options[0].textContent = isIt
+        ? "No subcategory for IT & Software"
+        : (hasSubcategories ? "Select a course subcategory" : "Choose a category first");
+
+      if (!selectedSubcategoryAllowed) {
+        subcategorySelect.value = "";
+      }
+    }
+
+    function course_category_changed(select) {
+      initialize_course_subcategory_options();
+      dirtyLandingFields.category_id = true;
+      dirtyLandingFields.sub_category_id = true;
+      dirty = tab;
+      disable_save_button(true);
+    }
 
     function disable_save_button(status = false) {
       if (status) {
@@ -803,18 +866,27 @@
       obj.data_type = "save";
       obj.tab_name = tab;
 
-      for (var i = 0; i < inputs.length; i++) {
-        var key = inputs[i].name;
-        obj[key] = inputs[i].value;
-        
-        if (inputs[i].type == 'file')
-          obj[key] = inputs[i].files[0];
+      if (tab == "course-landing-page") {
+        obj.csrf_code = content.querySelector(".js-csrf_code").value;
+        Object.keys(dirtyLandingFields).forEach(function(key) {
+          var input = content.querySelector('[name="' + key + '"]');
+          if (input) {
+            obj[key] = input.value;
+          }
+        });
+      } else {
+        for (var i = 0; i < inputs.length; i++) {
+          var key = inputs[i].name;
+          obj[key] = inputs[i].type == 'checkbox'
+            ? (inputs[i].checked ? '1' : '0')
+            : inputs[i].value;
 
-        if (inputs[i].getAttribute('unid'))
-          obj['unid_'+key] = inputs[i].getAttribute('unid');
+          if (inputs[i].type == 'file')
+            obj[key] = inputs[i].files[0];
 
-        // if (inputs[i].getAttribute('index'))
-        //   obj['index_'+key] = inputs[i].getAttribute('index');
+          if (inputs[i].getAttribute('unid'))
+            obj['unid_'+key] = inputs[i].getAttribute('unid');
+        }
       }
       // ---| ./FOR(Inputs)
 
@@ -859,6 +931,7 @@
       document.querySelector(".js-image-upload-info").classList.remove("hide");
       document.querySelector(".js-image-upload-input").classList.add("hide");
       document.querySelector(".js-image-upload-cancel-button").classList.remove("hide");
+      document.querySelector(".js-image-upload-progress-container").classList.remove("hide");
 
       var myform = new FormData();
       ajax_course_image = new XMLHttpRequest();
@@ -871,6 +944,8 @@
             // alert("Upload Complete!");
             // window.location.reload();
             // alert(ajax_course_image.responseText);
+            dirty = tab;
+            disable_save_button(true);
           }
           // ---| ./IF(AJAX.Status)
 
@@ -878,15 +953,26 @@
           document.querySelector(".js-image-upload-info").classList.add("hide");
           document.querySelector(".js-image-upload-input").classList.remove("hide");
           document.querySelector(".js-image-upload-cancel-button").classList.add("hide");
+          document.querySelector(".js-image-upload-progress-container").classList.add("hide");
         }
         // ---| ./IF(AJAX.ReadyState)
       });
 
       ajax_course_image.addEventListener('error',function(){
+        course_image_uploading = false;
+        document.querySelector(".js-image-upload-info").classList.add("hide");
+        document.querySelector(".js-image-upload-input").classList.remove("hide");
+        document.querySelector(".js-image-upload-cancel-button").classList.add("hide");
+        document.querySelector(".js-image-upload-progress-container").classList.add("hide");
         alert("Oh, NO! An error Occurred.");
       });
 
       ajax_course_image.addEventListener('abort',function(){
+        course_image_uploading = false;
+        document.querySelector(".js-image-upload-info").classList.add("hide");
+        document.querySelector(".js-image-upload-input").classList.remove("hide");
+        document.querySelector(".js-image-upload-cancel-button").classList.add("hide");
+        document.querySelector(".js-image-upload-progress-container").classList.add("hide");
         alert("Upload aborted!");
       });
 
@@ -912,6 +998,81 @@
       ajax_course_image.abort();
     }
     // ---| ./AJAX_Course_Image_Cancel()
+
+    var course_hero_image_uploading = false;
+
+    function upload_course_hero_image(file) {
+      if (!file || course_hero_image_uploading) {
+        return;
+      }
+
+      var extension = file.name.split(".").pop().toLowerCase();
+      if (!["jpg", "jpeg", "png", "webp"].includes(extension)) {
+        alert("Choose a JPG, PNG, or WebP image.");
+        return;
+      }
+
+      course_hero_image_uploading = true;
+      var form = new FormData();
+      form.append("data_type", "upload_course_hero_image");
+      form.append("tab_name", "course-landing-page");
+      form.append("hero_image", file);
+      form.append("csrf_code", document.querySelector(".js-csrf_code").value);
+
+      var request = new XMLHttpRequest();
+      var info = document.querySelector(".js-hero-image-upload-info");
+      var input = document.querySelector(".js-hero-image-input");
+      var progress = document.querySelector(".js-hero-image-progress");
+      document.querySelector(".js-hero-image-progress-container").classList.remove("hide");
+      info.textContent = file.name;
+      info.classList.remove("hide");
+      input.disabled = true;
+
+      request.upload.addEventListener("progress", function(event) {
+        if (event.lengthComputable) {
+          var percent = Math.round((event.loaded / event.total) * 100);
+          progress.style.width = percent + "%";
+          progress.textContent = percent + "%";
+        }
+      });
+
+      request.addEventListener("load", function() {
+        course_hero_image_uploading = false;
+        input.disabled = false;
+        info.classList.add("hide");
+        document.querySelector(".js-hero-image-progress-container").classList.add("hide");
+
+        var result;
+        try {
+          result = JSON.parse(request.responseText);
+        } catch (error) {
+          alert("The hero image upload returned an invalid response.");
+          return;
+        }
+
+        if (request.status < 200 || request.status >= 300 || !result.success) {
+          alert(result.message || "Hero image upload failed.");
+          return;
+        }
+
+        document.querySelector(".js-hero-image-preview").src = result.image;
+        progress.style.width = "0%";
+        progress.textContent = "0%";
+        input.value = "";
+        alert(result.message);
+      });
+
+      request.addEventListener("error", function() {
+        course_hero_image_uploading = false;
+        input.disabled = false;
+        info.classList.add("hide");
+        document.querySelector(".js-hero-image-progress-container").classList.add("hide");
+        alert("Hero image upload failed because of a network error.");
+      });
+
+      request.open("POST", "");
+      request.send(form);
+    }
 
     /* ------------| Add Video |------------ */
     var course_video_uploading = false;
@@ -950,6 +1111,7 @@
       document.querySelector(".js-video-upload-info").classList.remove("hide");
       document.querySelector(".js-video-upload-input").classList.add("hide");
       document.querySelector(".js-video-upload-cancel-button").classList.remove("hide");
+      document.querySelector(".js-video-upload-progress-container").classList.remove("hide");
 
       var myform = new FormData();
       ajax_course_video = new XMLHttpRequest();
@@ -969,15 +1131,26 @@
           document.querySelector(".js-video-upload-info").classList.add("hide");
           document.querySelector(".js-video-upload-input").classList.remove("hide");
           document.querySelector(".js-video-upload-cancel-button").classList.add("hide");
+          document.querySelector(".js-video-upload-progress-container").classList.add("hide");
         }
         // ---| ./IF(AJAX.ReadyState)
       });
 
       ajax_course_video.addEventListener('error',function(){
+        course_video_uploading = false;
+        document.querySelector(".js-video-upload-info").classList.add("hide");
+        document.querySelector(".js-video-upload-input").classList.remove("hide");
+        document.querySelector(".js-video-upload-cancel-button").classList.add("hide");
+        document.querySelector(".js-video-upload-progress-container").classList.add("hide");
         alert("Oh, NO! An error Occurred.");
       });
 
       ajax_course_video.addEventListener('abort',function(){
+        course_video_uploading = false;
+        document.querySelector(".js-video-upload-info").classList.add("hide");
+        document.querySelector(".js-video-upload-input").classList.remove("hide");
+        document.querySelector(".js-video-upload-cancel-button").classList.add("hide");
+        document.querySelector(".js-video-upload-progress-container").classList.add("hide");
         alert("Upload aborted!");
       });
 
@@ -1621,6 +1794,16 @@
         }
         // ---| ./IF(Video Path)
 
+        if (typeof obj.item_type == 'undefined') {
+          obj.item_type = "video";
+        }
+        if (typeof obj.duration_minutes == 'undefined') {
+          obj.duration_minutes = "";
+        }
+        if (typeof obj.is_preview == 'undefined') {
+          obj.is_preview = 0;
+        }
+
         mydiv.innerHTML = `
           <!-- ---------| FORM Input |--------- -->
           <span class="d-flex">
@@ -1638,6 +1821,19 @@
           <span class="col-8 g-3">
             <input type="text" value="${obj.value}" unid="${obj.unid}" index="${obj.index}" name="${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="${obj.placeHolder}" autofocus>
             <input type="text" value="${obj.description}" name="description_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="Enter a description">
+            <label class="form-label mt-2">Curriculum item type</label>
+            <select name="item_type_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-select">
+              <option value="video" ${obj.item_type == "video" ? "selected" : ""}>Video lesson</option>
+              <option value="reading" ${obj.item_type == "reading" ? "selected" : ""}>Reading</option>
+              <option value="quiz" ${obj.item_type == "quiz" ? "selected" : ""}>Quiz</option>
+              <option value="assignment" ${obj.item_type == "assignment" ? "selected" : ""}>Assignment</option>
+            </select>
+            <label class="form-label mt-2">Duration (minutes)</label>
+            <input type="number" min="0" step="1" value="${obj.duration_minutes}" name="duration_minutes_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="Optional duration">
+            <label class="form-check mt-2">
+              <input type="checkbox" class="form-check-input" value="1" name="is_preview_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" ${Number(obj.is_preview) === 1 ? "checked" : ""}>
+              <span class="form-check-label">Available as a public preview</span>
+            </label>
             <input type="hidden" value="${obj.base_file}" name="file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="Browse... to upload a video file">
             <a href="#" name="file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control">${obj.base_file}</a>
             <input type="file" name="new_file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control">
@@ -1773,6 +1969,9 @@
               unid:data[i].unid,
               file:data[i].file,
               base_file:data[i].base_file,
+              item_type:data[i].item_type || "video",
+              duration_minutes:data[i].duration_minutes || "",
+              is_preview:data[i].is_preview || 0,
             });
             // ---| ./Lecture\. |---
           }

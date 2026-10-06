@@ -26,7 +26,7 @@
             <div class="row mb-5">
 
               <!-- Customers Card -->
-              <div class="col-xxl-4 col-xl-12 row">
+              <div class="col-xxl-12 row">
 
                 <!-- ---------- New-Question ---------- -->
                 <div class="card col-md-6 mx-auto">
@@ -36,9 +36,9 @@
                     <!-- Form with No Lables -->
                     <form class="row g-3 py-2" method="post">
 
-                      <div class="col-md-12">
+                      <div class="col-md-6">
                         <label for="question_title" class="ms-2">Qustion Title&colon;</label><br>
-                        <input type="text" name="question_title" id="question_title" value="" class="form-control <?=!empty($errors['question_title']) ? 'border-danger' : '';?>" placeholder="Question Title" autofocus>
+                        <input type="text" name="question_title" id="question_title" value="<?=htmlspecialchars($_POST['question_title'] ?? '')?>" class="form-control <?=!empty($errors['question_title']) ? 'border-danger' : '';?>" placeholder="Question Title" autofocus>
                         <!-- ---- EXAM Title Error ---- -->
                         <?php if(!empty($errors['question_title'])):?>
                           <small class="text-danger"><?=$errors['question_title']?>.</small>
@@ -46,16 +46,9 @@
                         <!-- -| ./EXAM Title Error\. |- -->
                       </div>
 
-                      <div class="col-md-12">
-                        <label for="right_answer" class="ms-2">Exam&colon;</label><br>
-                        <select name="exam_id" id="exam_id" class="form-select <?=!empty($errors['exam_id']) ? 'border-danger' : '';?>">
-                          <option value="" selected="" disabled>Select an exam...</option>
-                          <?php if (!empty($exam_rows)) : ?>
-                            <?php foreach ($exam_rows as $key => $row): ?>
-                              <option <?=set_select('id',$target_id,$row->id)?> value="<?=$row->id?>"><?=$row->exam_title?></option>
-                            <?php endforeach; ?>
-                          <?php endif; ?>
-                        </select>
+                      <div class="col-md-6">
+                        <label for="exam_id" class="ms-2">Exam&colon;</label><br>
+                        <input type="text" id="exam_id" class="form-control" value="<?=esc($target_exam->exam_title ?? 'Exam not found')?>" disabled>
                         <!-- ---- Exam_ID Error ---- -->
                         <?php if(!empty($errors['exam_id'])):?>
                           <small class="text-danger"><?=$errors['exam_id']?>.</small>
@@ -63,21 +56,28 @@
                         <!-- -| ./Exam_ID Error\. |- -->
                       </div>
 
-                      <!-- <div class="col-md-12">
-                        <label for="answer_option" class="ms-2">Rigth Answer</label><br>
-                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>">
-                          <option value="" selected="" disabled>Select an option...</option>
-                          <option value="1">Option 1</option>
-                          <option value="2">Option 2</option>
-                          <option value="3">Option 3</option>
-                          <option value="4">Option 4</option>
-                        </select> -->
-                        <!-- ---- ANSWER_Option Error ---- -->
-                        <!-- <?php if(!empty($errors['answer_option'])):?>
-                          <small class="text-danger"><?=$errors['answer_option']?>.</small>
-                        <?php endif;?> -->
-                        <!-- -| ./ANSWER_Option Error\. |- -->
-                      <!-- </div> -->
+                      <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
+                        <div class="col-md-6">
+                          <label for="option_number_<?=$option_number?>" class="ms-2">Option <?=$option_number?>&colon;</label>
+                          <input type="text" name="option_number_<?=$option_number?>" id="option_number_<?=$option_number?>" class="form-control <?=!empty($errors['option_number_'.$option_number]) ? 'border-danger' : '';?>" value="<?=htmlspecialchars($_POST['option_number_'.$option_number] ?? '')?>" required>
+                          <?php if (!empty($errors['option_number_'.$option_number])): ?>
+                            <small class="text-danger"><?=$errors['option_number_'.$option_number]?></small>
+                          <?php endif; ?>
+                        </div>
+                      <?php endfor; ?>
+
+                      <div class="col-md-12">
+                        <label for="answer_option" class="ms-2">Correct Answer&colon;</label>
+                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>" required>
+                          <option value="">Select the correct option...</option>
+                          <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
+                            <option value="<?=$option_number?>" <?=($_POST['answer_option'] ?? '') == (string)$option_number ? 'selected' : ''?>>Option <?=$option_number?></option>
+                          <?php endfor; ?>
+                        </select>
+                        <?php if (!empty($errors['answer_option'])): ?>
+                          <small class="text-danger"><?=$errors['answer_option']?></small>
+                        <?php endif; ?>
+                      </div>
 
                       <!-- ---- Hidden Inputs ---- -->
                       <input type="hidden" name="exam_id" value="<?=$target_id?>">
@@ -124,7 +124,7 @@
             <div class="row">
 
               <!-- Customers Card -->
-              <div class="col-xxl-4 col-xl-12">
+              <div class="col-xxl-12">
 
                 <!-- -----| Delete Course Tabs |----- -->
                 <div class="card col-md-8 mx-auto">
@@ -414,7 +414,7 @@
               <div class="row">
 
                 <!-- Customers Card -->
-                <div class="col-xxl-4 col-12">
+                <div class="col-xxl-12">
                 <!-- <?=show($rows)?> -->
 
                   <div class="card">
