@@ -178,16 +178,31 @@ class Database {
      * | COURSES_LECTURES Table |
      * --------------------------
      */
+    // $query = "
+      // CREATE TABLE IF NOT EXISTS `courses_lectures` (
+        // `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        // `unid` bigint(20) NOT NULL,
+        // `title` varchar(100) NOT NULL,
+        // `description` varchar(2048) NOT NULL,
+        // `file` varchar(1024) NOT NULL,
+        // `item_type` varchar(30) NOT NULL DEFAULT 'video' AFTER `file`,
+        // `duration_minutes` smallint unsigned DEFAULT NULL AFTER `item_type`,
+        // `is_preview` tinyint(1) NOT NULL DEFAULT 0 AFTER `duration_minutes`,
+        // `disabled` tinyint(1) NOT NULL DEFAULT 0,
+        // KEY `unid` (`unid`),
+        // KEY `disabled` (`disabled`)
+      // ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    // ";
     $query = "
-      CREATE TABLE IF NOT EXISTS `courses_lectures` (
+      CREATE TABLE `courses_lectures` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `unid` bigint(20) NOT NULL,
         `title` varchar(100) NOT NULL,
         `description` varchar(2048) NOT NULL,
         `file` varchar(1024) NOT NULL,
-        `item_type` varchar(30) NOT NULL DEFAULT 'video' AFTER `file`,
-        `duration_minutes` smallint unsigned DEFAULT NULL AFTER `item_type`,
-        `is_preview` tinyint(1) NOT NULL DEFAULT 0 AFTER `duration_minutes`,
+        `item_type` varchar(30) NOT NULL DEFAULT 'video',
+        `duration_minutes` smallint(5) unsigned DEFAULT NULL,
+        `is_preview` tinyint(1) NOT NULL DEFAULT 0,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
         KEY `unid` (`unid`),
         KEY `disabled` (`disabled`)
