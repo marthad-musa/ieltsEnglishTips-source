@@ -45,15 +45,22 @@
                   <div class="course-stats">
                     <div class="stat-item">
                       <i class="bi bi-people"></i>
-                      <span><?=esc($rows[0]->total_student ?: '27')?> students</span>
+                      <span><?=esc($rows[0]->active_enrollment_count)?> active students</span>
                     </div>
-                    <div class="stat-item">
-                      <i class="bi bi-clock"></i>
-                      <span><?=esc($rows[0]->course_duration ?: '40')?> weeks</span>
-                    </div>
+                    <?php if ($rows[0]->course_duration !== null && $rows[0]->course_duration !== ''): ?>
+                      <div class="stat-item">
+                        <i class="bi bi-clock"></i>
+                        <span><?=esc($rows[0]->course_duration)?> weeks</span>
+                      </div>
+                    <?php endif; ?>
+                    <?php if ($rows[0]->course_timeline !== null && $rows[0]->course_timeline !== ''): ?>
+                      <div class="stat-item">
+                        <i class="bi bi-calendar"></i>
+                        <span><?=esc($rows[0]->course_timeline)?> hours of video/content</span>
+                      </div>
+                    <?php endif; ?>
                     <div class="stat-item">
                       <i class="bi bi-calendar"></i>
-                      <!-- <span><?=esc($rows[0]->course_duration ?: '12')?> hours</span> -->
                     </div>
                   </div>
                 </div>
@@ -108,11 +115,26 @@
                   <!-- <div class="original-price">£1000</div> -->
 
                   <div class="course-features">
-                    <div class="feature">
-                      <i class="bi bi-clock"></i>
-                      <em>Course Duration</em>
-                      <span><?=esc($rows[0]->course_timeline ?: '40')?> hours of content</span>
-                    </div>
+                    <?php if ($rows[0]->course_duration !== null && $rows[0]->course_duration !== ''): ?>
+                      <div class="feature">
+                        <i class="bi bi-clock"></i>
+                        <em>Course length</em>
+                        <span><?=esc($rows[0]->course_duration)?> weeks</span>
+                      </div>
+                    <?php endif; ?>
+                    <?php if ($rows[0]->course_timeline !== null && $rows[0]->course_timeline !== ''): ?>
+                      <div class="feature">
+                        <i class="bi bi-play-circle"></i>
+                        <em>Video/content time</em>
+                        <span><?=esc($rows[0]->course_timeline)?> hours</span>
+                      </div>
+                    <?php endif; ?>
+                    <?php if (!empty($rows[0]->start_date)): ?>
+                      <div class="feature"><i class="bi bi-calendar-event"></i><em>Starts</em><span><?=esc(get_date($rows[0]->start_date))?></span></div>
+                    <?php endif; ?>
+                    <?php if (!empty($rows[0]->end_date)): ?>
+                      <div class="feature"><i class="bi bi-calendar-check"></i><em>Ends</em><span><?=esc(get_date($rows[0]->end_date))?></span></div>
+                    <?php endif; ?>
                     <div class="feature">
                       <i class="bi bi-translate"></i>
                       <em>Course Languge</em>
@@ -126,7 +148,7 @@
                     <div class="feature">
                       <i class="bi bi-people"></i>
                       <em>Enrolled Students</em>
-                      <span><?=esc($rows[0]->total_student ?: '27')?> enrolled</span>
+                      <span><?=esc($rows[0]->active_enrollment_count)?> active learners</span>
                     </div>
                   </div>
 

@@ -36,7 +36,7 @@ class Course extends Model {
     'get_language',
     'get_currency',
     'get_price',
-    // 'get_course_enroll',
+    'get_active_enrollment_count',
   ];
 
   protected $beforeUpdate = [];
@@ -57,6 +57,7 @@ class Course extends Model {
     'course_promo_video',
     'primary_subject',
     'course_duration',
+    'course_timeline',
     'total_student',
     'create_date',
     'start_date',
@@ -220,9 +221,55 @@ class Course extends Model {
       }
     }
 
+    if ($tab_name === "course-duration") {
+      $start_date = $data['start_date'] ?? '';
+      $end_date = $data['end_date'] ?? '';
+      $has_start_date = is_scalar($start_date) && trim((string)$start_date) !== '';
+      $has_end_date = is_scalar($end_date) && trim((string)$end_date) !== '';
+
+      if ($has_start_date !== $has_end_date) {
+        $date_error = "Enter both course dates to calculate the course length, or clear both dates.";
+        $this->errors['start_date'] = $date_error;
+        $this->errors['end_date'] = $date_error;
+      } elseif ($has_start_date) {
+        foreach (['start_date' => $start_date, 'end_date' => $end_date] as $field => $value) {
+          $date = \DateTime::createFromFormat('!Y-m-d', (string)$value);
+          if (!$date || $date->format('Y-m-d') !== (string)$value) {
+            $date_label = $field === 'start_date' ? 'starting' : 'ending';
+            $this->errors[$field] = "Enter a valid {$date_label} date.";
+          }
+        }
+
+        if (empty($this->errors) && (string)$start_date > (string)$end_date) {
+          $this->errors['end_date'] = "The ending date must not be earlier than the starting date.";
+        }
+      } elseif ((!is_scalar($start_date) && $start_date !== null)
+        || (!is_scalar($end_date) && $end_date !== null)) {
+        $this->errors['start_date'] = "Enter valid course dates.";
+        $this->errors['end_date'] = "Enter valid course dates.";
+      }
+    }
+
     return empty($this->errors);
   }
   # ---| ./EDIT_Validate()\. |---
+
+  public static function calculate_course_weeks($start_date, $end_date) {
+    if ($start_date === null || $end_date === null || $start_date === '' || $end_date === '') {
+      return null;
+    }
+
+    $start = \DateTime::createFromFormat('!Y-m-d', (string)$start_date);
+    $end = \DateTime::createFromFormat('!Y-m-d', (string)$end_date);
+    if (!$start || !$end || $start > $end
+      || $start->format('Y-m-d') !== (string)$start_date
+      || $end->format('Y-m-d') !== (string)$end_date) {
+      return null;
+    }
+
+    $inclusive_days = (int)$start->diff($end)->days + 1;
+    return (int)ceil($inclusive_days / 7);
+  }
 
   # -----| AfterSELECT Functions |-----
   protected function get_user($rows) {
@@ -348,6 +395,46 @@ class Course extends Model {
 
     return $rows;
   } # ---| ./Get_PRICE() |---
+
+  protected function get_active_enrollment_count($rows) {
+    if (empty($rows)) {
+      return $rows;
+    }
+
+    $course_ids = [];
+    foreach ($rows as $row) {
+      $row->active_enrollment_count = 0;
+      $course_ids[] = (int)$row->id;
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values(array_unique($course_ids)) as $index => $course_id) {
+      $placeholder = 'course_id_' . $index;
+      $placeholders[] = ':' . $placeholder;
+      $params[$placeholder] = $course_id;
+    }
+
+    $db = new \Database();
+    $counts = $db->query(
+      'SELECT `course_id`, COUNT(DISTINCT `user_id`) AS `active_enrollment_count`
+       FROM `course_enroll`
+       WHERE `disabled` = 0 AND `course_id` IN (' . implode(',', $placeholders) . ')
+       GROUP BY `course_id`',
+      $params
+    );
+
+    $count_by_course_id = [];
+    foreach ($counts ?: [] as $count) {
+      $count_by_course_id[(int)$count->course_id] = (int)$count->active_enrollment_count;
+    }
+
+    foreach ($rows as $row) {
+      $row->active_enrollment_count = $count_by_course_id[(int)$row->id] ?? 0;
+    }
+
+    return $rows;
+  }
 
   // protected function get_course_enroll($rows) {
   //   $db = new \Database();

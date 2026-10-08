@@ -83,10 +83,34 @@
                 </div>
               <?php endif; ?>
               <div class="course-stats">
-                <?php if (!empty($row->course_duration)): ?>
+                <?php if ($row->course_duration !== null && $row->course_duration !== ''): ?>
                   <div class="stat-item">
                     <i class="bi bi-calendar"></i>
                     <span><?=esc($row->course_duration)?> <?=((int)$row->course_duration === 1) ? 'week' : 'weeks'?></span>
+                  </div>
+                <?php endif; ?>
+                <?php if ($row->course_timeline !== null && $row->course_timeline !== ''): ?>
+                  <div class="stat-item">
+                    <i class="bi bi-clock"></i>
+                    <span><?=esc($row->course_timeline)?> <?=((int)$row->course_timeline === 1) ? 'hour' : 'hours'?> of video/content</span>
+                  </div>
+                <?php endif; ?>
+                <?php if (isset($row->active_enrollment_count)): ?>
+                  <div class="stat-item">
+                    <i class="bi bi-people"></i>
+                    <span><?=esc($row->active_enrollment_count)?> active <?=((int)$row->active_enrollment_count === 1) ? 'learner' : 'learners'?></span>
+                  </div>
+                <?php endif; ?>
+                <?php if (!empty($row->start_date)): ?>
+                  <div class="stat-item">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>Starts <?=esc(get_date($row->start_date))?></span>
+                  </div>
+                <?php endif; ?>
+                <?php if (!empty($row->end_date)): ?>
+                  <div class="stat-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Ends <?=esc(get_date($row->end_date))?></span>
                   </div>
                 <?php endif; ?>
               </div>

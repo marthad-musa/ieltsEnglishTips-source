@@ -14,14 +14,6 @@
     </div>
     <!-- -| ./Course Welcome Message\. |- -->
 
-    <!-- ---- Course Congratulations Message ---- -->
-    <div class="input-group mb-2">
-      <span class="input-group-text">Congratulations Message&colon;</span>
-      <textarea name="congratulations_message" class="form-control <?=!empty($errors['congratulations_message']) ? 'border-danger' : '';?>" aria-label="Congratulations Message:" placeholder="Add a congratulations message"><?=esc($row->congratulations_message)?></textarea>
-      <!-- ---- Congratulations Message Error ---- -->
-      <small class="error error-congratulations_message w-100 text-danger fontClarity"></small>
-      <!-- -| ./Congratulations Message Error\. |- -->
-    </div>
-    <!-- -| ./Course Congratulations Message\. |- -->
+    <small class="form-text text-muted">This message is shown to the learner after a successful enrollment. Completion messages will be available when course completion tracking is implemented.</small>
   </div>
 </form>

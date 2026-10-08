@@ -31,6 +31,22 @@ class App {
   function __construct() {
     $arr = $this->getURL();
 
+    $requested_route = strtolower((string)($arr[0] ?? ''));
+    $single_segment = count($arr) === 1 || (count($arr) === 2 && $arr[1] === '');
+    if ($single_segment && in_array($requested_route, \Model\Cms_page::allowedRouteKeys(), true)) {
+      try {
+        $cms_pages = new \Model\Cms_page();
+        if ($cms_pages->schemaReady()) {
+          $mapped_page = $cms_pages->publishedByRouteKey($requested_route);
+          if ($mapped_page) {
+            $arr = ['page', 'index', $mapped_page->slug];
+          }
+        }
+      } catch (\PDOException $error) {
+        error_log('CMS route lookup failed; using the existing route: ' . $error->getMessage());
+      }
+    }
+
     // $filename = "../app/controllers/".ucfirst($arr[0]).".php";
     $filename = __DIR__ . '/../controllers/' . ucfirst($arr[0]) . '.php';
     if (file_exists($filename)) {
@@ -80,4 +96,3 @@ class App {
   # ---| ./getURL()\. | ---
 }
 # -----| ./App()
-

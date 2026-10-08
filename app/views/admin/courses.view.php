@@ -360,11 +360,21 @@
                     </h5>
                     <p class="card-text"><?=esc($app_course->description)?></p>
                     <p class="card-text">Price: <?=esc($app_course->price_row->name)?> <sup><?=esc($app_course->currency_row->currency)?></sup></p>
-                    <p class="card-text">Total Students: <?=esc($app_course->total_student) ?: '0'?> students</p>
-                    <p class="card-text">Course Duration: <?=esc($app_course->course_duration) ?: 'Unknown'?> weeks</p>
+                    <p class="card-text">Active students: <?=esc($app_course->active_enrollment_count)?> students</p>
+                    <?php if ($app_course->course_duration !== null && $app_course->course_duration !== ''): ?>
+                      <p class="card-text">Course length: <?=esc($app_course->course_duration)?> weeks</p>
+                    <?php endif; ?>
+                    <?php if ($app_course->course_timeline !== null && $app_course->course_timeline !== ''): ?>
+                      <p class="card-text">Video/content time: <?=esc($app_course->course_timeline)?> hours</p>
+                    <?php endif; ?>
                   </div>
                   <div class="card-footer">
-                    <span class="date"><i class="bi bi-calendar2"></i> Starts: <?=get_date($app_course->start_date)?></span> <br>
+                    <?php if (!empty($app_course->start_date)): ?>
+                      <span class="date"><i class="bi bi-calendar2"></i> Starts: <?=get_date($app_course->start_date)?></span><br>
+                    <?php endif; ?>
+                    <?php if (!empty($app_course->end_date)): ?>
+                      <span class="date"><i class="bi bi-calendar2-check"></i> Ends: <?=get_date($app_course->end_date)?></span><br>
+                    <?php endif; ?>
                     <!-- <button class="btn btn-outline-primary m-1 float-end"><i class="bi bi-box-arrow-in-right"></i> Join now!</button> -->
                     <?php if (in_array((int)$uid->role_id, [2, 3], true)): ?>
                       <a href="<?=ROOT?>/admin/lessons" class="btn btn-outline-primary m-1 float-end">
@@ -1828,7 +1838,7 @@
               <option value="quiz" ${obj.item_type == "quiz" ? "selected" : ""}>Quiz</option>
               <option value="assignment" ${obj.item_type == "assignment" ? "selected" : ""}>Assignment</option>
             </select>
-            <label class="form-label mt-2">Duration (minutes)</label>
+            <label class="form-label mt-2">Manual lesson duration (minutes; for non-video items)</label>
             <input type="number" min="0" step="1" value="${obj.duration_minutes}" name="duration_minutes_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="Optional duration">
             <label class="form-check mt-2">
               <input type="checkbox" class="form-check-input" value="1" name="is_preview_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" ${Number(obj.is_preview) === 1 ? "checked" : ""}>

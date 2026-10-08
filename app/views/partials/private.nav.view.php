@@ -103,6 +103,15 @@
     <?php // endif;?>
     <!-- End Dashboard Page Nav -->
 
+    <?php if ((int)$uid->role_id === 3): ?>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="<?=ROOT?>/admin/cms-pages">
+          <i class="bi bi-file-earmark-richtext"></i>
+          <span>CMS Pages</span>
+        </a>
+      </li>
+    <?php endif; ?>
+
     <!-- ---------| This should be PUBLIC |--------- -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="<?=ROOT?>/admin/profile">

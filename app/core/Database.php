@@ -85,6 +85,22 @@ class Database {
     return $this->connect()->lastInsertId();
   }
 
+  public function transaction(callable $callback) {
+    $connection = $this->connect();
+    $connection->beginTransaction();
+
+    try {
+      $result = $callback($this);
+      $connection->commit();
+      return $result;
+    } catch (\Throwable $error) {
+      if ($connection->inTransaction()) {
+        $connection->rollBack();
+      }
+      throw $error;
+    }
+  }
+
   # -----| CREATE Tables() | -----
   public function create_tables() {
     /**
@@ -133,7 +149,7 @@ class Database {
         `course_promo_video` varchar(1024) DEFAULT NULL,
         `primary_subject` varchar(100) DEFAULT NULL,
         `course_duration` int(11) DEFAULT NULL,
-        `course_timeline` int(11) DEFAULT NULL,
+        `course_timeline` decimal(10,2) DEFAULT NULL,
         `total_student` int(11) DEFAULT NULL,
         `create_date` datetime DEFAULT NULL,
         `start_date` datetime DEFAULT NULL,
@@ -178,23 +194,8 @@ class Database {
      * | COURSES_LECTURES Table |
      * --------------------------
      */
-    // $query = "
-      // CREATE TABLE IF NOT EXISTS `courses_lectures` (
-        // `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-        // `unid` bigint(20) NOT NULL,
-        // `title` varchar(100) NOT NULL,
-        // `description` varchar(2048) NOT NULL,
-        // `file` varchar(1024) NOT NULL,
-        // `item_type` varchar(30) NOT NULL DEFAULT 'video' AFTER `file`,
-        // `duration_minutes` smallint unsigned DEFAULT NULL AFTER `item_type`,
-        // `is_preview` tinyint(1) NOT NULL DEFAULT 0 AFTER `duration_minutes`,
-        // `disabled` tinyint(1) NOT NULL DEFAULT 0,
-        // KEY `unid` (`unid`),
-        // KEY `disabled` (`disabled`)
-      // ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-    // ";
     $query = "
-      CREATE TABLE `courses_lectures` (
+      CREATE TABLE IF NOT EXISTS `courses_lectures` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `unid` bigint(20) NOT NULL,
         `title` varchar(100) NOT NULL,
@@ -202,6 +203,7 @@ class Database {
         `file` varchar(1024) NOT NULL,
         `item_type` varchar(30) NOT NULL DEFAULT 'video',
         `duration_minutes` smallint(5) unsigned DEFAULT NULL,
+        `duration_seconds` int(10) unsigned DEFAULT NULL,
         `is_preview` tinyint(1) NOT NULL DEFAULT 0,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
         KEY `unid` (`unid`),
@@ -254,6 +256,59 @@ class Database {
         KEY `course_id` (`course_id`),
         KEY `course_id_sort_order` (`course_id`, `sort_order`),
         KEY `disabled` (`disabled`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * --------------------------
+     * | CMS_PAGES Table |
+     * --------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `cms_pages` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `slug` varchar(180) NOT NULL,
+        `title` varchar(255) NOT NULL,
+        `seo_description` varchar(320) DEFAULT NULL,
+        `route_key` varchar(100) DEFAULT NULL,
+        `status` varchar(20) NOT NULL DEFAULT 'draft',
+        `created_by` int(11) DEFAULT NULL,
+        `created_at` datetime DEFAULT NULL,
+        `updated_at` datetime DEFAULT NULL,
+        `published_at` datetime DEFAULT NULL,
+        UNIQUE KEY `slug` (`slug`),
+        UNIQUE KEY `route_key` (`route_key`),
+        KEY `status` (`status`),
+        KEY `created_by` (`created_by`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * -------------------------------
+     * | CMS_PAGE_BLOCKS Table |
+     * -------------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `cms_page_blocks` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `page_id` int(11) NOT NULL,
+        `block_type` varchar(40) NOT NULL,
+        `title` varchar(255) DEFAULT NULL,
+        `content` mediumtext,
+        `media_url` varchar(2048) DEFAULT NULL,
+        `data_json` mediumtext,
+        `animation_effect` varchar(24) NOT NULL DEFAULT 'none',
+        `sort_order` int(11) NOT NULL DEFAULT 0,
+        `is_enabled` tinyint(1) NOT NULL DEFAULT 1,
+        `created_at` datetime DEFAULT NULL,
+        `updated_at` datetime DEFAULT NULL,
+        KEY `page_id_sort_order` (`page_id`, `sort_order`),
+        KEY `page_id_enabled` (`page_id`, `is_enabled`),
+        KEY `block_type` (`block_type`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
     ";
 

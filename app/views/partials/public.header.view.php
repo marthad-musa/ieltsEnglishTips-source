@@ -1,3 +1,8 @@
+<?php
+$public_header_escape = function ($value) {
+  return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+};
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,11 +13,11 @@
     <!-- --| ./Meta data here\. |-- -->
 
     <!-- ----- Title here ----- -->
-    <title><?=ucfirst(App::$page)?> - <?=APPNAME?></title>
+    <title><?=$public_header_escape(isset($cms_page) ? $cms_page->title : ucfirst(App::$page))?> - <?=APPNAME?></title>
     <!-- --| ./Title here\. |-- -->
     
     <!-- ----- Site Information ----- -->
-    <meta name="description" content="<?=APP_DESC?>">
+    <meta name="description" content="<?=$public_header_escape(isset($cms_page) && trim((string)($cms_page->seo_description ?? '')) !== '' ? $cms_page->seo_description : APP_DESC)?>">
     <meta name="keywords" content="">
     <!-- --| ./Site Information\. |-- -->
     

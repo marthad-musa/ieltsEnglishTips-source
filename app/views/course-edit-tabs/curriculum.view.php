@@ -20,14 +20,14 @@
     <!-- ---- Course Objectives ---- -->
     <div class="row bg-light input-group px-4 py-3 my-4">
       <small class="mb-2">Start putting together your course by creating sections&comma;&nbsp;lectures and practice (quizzes, exercises and assignments).</small>
-      <small class="mb-2">If you're intending to offer course for free&comma;&nbsp;the total length of video content must be less than 2 hours.</small>
+      <small class="mb-2">Active video lesson lengths are measured on the server with FFprobe. Reading, quiz, and assignment durations are not included in video/content hours.</small>
       <!-- ---------| JS Curriculum |--------- -->
       <div class="col-sm-12 js-curriculum">
 
       </div>
       <!-- -------| ./JS Curriculum\. |------- -->
       <!-- ---- Errors ---- -->
-      <small class="error error-welcome_message w-100 text-danger"></small>
+      <small class="error error-curriculum w-100 text-danger"></small>
       <!-- -| ./Errors\. |- -->
       <button type="button" onclick="curriculum.add_new('js-curriculum',{placeHolder:'Enter a title',name:'curriculum'})" class="btn btn-sm btn-primary col-sm-3 col-md-2 rounded js-curriculum-add"><i class="bi bi-plus-square"></i> Add section</button>
     </div>

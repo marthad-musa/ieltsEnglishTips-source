@@ -23,22 +23,26 @@
 
       <!-- ---------| Course Duration |--------- -->
       <div class="row mb-3">
-        <label class="col-sm-12 col-form-label fw-bold">Course Duration:</label>
-        <div class="col-sm-12 my-1">
-          <label class="col-form-label">Total Number of Students&colon;</label>
-          <input type="text" class="form-control" id="total_student" name="total_student" value="<?=esc($row->total_student ?? '')?>" placeholder="Total Number of Students">
+        <label class="col-sm-12 col-form-label fw-bold">Course Schedule and Length:</label>
+        <div class="col-sm-6 my-1">
+          <label for="start_date">Starting Date&colon;</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" value="<?=esc(!empty($row->start_date) ? substr($row->start_date, 0, 10) : '')?>">
+          <small class="error error-start_date w-100 text-danger"></small>
         </div>
         <div class="col-sm-6 my-1">
-          <label for="col-form-label">Starting Date&colon;</label>
-          <input type="date" class="form-control" id="start_date" name="start_date" value="<?=esc($row->start_date ?? '')?>" placeholder="Starting Date">
-        </div>
-        <div class="col-sm-6 my-1">
-          <label for="col-form-label">Ending Date&colon;</label>
-          <input type="date" class="form-control" id="end_date" name="end_date" value="<?=esc($row->end_date ?? '')?>" placeholder="Ending Date">
+          <label for="end_date">Ending Date&colon;</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" value="<?=esc(!empty($row->end_date) ? substr($row->end_date, 0, 10) : '')?>">
+          <small class="error error-end_date w-100 text-danger"></small>
         </div>
         <div class="col-sm-12 my-1">
-          <label class="col-form-label">Course Duration&colon; <small>(in Weeks)</small></label>
-          <input type="text" class="form-control" id="course_duration" name="course_duration" value="<?=esc($row->course_duration ?? '')?>" placeholder="Course Duration">
+          <label for="course_duration" class="col-form-label">Course length <small>(weeks)</small></label>
+          <input type="number" class="form-control" id="course_duration" value="<?=esc($row->course_duration ?? '')?>" placeholder="Calculated from the course dates" readonly>
+          <small class="form-text text-muted">Calculated from both dates inclusively; partial weeks round up.</small>
+        </div>
+        <div class="col-sm-12 my-1">
+          <label for="course_timeline" class="col-form-label">Video/content time <small>(hours)</small></label>
+          <input type="number" class="form-control" id="course_timeline" value="<?=esc($row->course_timeline ?? '')?>" placeholder="Calculated from active curriculum videos" readonly>
+          <small class="form-text text-muted">Rounded to two decimal places. Recalculated when the curriculum is saved; hours remain blank if any active video duration cannot be measured.</small>
         </div>
       </div>
       <!-- -------| ./Course Duration\. |------- -->

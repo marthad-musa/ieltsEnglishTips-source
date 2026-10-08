@@ -126,7 +126,7 @@ class Course_details extends Controller {
       ]);
     }
 
-    message('You have been enrolled successfully.');
+    message($row->welcome_message ?: 'You have been enrolled successfully.');
     redirect('course_details/'.$row->slug);
   }
   # ---| ./Enroll()\. | ---

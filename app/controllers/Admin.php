@@ -87,6 +87,270 @@ class Admin extends Controller {
   }
   # ---| ./Dashboard()\. | ---
 
+  public function cms_pages($action = null, $id = null) {
+    $uid = $this->requireCmsAdmin();
+    if (!$uid) {
+      return;
+    }
+
+    $page_model = new \Model\Cms_page();
+    $block_model = new \Model\Cms_page_block();
+    $csrf_code = bin2hex(random_bytes(32));
+    $_SESSION['cms_csrf_code'] = $csrf_code;
+
+    try {
+      $schema_ready = $page_model->schemaReady();
+      $schema_error = 'CMS tables are missing. Apply the CMS page and block database migration, then reload this page.';
+    } catch (\PDOException $error) {
+      $this->cmsDatabaseUnavailable($error);
+      return;
+    }
+
+    if (!$schema_ready) {
+      http_response_code(503);
+      $this->view('admin/cms-pages', [
+        'uid' => $uid,
+        'title' => 'Page Builder',
+        'schema_error' => $schema_error,
+        'csrf_code' => $csrf_code,
+      ]);
+      return;
+    }
+
+    if (in_array($action, ['publish', 'unpublish'], true)) {
+      if ($_SERVER['REQUEST_METHOD'] !== 'POST'
+        || !hash_equals($_SESSION['cms_csrf_code'] ?? '', (string)($_POST['csrf_code'] ?? ''))) {
+        http_response_code(400);
+        echo 'Page status update failed the security check.';
+        return;
+      }
+
+      $page_id = (int)$id;
+      try {
+        $page_row = $page_model->first(['id' => $page_id]);
+      } catch (\PDOException $error) {
+        $this->cmsDatabaseUnavailable($error);
+        return;
+      }
+      if (!$page_row) {
+        message('CMS page not found.');
+        redirect('admin/cms-pages');
+      }
+
+      $status_data = [
+        'status' => $action === 'publish' ? 'published' : 'draft',
+        'updated_at' => date('Y-m-d H:i:s'),
+      ];
+      if ($action === 'publish') {
+        $status_data['published_at'] = date('Y-m-d H:i:s');
+      }
+      try {
+        $page_model->update($page_id, $status_data);
+      } catch (\PDOException $error) {
+        $this->cmsDatabaseUnavailable($error);
+        return;
+      }
+      message($action === 'publish' ? 'Page published.' : 'Page unpublished.');
+      redirect('admin/cms-pages');
+    }
+
+    if ($action === 'save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+      if (!hash_equals($_SESSION['cms_csrf_code'] ?? '', (string)($_POST['csrf_code'] ?? ''))) {
+        http_response_code(400);
+        echo 'Page save failed the security check.';
+        return;
+      }
+
+      $page_id = (int)($_POST['id'] ?? 0);
+      try {
+        $page_errors = $page_model->validatePage($_POST, $page_id ?: null);
+        $existing_page = $page_id > 0 ? $page_model->first(['id' => $page_id]) : false;
+      } catch (\PDOException $error) {
+        $this->cmsDatabaseUnavailable($error);
+        return;
+      }
+      $block_errors = [];
+      $blocks = \Model\Cms_page_block::normalizeSubmittedBlocks($_POST['blocks'] ?? [], $block_errors);
+      $errors = array_merge($page_errors, $block_errors);
+      if ($page_id > 0 && !$existing_page) {
+        $errors['id'] = 'The CMS page being edited no longer exists.';
+      }
+
+      if (!empty($errors)) {
+        $page_form = (object)[
+          'id' => $page_id,
+          'slug' => trim((string)($_POST['slug'] ?? '')),
+          'title' => trim((string)($_POST['title'] ?? '')),
+          'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
+          'route_key' => trim((string)($_POST['route_key'] ?? '')),
+          'status' => $existing_page->status ?? 'draft',
+        ];
+        $this->renderCmsEditor($uid, $page_form, $blocks, $errors, $csrf_code);
+        return;
+      }
+
+      $timestamp = date('Y-m-d H:i:s');
+      $preserve_published_status = $existing_page && $existing_page->status === 'published';
+      $page_data = [
+        'slug' => trim((string)$_POST['slug']),
+        'title' => trim((string)$_POST['title']),
+        'seo_description' => trim((string)($_POST['seo_description'] ?? '')) ?: null,
+        'route_key' => trim((string)($_POST['route_key'] ?? '')) ?: null,
+        'updated_at' => $timestamp,
+      ];
+
+      try {
+        $page_id = $page_model->transaction(function ($db) use ($page_model, $block_model, $page_id, $page_data, $blocks, $timestamp, $uid) {
+          if ($page_id > 0) {
+            $page_model->update($page_id, $page_data);
+          } else {
+            $page_data['status'] = 'draft';
+            $page_data['created_by'] = (int)$uid->id;
+            $page_data['created_at'] = $timestamp;
+            $page_model->insert($page_data);
+            $page_id = (int)$db->lastInsertId();
+          }
+
+          $db->query('DELETE FROM `cms_page_blocks` WHERE `page_id` = :page_id', ['page_id' => $page_id]);
+          foreach ($blocks as $block) {
+            $block['page_id'] = $page_id;
+            $block['created_at'] = $timestamp;
+            $block['updated_at'] = $timestamp;
+            $block_model->insert($block);
+          }
+
+          return $page_id;
+        });
+      } catch (\PDOException $error) {
+        error_log('CMS page save failed: ' . $error->getMessage());
+        message((string)$error->getCode() === '23000'
+          ? 'The page slug or route is already in use.'
+          : 'The page could not be saved. Check the server error log.');
+        redirect('admin/cms-pages');
+      }
+
+      message($preserve_published_status
+        ? 'Published CMS page updated.'
+        : 'CMS page saved as a draft. Publish it when it is ready.');
+      redirect('admin/cms-pages/' . $page_id);
+    }
+
+    if (ctype_digit((string)$action) && (int)$action > 0) {
+      try {
+        $page_row = $page_model->first(['id' => (int)$action]);
+        $page_blocks = $page_row ? \Model\Cms_page_block::forPage($page_row->id) : [];
+      } catch (\PDOException $error) {
+        $this->cmsDatabaseUnavailable($error);
+        return;
+      }
+      if (!$page_row) {
+        message('CMS page not found.');
+        redirect('admin/cms-pages');
+      }
+      $this->renderCmsEditor($uid, $page_row, $page_blocks, [], $csrf_code);
+      return;
+    }
+
+    if ($action === 'new') {
+      $this->renderCmsEditor($uid, (object)[
+        'id' => 0,
+        'title' => '',
+        'slug' => '',
+        'seo_description' => '',
+        'route_key' => '',
+        'status' => 'draft',
+      ], [], [], $csrf_code);
+      return;
+    }
+
+    try {
+      $page_rows = $page_model->allForAdmin();
+    } catch (\PDOException $error) {
+      $this->cmsDatabaseUnavailable($error);
+      return;
+    }
+    $this->view('admin/cms-pages', [
+      'uid' => $uid,
+      'title' => 'Page Builder',
+      'pages' => $page_rows,
+      'csrf_code' => $csrf_code,
+    ]);
+  }
+
+  public function cms_preview($id = null) {
+    $uid = $this->requireCmsAdmin();
+    if (!$uid) {
+      return;
+    }
+
+    $page_model = new \Model\Cms_page();
+    try {
+      if (!$page_model->schemaReady()) {
+        http_response_code(503);
+        echo 'CMS database migration is required.';
+        return;
+      }
+      $page_row = $page_model->first(['id' => (int)$id]);
+      $page_blocks = $page_row ? \Model\Cms_page_block::forPage($page_row->id) : [];
+    } catch (\PDOException $error) {
+      $this->cmsDatabaseUnavailable($error);
+      return;
+    }
+    if (!$page_row) {
+      http_response_code(404);
+      echo 'CMS page not found.';
+      return;
+    }
+    $this->renderCmsPublicPage($page_row, true, $page_blocks);
+  }
+
+  private function requireCmsAdmin() {
+    if (!Auth::logged_in()) {
+      message('Please, log in!');
+      redirect('login');
+      return false;
+    }
+
+    $user = new \Model\User();
+    $uid = $user->first(['id' => Auth::getId()]);
+    if (!$uid || (int)$uid->role_id !== 3) {
+      http_response_code(403);
+      echo 'Administrator access required.';
+      return false;
+    }
+    return $uid;
+  }
+
+  private function renderCmsEditor($uid, $page, $blocks, $errors, $csrf_code) {
+    $this->view('admin/cms-page-editor', [
+      'uid' => $uid,
+      'title' => !empty($page->id) ? 'Edit CMS Page' : 'Create CMS Page',
+      'page' => $page,
+      'blocks' => $blocks,
+      'errors' => $errors,
+      'csrf_code' => $csrf_code,
+      'route_keys' => \Model\Cms_page::allowedRouteKeys(),
+      'block_types' => \Model\Cms_page_block::blockTypes(),
+      'animations' => \Model\Cms_page_block::animations(),
+    ]);
+  }
+
+  private function renderCmsPublicPage($page, $is_preview = false, $blocks = []) {
+    $this->view('cms-page', [
+      'title' => $page->title,
+      'seo_description' => $page->seo_description ?? '',
+      'cms_page' => $page,
+      'cms_blocks' => $blocks,
+      'is_preview' => $is_preview,
+    ]);
+  }
+
+  private function cmsDatabaseUnavailable(\PDOException $error) {
+    error_log('CMS database request failed: ' . $error->getMessage());
+    http_response_code(503);
+    echo 'CMS storage is temporarily unavailable. Check the server error log.';
+  }
+
   # -----| Users() | -----
   public function users() {
     // show($_SESSION['USER_DATA']);die;
@@ -995,6 +1259,15 @@ class Admin extends Controller {
                 # ...| TAB: (Curriculum) Block
                 $course_meta = new \Model\Course_meta();
                 $course_lecture = new \Model\Course_lecture;
+                if (!$course_lecture->duration_schema_ready()) {
+                  $info['errors'] = [
+                    'curriculum' => 'Apply the course-duration migration before saving curriculum videos. No curriculum data was changed.',
+                  ];
+                  $info['data'] = "Course duration database migration is required.";
+                  $info['data_type'] = "save";
+                  echo json_encode($info);
+                  return;
+                }
 
                 $meta_data = [];
                 $meta_data_unids = [];
@@ -1221,6 +1494,10 @@ class Admin extends Controller {
                           }
                           # ---| ./IF/ELSE(File)
 
+                          if ($arr['item_type'] !== 'video' || $delete_old_file) {
+                            $arr['duration_seconds'] = null;
+                          }
+
                           if (count($old_lecture_ids) > 0) {
                             # ...| TRUE Block | UPDATE |---
                             $my_old_lecture_ids = array_pop($old_lecture_ids);
@@ -1252,7 +1529,60 @@ class Admin extends Controller {
                 }
                 # ---| ./ IF(Meta_data)
 
-                $info['data'] = "Course saved successfully!";
+                $video_lessons = $course_lecture->query(
+                  "SELECT DISTINCT `cl`.`id`, `cl`.`file`, `cl`.`duration_seconds`
+                   FROM `courses_lectures` AS `cl`
+                   INNER JOIN `courses_meta` AS `cm` ON `cm`.`unid` = `cl`.`unid`
+                   WHERE `cm`.`course_id` = :course_id
+                     AND `cm`.`tab` = 'curriculum'
+                     AND `cm`.`disabled` = 0
+                     AND `cl`.`disabled` = 0
+                     AND `cl`.`item_type` = 'video'",
+                  ['course_id' => $id]
+                );
+                $total_video_seconds = 0;
+                $unmeasured_video_count = 0;
+                $video_measurement_deadline = microtime(true) + 20;
+                foreach ($video_lessons ?: [] as $video_lesson) {
+                  $duration_seconds = (int)($video_lesson->duration_seconds ?? 0);
+                  if (empty($video_lesson->file)
+                    || !is_file($video_lesson->file)
+                    || !is_readable($video_lesson->file)) {
+                    if ($duration_seconds > 0) {
+                      $course_lecture->update($video_lesson->id, ['duration_seconds' => null]);
+                    }
+                    $unmeasured_video_count++;
+                    continue;
+                  }
+                  if ($duration_seconds <= 0) {
+                    if (microtime(true) >= $video_measurement_deadline) {
+                      $unmeasured_video_count++;
+                      continue;
+                    }
+                    $measurement = $course_lecture->measure_video_duration_seconds($video_lesson->file ?? '');
+                    if ($measurement['seconds'] === null) {
+                      $unmeasured_video_count++;
+                      continue;
+                    }
+
+                    $duration_seconds = $measurement['seconds'];
+                    $course_lecture->update($video_lesson->id, [
+                      'duration_seconds' => $duration_seconds,
+                    ]);
+                  }
+
+                  $total_video_seconds += $duration_seconds;
+                }
+
+                $course->update($id, [
+                  'course_timeline' => $unmeasured_video_count === 0
+                    ? round($total_video_seconds / 3600, 2)
+                    : null,
+                ]);
+
+                $info['data'] = $unmeasured_video_count > 0
+                  ? "Curriculum saved. Video/content hours could not be calculated because {$unmeasured_video_count} active video lesson(s) have no readable measured duration. Check the video files and ensure FFprobe is installed and available to PHP."
+                  : "Course curriculum saved. Video/content hours were recalculated from active video lessons.";
                 $info['data_type'] = "save";
               } else
               if ($_POST['tab_name'] == "course-landing-page") {
@@ -1304,7 +1634,18 @@ class Admin extends Controller {
               if ($_POST['tab_name'] == "course-duration") {
                 # ...| TAB: (Course Duration) Block
                 if ($_SERVER['REQUEST_METHOD'] == "POST") {
-                  $course->update($id,$_POST);
+                  $duration_fields = ['start_date', 'end_date'];
+                  $duration_data = array_intersect_key($_POST, array_flip($duration_fields));
+                  foreach ($duration_fields as $field) {
+                    if (array_key_exists($field, $duration_data) && $duration_data[$field] === '') {
+                      $duration_data[$field] = null;
+                    }
+                  }
+                  $duration_data['course_duration'] = \Model\Course::calculate_course_weeks(
+                    $duration_data['start_date'] ?? null,
+                    $duration_data['end_date'] ?? null
+                  );
+                  $course->update($id, $duration_data);
 
                   $info['data'] = "Course saved successfully!";
                   $info['data_type'] = "save";
@@ -1313,6 +1654,11 @@ class Admin extends Controller {
               } else
               if ($_POST['tab_name'] == "course-messages") {
                 # ...| TAB: (Course Messages) Block
+                $course->update($id, [
+                  'welcome_message' => trim((string)($_POST['welcome_message'] ?? '')),
+                ]);
+                $info['data'] = "Course welcome message saved successfully!";
+                $info['data_type'] = "save";
               }
               # ---| ./IF/ELSE/IF(TAB)
             } else {
