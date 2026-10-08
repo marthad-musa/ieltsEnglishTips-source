@@ -19,6 +19,11 @@ $this->view('partials/private.header', $data);
     <div class="alert alert-warning" role="alert"><?=$h($schema_error)?></div>
   <?php else: ?>
     <section class="section">
+      <?php if (isset($course_target_schema_ready) && !$course_target_schema_ready): ?>
+        <div class="alert alert-warning" role="alert">
+          Course detail attachments are not enabled yet. Apply <code>database/migrations/20261008_create_cms_page_course_targets.sql</code> to attach CMS blocks to an existing course page.
+        </div>
+      <?php endif; ?>
       <div class="d-flex justify-content-between align-items-center mb-3">
         <p class="mb-0">Create and manage published pages and mapped public routes.</p>
         <a class="btn btn-primary" href="<?=ROOT?>/admin/cms-pages/new"><i class="bi bi-plus-lg"></i> New page</a>
@@ -27,13 +32,20 @@ $this->view('partials/private.header', $data);
         <div class="card-body">
           <div class="table-responsive">
             <table class="table align-middle">
-              <thead><tr><th>Title</th><th>Slug</th><th>Route mapping</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Title</th><th>Slug</th><th>Existing page target</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
               <tbody>
                 <?php foreach (($pages ?? []) as $cms_page): ?>
                   <tr>
                     <td><?=$h($cms_page->title)?></td>
                     <td><code><?=$h($cms_page->slug)?></code></td>
-                    <td><?=$h($cms_page->route_key ?: 'None')?></td>
+                    <td>
+                      <?php if (!empty($cms_page->course_id)): ?>
+                        Course: <?=$h($cms_page->course_title ?: ('Course #' . $cms_page->course_id))?>
+                        <?php if (!empty($cms_page->course_slug)): ?><small class="d-block text-muted"><?=ROOT?>/course_details/<?=$h($cms_page->course_slug)?></small><?php endif; ?>
+                      <?php else: ?>
+                        <?=$h($cms_page->route_key ?: 'None')?>
+                      <?php endif; ?>
+                    </td>
                     <td><span class="badge <?=($cms_page->status === 'published' ? 'bg-success' : 'bg-secondary')?>"><?=$h(ucfirst($cms_page->status))?></span></td>
                     <td><?=$h($cms_page->updated_at ?? '')?></td>
                     <td class="text-nowrap">
@@ -44,13 +56,17 @@ $this->view('partials/private.header', $data);
                           <input type="hidden" name="csrf_code" value="<?=$h($csrf_code)?>">
                           <button class="btn btn-sm btn-outline-warning" type="submit">Unpublish</button>
                         </form>
-                        <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="<?=ROOT?>/<?=$h($cms_page->route_key ?: 'page/' . $cms_page->slug)?>">View</a>
+                        <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="<?=ROOT?>/<?=!empty($cms_page->course_id) ? 'course_details/' . $h($cms_page->course_slug ?? '') : $h($cms_page->route_key ?: 'page/' . $cms_page->slug)?>">View</a>
                       <?php else: ?>
                         <form class="d-inline" method="post" action="<?=ROOT?>/admin/cms-pages/publish/<?=$h((string)$cms_page->id)?>">
                           <input type="hidden" name="csrf_code" value="<?=$h($csrf_code)?>">
                           <button class="btn btn-sm btn-success" type="submit">Publish</button>
                         </form>
                       <?php endif; ?>
+                      <form class="d-inline cms-delete-page-form" method="post" action="<?=ROOT?>/admin/cms-pages/delete/<?=$h((string)$cms_page->id)?>" data-page-title="<?=$h($cms_page->title)?>">
+                        <input type="hidden" name="csrf_code" value="<?=$h($csrf_code)?>">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                      </form>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -63,5 +79,16 @@ $this->view('partials/private.header', $data);
     </section>
   <?php endif; ?>
 </main>
+
+<script>
+  document.querySelectorAll('.cms-delete-page-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      var pageTitle = form.getAttribute('data-page-title') || 'this page';
+      if (!window.confirm('Delete "' + pageTitle + '" and all its content blocks? This cannot be undone.')) {
+        event.preventDefault();
+      }
+    });
+  });
+</script>
 
 <?php $this->view('partials/private.footer', $data); ?>

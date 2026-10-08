@@ -64,7 +64,23 @@ $block_count = 0;
                   <option value="<?=$h($route_key)?>" <?=($page->route_key ?? '') === $route_key ? 'selected' : ''?>><?=$h(ucfirst($route_key))?></option>
                 <?php endforeach; ?>
               </select>
-              <small class="text-muted">A published mapping takes over that exact route; unpublishing restores the original page.</small>
+              <small class="text-muted">A published mapping takes over that exact top-level route; unpublishing restores the original page.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="cms-course-target">Append blocks to a course detail page</label>
+              <select class="form-select" id="cms-course-target" name="course_id" <?=empty($course_target_schema_ready) ? 'disabled' : ''?>>
+                <option value="">Do not attach to a course</option>
+                <?php foreach ($course_targets as $course_target): ?>
+                  <option value="<?=$h((string)$course_target->id)?>" <?=((string)($page->course_id ?? '') === (string)$course_target->id) ? 'selected' : ''?>>
+                    <?=$h($course_target->title)?> (<?=$h($course_target->slug)?>)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <?php if (empty($course_target_schema_ready)): ?>
+                <small class="text-warning">Apply the CMS course-target migration to enable course-page attachments.</small>
+              <?php else: ?>
+                <small class="text-muted">Published blocks are appended below the selected course’s existing details. Existing course content and enrollment remain unchanged.</small>
+              <?php endif; ?>
             </div>
             <div class="col-md-6">
               <label class="form-label" for="cms-seo">SEO description</label>
@@ -84,6 +100,7 @@ $block_count = 0;
         </div>
       </div>
 
+      <p class="text-muted">Use Remove to take a component out of this draft. The removal is saved when you click Save changes.</p>
       <div id="cms-block-list">
         <?php foreach ($blocks as $block): ?>
           <?php
@@ -128,7 +145,7 @@ $block_count = 0;
               <div class="col-12">
                 <label class="form-label">Text / article / caption</label>
                 <textarea class="form-control tinymce-editor" rows="5" name="blocks[<?=$index?>][content]"><?=$h($get_value($block, 'content'))?></textarea>
-                <small class="text-muted">Formatting is sanitized when saved. Scripts, embeds, and unsafe links are removed.</small>
+                <small class="text-muted">Formatting is sanitized when saved. To link text, select it in TinyMCE and use Link. Scripts, embeds, and unsafe links are removed.</small>
               </div>
               <div class="col-md-6 cms-media-setting">
                 <label class="form-label">Image URL (relative or HTTP(S))</label>
@@ -138,9 +155,20 @@ $block_count = 0;
                 <label class="form-label">Button label</label>
                 <input class="form-control" name="blocks[<?=$index?>][settings][button_text]" maxlength="100" value="<?=$h($settings['button_text'] ?? '')?>">
               </div>
-              <div class="col-md-3 cms-button-setting">
-                <label class="form-label">Button URL</label>
-                <input class="form-control" name="blocks[<?=$index?>][settings][button_url]" value="<?=$h($settings['button_url'] ?? '')?>">
+              <div class="col-md-4 cms-button-setting">
+                <label class="form-label">Link to a published CMS page</label>
+                <select class="form-select cms-link-target" name="blocks[<?=$index?>][settings][button_page_id]">
+                  <option value="">Choose CMS page...</option>
+                  <?php foreach ($link_targets as $link_target): ?>
+                    <option value="<?=$h((string)$link_target->id)?>" <?=((string)($settings['button_page_id'] ?? '') === (string)$link_target->id) ? 'selected' : ''?>>
+                      <?=$h($link_target->title)?> (<?=$h($link_target->slug)?>)
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-5 cms-button-setting">
+                <label class="form-label">Or enter a safe URL</label>
+                <input class="form-control cms-manual-link" name="blocks[<?=$index?>][settings][button_url]" value="<?=$h($settings['button_url'] ?? '')?>" placeholder="https://... or /page/path">
               </div>
               <div class="col-12 cms-counter-setting">
                 <div class="row g-2">
@@ -188,6 +216,12 @@ $block_count = 0;
       <button type="submit" class="btn btn-outline-warning">Unpublish page</button>
     </form>
   <?php endif; ?>
+  <?php if (!empty($page->id)): ?>
+    <form class="mt-3 cms-delete-page-form" method="post" action="<?=ROOT?>/admin/cms-pages/delete/<?=$h((string)$page->id)?>" data-page-title="<?=$h($page->title)?>">
+      <input type="hidden" name="csrf_code" value="<?=$h($csrf_code)?>">
+      <button type="submit" class="btn btn-outline-danger">Delete this page</button>
+    </form>
+  <?php endif; ?>
 </main>
 
 <template id="cms-block-template">
@@ -212,10 +246,17 @@ $block_count = 0;
         <label class="form-label">Animation</label>
         <select class="form-select" name="blocks[__INDEX__][animation_effect]"><?php foreach ($animations as $animation): ?><option value="<?=$h($animation)?>"><?=$h(ucfirst(str_replace('-', ' ', $animation)))?></option><?php endforeach; ?></select>
       </div>
-      <div class="col-12"><label class="form-label">Text / article / caption</label><textarea class="form-control tinymce-editor" rows="5" name="blocks[__INDEX__][content]"></textarea><small class="text-muted">Formatting is sanitized when saved. Scripts, embeds, and unsafe links are removed.</small></div>
+      <div class="col-12"><label class="form-label">Text / article / caption</label><textarea class="form-control tinymce-editor" rows="5" name="blocks[__INDEX__][content]"></textarea><small class="text-muted">Formatting is sanitized when saved. To link text, select it in TinyMCE and use Link. Scripts, embeds, and unsafe links are removed.</small></div>
       <div class="col-md-6 cms-media-setting"><label class="form-label">Image URL (relative or HTTP(S))</label><input class="form-control" name="blocks[__INDEX__][media_url]"></div>
       <div class="col-md-3 cms-button-setting"><label class="form-label">Button label</label><input class="form-control" name="blocks[__INDEX__][settings][button_text]" maxlength="100"></div>
-      <div class="col-md-3 cms-button-setting"><label class="form-label">Button URL</label><input class="form-control" name="blocks[__INDEX__][settings][button_url]"></div>
+      <div class="col-md-4 cms-button-setting">
+        <label class="form-label">Link to a published CMS page</label>
+        <select class="form-select cms-link-target" name="blocks[__INDEX__][settings][button_page_id]">
+          <option value="">Choose CMS page...</option>
+          <?php foreach ($link_targets as $link_target): ?><option value="<?=$h((string)$link_target->id)?>"><?=$h($link_target->title)?> (<?=$h($link_target->slug)?>)</option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="col-md-5 cms-button-setting"><label class="form-label">Or enter a safe URL</label><input class="form-control cms-manual-link" name="blocks[__INDEX__][settings][button_url]" placeholder="https://... or /page/path"></div>
       <div class="col-12 cms-counter-setting">
         <div class="row g-2">
           <?php for ($counter_index = 0; $counter_index < 3; $counter_index++): ?>
@@ -237,6 +278,15 @@ $block_count = 0;
 <style>.cms-block-editor{margin-bottom:1rem}.cms-block-editor .card-header{gap:.5rem}</style>
 <script>
 (function () {
+  document.querySelectorAll('.cms-delete-page-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      var pageTitle = form.getAttribute('data-page-title') || 'this page';
+      if (!window.confirm('Delete "' + pageTitle + '" and all its content blocks? This cannot be undone.')) {
+        event.preventDefault();
+      }
+    });
+  });
+
   var list = document.getElementById('cms-block-list');
   var template = document.getElementById('cms-block-template');
   var nextIndex = <?=$block_count?>;
@@ -253,6 +303,15 @@ $block_count = 0;
     block.querySelectorAll('.cms-counter-setting').forEach(function (field) {
       field.hidden = type !== 'counter';
     });
+  }
+
+  function syncButtonDestination(changed) {
+    var buttonBlock = changed.closest('.cms-block-editor');
+    if (!buttonBlock) return;
+    var pageSelect = buttonBlock.querySelector('.cms-link-target');
+    var manualLink = buttonBlock.querySelector('.cms-manual-link');
+    if (changed === pageSelect && pageSelect.value !== '') manualLink.value = '';
+    if (changed === manualLink && manualLink.value.trim() !== '') pageSelect.value = '';
   }
 
   function renumber() {
@@ -284,6 +343,10 @@ $block_count = 0;
   });
   list.addEventListener('change', function (event) {
     if (event.target.classList.contains('cms-type')) updateBlock(event.target.closest('.cms-block-editor'));
+    if (event.target.classList.contains('cms-link-target')) syncButtonDestination(event.target);
+  });
+  list.addEventListener('input', function (event) {
+    if (event.target.classList.contains('cms-manual-link')) syncButtonDestination(event.target);
   });
   list.addEventListener('click', function (event) {
     var block = event.target.closest('.cms-block-editor');
@@ -307,6 +370,16 @@ $block_count = 0;
     if (window.tinymce) window.tinymce.triggerSave();
     renumber();
   });
+
+  var routeSelect = document.getElementById('cms-route');
+  var courseSelect = document.getElementById('cms-course-target');
+  function synchronizeTargets(changed) {
+    if (!routeSelect || !courseSelect) return;
+    if (changed === routeSelect && routeSelect.value !== '') courseSelect.value = '';
+    if (changed === courseSelect && courseSelect.value !== '') routeSelect.value = '';
+  }
+  routeSelect.addEventListener('change', function () { synchronizeTargets(routeSelect); });
+  courseSelect.addEventListener('change', function () { synchronizeTargets(courseSelect); });
 })();
 </script>
 

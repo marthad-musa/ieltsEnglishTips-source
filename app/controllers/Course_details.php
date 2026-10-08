@@ -38,6 +38,18 @@ class Course_details extends Controller {
     # ...| READ The Course Data
     $data['row'] = $row = $course->first(['slug'=>$slug]);
 
+    $data['cms_blocks'] = [];
+    if (!empty($row->id)) {
+      try {
+        $cms_pages = new \Model\Cms_page();
+        if ($cms_pages->courseTargetSchemaReady()) {
+          $data['cms_blocks'] = $cms_pages->publishedBlocksForCourse($row->id);
+        }
+      } catch (\PDOException $error) {
+        error_log('Course CMS blocks unavailable; rendering the existing course page: ' . $error->getMessage());
+      }
+    }
+
     # ...| READ ALL Courses Metas
     $coursesMetas = $course_meta->where(['disabled'=>0,'course_id'=>$row->id ?? null], 'desc');
     if ($coursesMetas) {

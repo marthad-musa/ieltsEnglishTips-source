@@ -95,8 +95,12 @@ class Admin extends Controller {
 
     $page_model = new \Model\Cms_page();
     $block_model = new \Model\Cms_page_block();
-    $csrf_code = bin2hex(random_bytes(32));
-    $_SESSION['cms_csrf_code'] = $csrf_code;
+    if (!isset($_SESSION['cms_csrf_code'])
+      || !is_string($_SESSION['cms_csrf_code'])
+      || strlen($_SESSION['cms_csrf_code']) !== 64) {
+      $_SESSION['cms_csrf_code'] = bin2hex(random_bytes(32));
+    }
+    $csrf_code = $_SESSION['cms_csrf_code'];
 
     try {
       $schema_ready = $page_model->schemaReady();
@@ -117,11 +121,26 @@ class Admin extends Controller {
       return;
     }
 
-    if (in_array($action, ['publish', 'unpublish'], true)) {
+    $editor_page_id = ctype_digit((string)$action)
+      ? (int)$action
+      : ($action === 'save' ? (int)($_POST['id'] ?? 0) : 0);
+
+    try {
+      $course_target_schema_ready = $page_model->courseTargetSchemaReady();
+      $course_targets = $course_target_schema_ready ? $page_model->availableCourseTargets() : [];
+      $link_targets = $page_model->publishedPagesForLinks($editor_page_id);
+    } catch (\PDOException $error) {
+      $this->cmsDatabaseUnavailable($error);
+      return;
+    }
+
+    if (in_array($action, ['publish', 'unpublish', 'delete'], true)) {
       if ($_SERVER['REQUEST_METHOD'] !== 'POST'
-        || !hash_equals($_SESSION['cms_csrf_code'] ?? '', (string)($_POST['csrf_code'] ?? ''))) {
+        || !$this->isValidCmsCsrf($_POST['csrf_code'] ?? null)) {
         http_response_code(400);
-        echo 'Page status update failed the security check.';
+        echo $action === 'delete'
+          ? 'Page deletion failed the security check.'
+          : 'Page status update failed the security check.';
         return;
       }
 
@@ -134,6 +153,33 @@ class Admin extends Controller {
       }
       if (!$page_row) {
         message('CMS page not found.');
+        redirect('admin/cms-pages');
+      }
+
+      if ($action === 'delete') {
+        try {
+          $page_model->transaction(function ($db) use ($page_id, $course_target_schema_ready) {
+            $db->query(
+              'DELETE FROM `cms_page_blocks` WHERE `page_id` = :page_id',
+              ['page_id' => $page_id]
+            );
+            if ($course_target_schema_ready) {
+              $db->query(
+                'DELETE FROM `cms_page_course_targets` WHERE `cms_page_id` = :page_id',
+                ['page_id' => $page_id]
+              );
+            }
+            $db->query(
+              'DELETE FROM `cms_pages` WHERE `id` = :page_id',
+              ['page_id' => $page_id]
+            );
+          });
+        } catch (\PDOException $error) {
+          $this->cmsDatabaseUnavailable($error);
+          return;
+        }
+
+        message('CMS page and its content blocks were deleted. Any mapped existing route has returned to its original page.');
         redirect('admin/cms-pages');
       }
 
@@ -155,7 +201,7 @@ class Admin extends Controller {
     }
 
     if ($action === 'save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-      if (!hash_equals($_SESSION['cms_csrf_code'] ?? '', (string)($_POST['csrf_code'] ?? ''))) {
+      if (!$this->isValidCmsCsrf($_POST['csrf_code'] ?? null)) {
         http_response_code(400);
         echo 'Page save failed the security check.';
         return;
@@ -183,9 +229,10 @@ class Admin extends Controller {
           'title' => trim((string)($_POST['title'] ?? '')),
           'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
           'route_key' => trim((string)($_POST['route_key'] ?? '')),
+          'course_id' => trim((string)($_POST['course_id'] ?? '')),
           'status' => $existing_page->status ?? 'draft',
         ];
-        $this->renderCmsEditor($uid, $page_form, $blocks, $errors, $csrf_code);
+        $this->renderCmsEditor($uid, $page_form, $blocks, $errors, $csrf_code, $course_targets, $course_target_schema_ready, $link_targets);
         return;
       }
 
@@ -200,7 +247,8 @@ class Admin extends Controller {
       ];
 
       try {
-        $page_id = $page_model->transaction(function ($db) use ($page_model, $block_model, $page_id, $page_data, $blocks, $timestamp, $uid) {
+        $course_id = (int)($_POST['course_id'] ?? 0);
+        $page_id = $page_model->transaction(function ($db) use ($page_model, $block_model, $page_id, $page_data, $blocks, $timestamp, $uid, $course_id, $course_target_schema_ready) {
           if ($page_id > 0) {
             $page_model->update($page_id, $page_data);
           } else {
@@ -209,6 +257,10 @@ class Admin extends Controller {
             $page_data['created_at'] = $timestamp;
             $page_model->insert($page_data);
             $page_id = (int)$db->lastInsertId();
+          }
+
+          if ($course_target_schema_ready) {
+            $page_model->saveCourseTarget($page_id, $course_id);
           }
 
           $db->query('DELETE FROM `cms_page_blocks` WHERE `page_id` = :page_id', ['page_id' => $page_id]);
@@ -239,6 +291,7 @@ class Admin extends Controller {
       try {
         $page_row = $page_model->first(['id' => (int)$action]);
         $page_blocks = $page_row ? \Model\Cms_page_block::forPage($page_row->id) : [];
+        $course_target = $page_row ? $page_model->courseTargetForPage($page_row->id) : false;
       } catch (\PDOException $error) {
         $this->cmsDatabaseUnavailable($error);
         return;
@@ -247,7 +300,8 @@ class Admin extends Controller {
         message('CMS page not found.');
         redirect('admin/cms-pages');
       }
-      $this->renderCmsEditor($uid, $page_row, $page_blocks, [], $csrf_code);
+      $page_row->course_id = $course_target ? (int)$course_target->id : '';
+      $this->renderCmsEditor($uid, $page_row, $page_blocks, [], $csrf_code, $course_targets, $course_target_schema_ready, $link_targets);
       return;
     }
 
@@ -258,8 +312,9 @@ class Admin extends Controller {
         'slug' => '',
         'seo_description' => '',
         'route_key' => '',
+        'course_id' => '',
         'status' => 'draft',
-      ], [], [], $csrf_code);
+      ], [], [], $csrf_code, $course_targets, $course_target_schema_ready, $link_targets);
       return;
     }
 
@@ -274,6 +329,7 @@ class Admin extends Controller {
       'title' => 'Page Builder',
       'pages' => $page_rows,
       'csrf_code' => $csrf_code,
+      'course_target_schema_ready' => $course_target_schema_ready,
     ]);
   }
 
@@ -321,7 +377,13 @@ class Admin extends Controller {
     return $uid;
   }
 
-  private function renderCmsEditor($uid, $page, $blocks, $errors, $csrf_code) {
+  private function isValidCmsCsrf($submitted_token) {
+    return is_string($_SESSION['cms_csrf_code'] ?? null)
+      && is_string($submitted_token)
+      && hash_equals($_SESSION['cms_csrf_code'], $submitted_token);
+  }
+
+  private function renderCmsEditor($uid, $page, $blocks, $errors, $csrf_code, $course_targets, $course_target_schema_ready, $link_targets) {
     $this->view('admin/cms-page-editor', [
       'uid' => $uid,
       'title' => !empty($page->id) ? 'Edit CMS Page' : 'Create CMS Page',
@@ -332,6 +394,9 @@ class Admin extends Controller {
       'route_keys' => \Model\Cms_page::allowedRouteKeys(),
       'block_types' => \Model\Cms_page_block::blockTypes(),
       'animations' => \Model\Cms_page_block::animations(),
+      'course_targets' => $course_targets,
+      'course_target_schema_ready' => $course_target_schema_ready,
+      'link_targets' => $link_targets,
     ]);
   }
 

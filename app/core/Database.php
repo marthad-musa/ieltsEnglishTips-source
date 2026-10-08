@@ -315,6 +315,24 @@ class Database {
     $this->query($query);
 
     /**
+     * ------------------------------------
+     * | CMS_PAGE_COURSE_TARGETS Table |
+     * ------------------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `cms_page_course_targets` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `cms_page_id` int(11) NOT NULL,
+        `course_id` int(11) NOT NULL,
+        `created_at` datetime DEFAULT NULL,
+        UNIQUE KEY `cms_page_id` (`cms_page_id`),
+        UNIQUE KEY `course_id` (`course_id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
      * ----------------------------
      * | COURSES Enrollment Table |
      * ----------------------------

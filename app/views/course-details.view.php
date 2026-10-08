@@ -497,6 +497,12 @@
 
   </section><!-- /Course Details Section -->
 
+  <?php if (!empty($cms_blocks)): ?>
+    <section class="course-cms-content" aria-label="Additional course information">
+      <?php $this->view('partials/cms-blocks', $data); ?>
+    </section>
+  <?php endif; ?>
+
   <!-- Tabs Section -->
   <!-- <section id="tabs" class="tabs section">
 

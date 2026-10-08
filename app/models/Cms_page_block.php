@@ -200,12 +200,30 @@ class Cms_page_block extends Model {
       if (in_array($type, ['hero', 'cta'], true)) {
         $button_text = trim((string)($settings_input['button_text'] ?? ''));
         $button_url = self::safeLink($settings_input['button_url'] ?? '');
-        if ($button_url === false || strlen((string)$button_url) > 2048 || strlen($button_text) > 400) {
-          $errors['blocks'] = 'Enter a valid button label and safe button URL.';
+        $button_page_id = trim((string)($settings_input['button_page_id'] ?? ''));
+        if ($button_url === false || strlen((string)$button_url) > 2048 || strlen($button_text) > 400
+          || ($button_page_id !== '' && (!ctype_digit($button_page_id) || (int)$button_page_id < 1))
+          || ($button_page_id !== '' && $button_url !== '')) {
+          $errors['blocks'] = 'Choose one valid page destination or enter a safe button URL.';
           continue;
+        }
+        if ($button_page_id !== '') {
+          $destination = (new Cms_page())->first([
+            'id' => (int)$button_page_id,
+            'status' => 'published',
+          ]);
+          if (!$destination) {
+            $errors['blocks'] = 'Choose a published CMS page for the button destination.';
+            continue;
+          }
+          $settings['button_page_id'] = (int)$button_page_id;
         }
         $settings['button_text'] = $button_text;
         $settings['button_url'] = $button_url;
+        if (($button_text === '') !== ($button_page_id === '' && $button_url === '')) {
+          $errors['blocks'] = 'Enter both a button label and a destination, or leave both empty.';
+          continue;
+        }
       }
       if ($type === 'counter') {
         $counter_items_input = $settings_input['counter_items'] ?? null;
