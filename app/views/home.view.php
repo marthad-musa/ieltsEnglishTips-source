@@ -269,6 +269,14 @@
 
         <?php if (!empty($rows)): ?>
           <?php foreach ($rows as $row): ?>
+            <?php
+              $read_more_routes = [
+                'ielts-intensive-course' => 'ielts',
+                'headway-curriculum' => 'headway',
+                'computer-science' => 'computer',
+              ];
+              $read_more_route = $read_more_routes[$row->slug ?? ''] ?? null;
+            ?>
             <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
               <div class="course-item">
                 <?php if (!empty($row->course_image) && file_exists($row->course_image)): ?>
@@ -298,6 +306,9 @@
                     <p class="description"><?=esc($row->subtitle)?></p>
                   <?php endif; ?>
                   <p class="description"><?=esc($row->description)?></p>
+                  <?php if ($read_more_route !== null): ?>
+                    <a class="read-more" href="<?=ROOT?>/<?=$read_more_route?>">Read more..</a>
+                  <?php endif; ?>
                 </div>
               </div>
             </div>
