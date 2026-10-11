@@ -204,6 +204,7 @@ class Database {
         `item_type` varchar(30) NOT NULL DEFAULT 'video',
         `duration_minutes` smallint(5) unsigned DEFAULT NULL,
         `duration_seconds` int(10) unsigned DEFAULT NULL,
+        `content_html` MEDIUMTEXT DEFAULT NULL,
         `is_preview` tinyint(1) NOT NULL DEFAULT 0,
         `disabled` tinyint(1) NOT NULL DEFAULT 0,
         KEY `unid` (`unid`),

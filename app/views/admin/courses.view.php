@@ -45,6 +45,7 @@
       opacity: 0.9;
       user-select: none;
     }
+
   </style>
 
   <!-- ---------| Course Details Modal |--------- -->
@@ -872,6 +873,10 @@
       var content = document.querySelector("#tabs-content");
       var inputs = content.querySelectorAll("input,textarea,select");
 
+      if (window.tinymce) {
+        window.tinymce.triggerSave();
+      }
+
       var obj = {};
       obj.data_type = "save";
       obj.tab_name = tab;
@@ -1578,8 +1583,10 @@
 
             </div>
           </div>
-          <button type="button" onclick="lecture.add_new('js-lecture-${curriculum.curriculum.inputs_count}',{placeHolder:'Enter lecture title',name:'lecture',unid:'${obj.unid}',index:'${curriculum[id].inputs_count}'})" class="mt-1 btn btn-sm btn-secondary col-sm-3 col-md-2 rounded js-lecture-add fontClarity"><i class="bi bi-display"></i> Add Lecture</button>
-          <hr class="input-group">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+            <span class="small text-muted">Add a lesson to this section</span>
+            <button type="button" onclick="lecture.add_new('js-lecture-${curriculum.curriculum.inputs_count}',{placeHolder:'Enter lecture title',name:'lecture',unid:'${obj.unid}',index:'${curriculum[id].inputs_count}'})" class="btn btn-outline-primary btn-sm rounded-pill px-3 js-lecture-add fontClarity"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i> Add lesson</button>
+          </div>
           <!-- -------| ./FORM Input\. |------- -->
         `;
 
@@ -1813,6 +1820,12 @@
         if (typeof obj.is_preview == 'undefined') {
           obj.is_preview = 0;
         }
+        if (typeof obj.content_html == 'undefined') {
+          obj.content_html = "";
+        }
+
+        var item_input_index = lecture['lecture'].inputs_count;
+        var article_editor_id = 'article_' + obj.index + '_' + item_input_index;
 
         mydiv.innerHTML = `
           <!-- ---------| FORM Input |--------- -->
@@ -1834,6 +1847,9 @@
             <label class="form-label mt-2">Curriculum item type</label>
             <select name="item_type_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-select">
               <option value="video" ${obj.item_type == "video" ? "selected" : ""}>Video lesson</option>
+              <option value="audio" ${obj.item_type == "audio" ? "selected" : ""}>Audio lesson</option>
+              <option value="pdf" ${obj.item_type == "pdf" ? "selected" : ""}>PDF lesson / homework</option>
+              <option value="article" ${obj.item_type == "article" ? "selected" : ""}>Authored article</option>
               <option value="reading" ${obj.item_type == "reading" ? "selected" : ""}>Reading</option>
               <option value="quiz" ${obj.item_type == "quiz" ? "selected" : ""}>Quiz</option>
               <option value="assignment" ${obj.item_type == "assignment" ? "selected" : ""}>Assignment</option>
@@ -1844,27 +1860,14 @@
               <input type="checkbox" class="form-check-input" value="1" name="is_preview_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" ${Number(obj.is_preview) === 1 ? "checked" : ""}>
               <span class="form-check-label">Available as a public preview</span>
             </label>
-            <input type="hidden" value="${obj.base_file}" name="file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control" placeholder="Browse... to upload a video file">
-            <a href="#" name="file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control">${obj.base_file}</a>
-            <input type="file" name="new_file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control">
+            <input type="file" name="new_file_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control lesson-file-input">
+            <div class="lesson-file-preview mt-2"></div>
+            <div class="lesson-article-editor mt-2">
+              <label class="form-label" for="${article_editor_id}">Article content</label>
+              <textarea id="${article_editor_id}" name="content_html_${obj.name}_${lecture['lecture'].inputs_count}_curriculum_${obj.index}" class="form-control lesson-article-content"></textarea>
+            </div>
             <div class="container col-8 g-3">
         `;
-
-        // alert(obj.file.match("noimage"));
-        if (obj.file.match("no_image.jpg")) {
-          // ...| TRUE Block
-          mydiv.innerHTML += `
-            <img src="${obj.file}" class="col-8">
-          `;
-        } else {
-          // FALSE Block
-          mydiv.innerHTML += `
-            <video controls class="col-8">
-              <source type="video/mp4" src="${obj.file}"></source>
-            </video>
-          `;
-        }
-        // ---| ./IF/ELSE()
 
         mydiv.innerHTML += `
             </div>
@@ -1874,6 +1877,96 @@
         `;
 
         document.querySelector('.'+section).appendChild(mydiv);
+        var article_editor = mydiv.querySelector('.lesson-article-content');
+        article_editor.value = obj.content_html || '';
+        var type_select = mydiv.querySelector('select[name^="item_type_"]');
+        var file_input = mydiv.querySelector('.lesson-file-input');
+        var article_editor_panel = mydiv.querySelector('.lesson-article-editor');
+        var file_preview = mydiv.querySelector('.lesson-file-preview');
+        var type_accept = {
+          video: '.mp4,.webm,.ogv',
+          audio: '.mp3,.m4a,.wav,.ogg,.oga',
+          pdf: '.pdf',
+          reading: '.pdf',
+          quiz: '.pdf',
+          assignment: '.pdf'
+        };
+        var update_lesson_format = function() {
+          var selected_type = type_select.value;
+          file_input.accept = type_accept[selected_type] || '';
+          file_input.hidden = selected_type === 'article';
+          article_editor_panel.hidden = selected_type !== 'article';
+          file_preview.replaceChildren();
+          file_preview.hidden = selected_type === 'article' || !obj.file || !obj.base_file;
+          if (!file_preview.hidden) {
+            var extension = obj.base_file.split('.').pop().toLowerCase();
+            var player = null;
+            if (selected_type === 'video' && ['mp4', 'webm', 'ogv'].includes(extension)) {
+              player = document.createElement('video');
+              player.controls = true;
+              player.preload = 'metadata';
+              player.className = 'w-100 rounded border';
+              player.style.maxHeight = '360px';
+              var video_source = document.createElement('source');
+              video_source.src = obj.file;
+              video_source.type = {
+                mp4: 'video/mp4',
+                webm: 'video/webm',
+                ogv: 'video/ogg'
+              }[extension];
+              player.appendChild(video_source);
+            } else if (selected_type === 'audio' && ['mp3', 'm4a', 'wav', 'ogg', 'oga'].includes(extension)) {
+              player = document.createElement('audio');
+              player.controls = true;
+              player.preload = 'metadata';
+              player.className = 'w-100';
+              var audio_source = document.createElement('source');
+              audio_source.src = obj.file;
+              audio_source.type = {
+                mp3: 'audio/mpeg',
+                m4a: 'audio/mp4',
+                wav: 'audio/wav',
+                ogg: 'audio/ogg',
+                oga: 'audio/ogg'
+              }[extension];
+              player.appendChild(audio_source);
+            }
+            if (player) {
+              file_preview.appendChild(player);
+            }
+            var file_link = document.createElement('a');
+            file_link.href = obj.file;
+            file_link.textContent = selected_type === 'pdf' || extension === 'pdf'
+              ? 'Open current PDF'
+              : (player ? 'Open lesson file in a new tab' : 'Open current lesson file');
+            file_link.target = '_blank';
+            file_link.rel = 'noopener';
+            file_link.className = 'd-inline-block mt-2';
+            file_preview.appendChild(file_link);
+          }
+          if (selected_type === 'article' && window.tinymce && !window.tinymce.get(article_editor_id)) {
+            window.tinymce.init({
+              target: article_editor,
+              menubar: false,
+              height: 220,
+              plugins: 'lists link',
+              toolbar: 'undo redo | bold italic | bullist numlist | link',
+              setup: function(editor) {
+                editor.on('change keyup', function() {
+                  something_changed({target: article_editor});
+                });
+              }
+            });
+          }
+        };
+        type_select.addEventListener('change', function(e) {
+          update_lesson_format();
+          something_changed(e);
+        });
+        article_editor.addEventListener('input', function(e) {
+          something_changed(e);
+        });
+        update_lesson_format();
         lecture['lecture'].inputs_count++;
 
         lecture.prev_curriculum_id = lecture.curriculum_id;
@@ -1982,6 +2075,7 @@
               item_type:data[i].item_type || "video",
               duration_minutes:data[i].duration_minutes || "",
               is_preview:data[i].is_preview || 0,
+              content_html:data[i].content_html || "",
             });
             // ---| ./Lecture\. |---
           }

@@ -24,7 +24,7 @@
         <?php if(message()):?>
           <span class="alert alert-warning">
             <i class="bi bi-envelope-dash"></i>
-              <span class=""><?=message('',true)?></span>
+              <span class=""><?=esc(message('',true))?></span>
           </span>
         <?php endif;?>
       </div>

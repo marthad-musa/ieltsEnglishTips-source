@@ -1223,7 +1223,9 @@ class Admin extends Controller {
                 # ...| TRUE Block
                 foreach ($row_lectures as $vid_key => $vid_row) {
                   $row_lectures[$vid_key]->base_file = $vid_row->file;
-                  $row_lectures[$vid_key]->file = get_video($vid_row->file);
+                  $row_lectures[$vid_key]->file = !empty($vid_row->file)
+                    ? ROOT . '/admin/lesson_media/' . (int)$vid_row->id
+                    : '';
                 }
                 # ---| ./FOREACH(ROW Lectures)
 
@@ -1334,6 +1336,25 @@ class Admin extends Controller {
                   return;
                 }
 
+                $has_article = false;
+                foreach ($_POST as $field => $value) {
+                  if (preg_match('/^item_type_lecture_[0-9]+_curriculum_[0-9]+$/', $field)
+                    && $value === 'article') {
+                    $has_article = true;
+                    break;
+                  }
+                }
+                $article_schema_ready = $course_lecture->article_schema_ready();
+                if ($has_article && !$article_schema_ready) {
+                  $info['errors'] = [
+                    'curriculum' => 'Apply the lesson article migration before saving article lessons. No curriculum data was changed.',
+                  ];
+                  $info['data'] = "The lesson article database migration is required.";
+                  $info['data_type'] = "save";
+                  echo json_encode($info);
+                  return;
+                }
+
                 $meta_data = [];
                 $meta_data_unids = [];
                 $meta_data_descriptions = [];
@@ -1345,9 +1366,10 @@ class Admin extends Controller {
                 $lecture_data_types = [];
                 $lecture_data_durations = [];
                 $lecture_data_previews = [];
-                $lecture_data_files = [];
+                $lecture_data_content = [];
                 $lecture_data_new_files = [];
                 $lecture_data_index = [];
+                $uploaded_lesson_files = [];
 
                 foreach ($_POST as $key => $value) {
                   /**
@@ -1406,38 +1428,62 @@ class Admin extends Controller {
                     $lecture_data_previews[$matches[2]][$matches[1]] = $value;
                   }
 
-                  if (preg_match("/^file_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
-                    $item_index = $matches[1];
-                    $section_index = $matches[2];
-                    $lecture_data_files[$section_index][$item_index] = $value;
-                    $lecture_data_new_files[$section_index][$item_index] = "";
-
-                    foreach ($_FILES as $newKey => $file) {
-                      if (preg_match("/^new_file_lecture_{$item_index}_curriculum_{$section_index}$/", $newKey)) {
-                        $filename = "";
-                        $folder = "uploads/courses/";
-                        if (!file_exists($folder)) {
-                          # ...| TURE Block
-                          mkdir($folder,0777,true);
-                        }
-                        # ---| ./IF(Folder)
-                        
-                        if (!empty($file['name'])) {
-                          $filename = $folder . time() . $file['name'];
-                          if (!move_uploaded_file($file['tmp_name'], $filename)) {
-                            $info['errors'] = ['curriculum' => 'A lesson file could not be uploaded.'];
-                            $info['data'] = "Please, try uploading the lesson file again.";
-                            $info['data_type'] = "save";
-                            echo json_encode($info);
-                            die;
-                          }
-                        }
-                        $lecture_data_new_files[$section_index][$item_index] = $filename;
-                      }
-                    }
+                  if (preg_match("/^content_html_lecture_([0-9]+)_curriculum_([0-9]+)$/", $key, $matches)) {
+                    $lecture_data_content[$matches[2]][$matches[1]] = (string)$value;
                   }
+
                 }
                 # ---| ./FOREACH()
+
+                foreach ($lecture_data_types as $section_index => $section_types) {
+                  foreach ($section_types as $item_index => $item_type) {
+                    if ($item_type !== 'article') {
+                      continue;
+                    }
+                    $article_html = $lecture_data_content[$section_index][$item_index] ?? '';
+                    if (strlen($article_html) > 1000000) {
+                      $info['errors'] = ['curriculum' => 'Article content must be no more than 1 MB.'];
+                      $info['data'] = "Please shorten the lesson article and try again.";
+                      $info['data_type'] = "save";
+                      echo json_encode($info);
+                      return;
+                    }
+                    $sanitized_html = \Model\Cms_page_block::sanitizeRichText($article_html);
+                    if ($sanitized_html === null) {
+                      $info['errors'] = ['curriculum' => 'Article sanitization is unavailable. Enable PHP DOM support before saving article lessons.'];
+                      $info['data'] = "The lesson article could not be safely sanitized.";
+                      $info['data_type'] = "save";
+                      echo json_encode($info);
+                      return;
+                    }
+                    $lecture_data_content[$section_index][$item_index] = $sanitized_html;
+                  }
+                }
+
+                foreach ($_FILES as $new_key => $file) {
+                  if (!preg_match('/^new_file_lecture_([0-9]+)_curriculum_([0-9]+)$/', $new_key, $matches)
+                    || empty($file['name'])) {
+                    continue;
+                  }
+                  $item_index = $matches[1];
+                  $section_index = $matches[2];
+                  $item_type = $lecture_data_types[$section_index][$item_index] ?? 'video';
+                  $upload = $course_lecture->store_lesson_upload($file, $item_type);
+                  if ($upload['error'] !== null) {
+                    foreach ($uploaded_lesson_files as $uploaded_path) {
+                      if (is_file($uploaded_path)) {
+                        unlink($uploaded_path);
+                      }
+                    }
+                    $info['errors'] = ['curriculum' => $upload['error']];
+                    $info['data'] = "Please choose a valid lesson file and try again.";
+                    $info['data_type'] = "save";
+                    echo json_encode($info);
+                    return;
+                  }
+                  $lecture_data_new_files[$section_index][$item_index] = $upload['path'];
+                  $uploaded_lesson_files[] = $upload['path'];
+                }
 
                 /**
                  * ------------------------------------------------
@@ -1517,12 +1563,13 @@ class Admin extends Controller {
                          */
                         $old_lecture_records = $course_lecture->where(['unid'=>$myunid]);
                         $old_lecture_ids = [];
+                        $old_lecture_file_by_id = [];
                         if ($old_lecture_records) {
                           # ...| TRUE Block
                           $old_lecture_ids = array_column($old_lecture_records, 'id');
-                          $old_lecture_files = array_column($old_lecture_records, 'file');
 
                           foreach ($old_lecture_records as $record) {
+                            $old_lecture_file_by_id[$record->id] = $record->file;
                             $course_lecture->update($record->id,['disabled'=>1]);
                           }
                           # ---| ./FOREACH(Old_Records)
@@ -1546,26 +1593,24 @@ class Admin extends Controller {
                             : null;
                           $arr['is_preview'] = !empty($lecture_data_previews[$key2][$key3]) ? 1 : 0;
                           $arr['file'] = $lecture_data_new_files[$key2][$key3] ?? "";
+                          if ($article_schema_ready) {
+                            $arr['content_html'] = $lecture_data_content[$key2][$key3] ?? '';
+                          }
 
                           $delete_old_file = false;
                           $old_filename = "";
-                          if (empty($arr['file'])) {
-                            # ...| TRUE Block
-                            $arr['file'] = $lecture_data_files[$key2][$key3] ?? "";
-                          } else {
-                            # ...| FALSE Block | Remove Old Video |---
-                            $delete_old_file = true;
-                            $old_filename = $lecture_data_files[$key2][$key3] ?? "";
-                          }
-                          # ---| ./IF/ELSE(File)
-
-                          if ($arr['item_type'] !== 'video' || $delete_old_file) {
-                            $arr['duration_seconds'] = null;
-                          }
-
                           if (count($old_lecture_ids) > 0) {
                             # ...| TRUE Block | UPDATE |---
                             $my_old_lecture_ids = array_pop($old_lecture_ids);
+                            $old_filename = $old_lecture_file_by_id[$my_old_lecture_ids] ?? '';
+                            if (empty($arr['file'])) {
+                              $arr['file'] = $old_filename;
+                            } else {
+                              $delete_old_file = $arr['file'] !== $old_filename;
+                            }
+                            if ($arr['item_type'] !== 'video' || $delete_old_file) {
+                              $arr['duration_seconds'] = null;
+                            }
                             $course_lecture->update($my_old_lecture_ids, $arr);
 
                             /**
@@ -1573,13 +1618,20 @@ class Admin extends Controller {
                              * | Delete Old Video Files exists |
                              * ---------------------------------
                              */
-                            if ($delete_old_file && file_exists($old_filename)) {
-                              # ...| TRUE Block
-                              unlink($old_filename);
+                            $old_real_path = $old_filename !== '' ? realpath($old_filename) : false;
+                            $lesson_upload_root = realpath('uploads/courses/lessons');
+                            $legacy_upload_root = realpath('uploads/courses');
+                            $is_managed_upload = $old_real_path
+                              && (($lesson_upload_root && dirname($old_real_path) === $lesson_upload_root)
+                                || ($legacy_upload_root && dirname($old_real_path) === $legacy_upload_root));
+                            if ($delete_old_file && $is_managed_upload && is_file($old_real_path)) {
+                              unlink($old_real_path);
                             }
                             # ---| ./IF(Delete_Old_File)
                           } else {
                             # ...| FALSE Block | SAVE |---
+                            $arr['file'] = $lecture_data_new_files[$key2][$key3] ?? '';
+                            $arr['duration_seconds'] = null;
                             $course_lecture->insert($arr);
                           }
                           # ---| ./IF/ELSE(Old_IDs)
@@ -2083,18 +2135,172 @@ class Admin extends Controller {
   }
   # ---| ./Lessons()\. | ---
 
-  # -----| Course_Details() | -----
-  public function course_details($slug = null) {
-    if (!Auth::logged_in()) {
-      message('Please, log in!');
-      redirect('login');
+  public function lesson_media($lesson_id = null) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== 'HEAD') {
+      http_response_code(405);
+      header('Allow: GET, HEAD');
+      return;
     }
 
+    $lesson_model = new \Model\Course_lecture();
+    $lesson_rows = $lesson_model->query(
+      "SELECT `cl`.*, `c`.`id` AS `course_id`, `c`.`user_id` AS `course_owner_id`,
+              `c`.`approved`, `c`.`published`
+       FROM `courses_lectures` AS `cl`
+       INNER JOIN `courses_meta` AS `cm` ON `cm`.`unid` = `cl`.`unid`
+       INNER JOIN `courses` AS `c` ON `c`.`id` = `cm`.`course_id`
+       WHERE `cl`.`id` = :lesson_id
+         AND `cl`.`disabled` = 0
+         AND `cm`.`disabled` = 0
+         AND `cm`.`tab` = 'curriculum'
+       LIMIT 1",
+      ['lesson_id' => (int)$lesson_id]
+    );
+    if (empty($lesson_rows)) {
+      http_response_code(404);
+      return;
+    }
+
+    $lesson = $lesson_rows[0];
+    $public_preview = (int)$lesson->is_preview === 1
+      && (int)$lesson->approved === 1
+      && (int)$lesson->published === 1;
+    if (!$public_preview) {
+      if (!Auth::logged_in()) {
+        http_response_code(403);
+        return;
+      }
+
+      $user_id = Auth::getId();
+      $user = (new \Model\User())->first(['id' => $user_id]);
+      $is_owner = (int)$lesson->course_owner_id === (int)$user_id;
+      $is_admin = (int)($user->role_id ?? 0) === 3;
+      $is_enrolled = (new \Model\Enrollment())->first([
+        'user_id' => $user_id,
+        'course_id' => $lesson->course_id,
+        'disabled' => 0,
+      ]);
+      if (!$is_owner && !$is_admin && !$is_enrolled) {
+        http_response_code(403);
+        return;
+      }
+    }
+
+    $file_path = realpath((string)$lesson->file);
+    $lesson_upload_root = realpath('uploads/courses/lessons');
+    $legacy_upload_root = realpath('uploads/courses');
+    $is_lesson_upload = $file_path && $lesson_upload_root && dirname($file_path) === $lesson_upload_root;
+    $is_legacy_upload = $file_path && $legacy_upload_root && dirname($file_path) === $legacy_upload_root;
+    if (!$file_path || (!$is_lesson_upload && !$is_legacy_upload) || !is_readable($file_path)) {
+      http_response_code(404);
+      return;
+    }
+
+    $mime_by_extension = [
+      'mp4' => ['video/mp4'],
+      'webm' => ['video/webm'],
+      'ogv' => ['video/ogg'],
+      'mp3' => ['audio/mpeg'],
+      'm4a' => ['audio/mp4', 'audio/x-m4a'],
+      'wav' => ['audio/wav', 'audio/x-wav'],
+      'ogg' => ['audio/ogg', 'application/ogg'],
+      'oga' => ['audio/ogg', 'application/ogg'],
+      'pdf' => ['application/pdf'],
+    ];
+    $extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
+    if (!isset($mime_by_extension[$extension]) || !class_exists('\finfo')) {
+      http_response_code(415);
+      return;
+    }
+
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    $mime_type = $finfo->file($file_path);
+    if (!in_array($mime_type, $mime_by_extension[$extension], true)) {
+      http_response_code(415);
+      return;
+    }
+
+    $file_size = filesize($file_path);
+    if ($file_size === false) {
+      http_response_code(404);
+      return;
+    }
+
+    $start = 0;
+    $end = $file_size - 1;
+    $status = 200;
+    if (isset($_SERVER['HTTP_RANGE'])) {
+      if (!preg_match('/^bytes=(\d*)-(\d*)$/', trim($_SERVER['HTTP_RANGE']), $range)
+        || ($range[1] === '' && $range[2] === '')) {
+        http_response_code(416);
+        header('Content-Range: bytes */' . $file_size);
+        return;
+      }
+      if ($range[1] === '') {
+        $suffix_length = (int)$range[2];
+        $start = max(0, $file_size - $suffix_length);
+      } else {
+        $start = (int)$range[1];
+        $end = $range[2] !== '' ? min((int)$range[2], $end) : $end;
+      }
+      if ($start > $end || $start >= $file_size) {
+        http_response_code(416);
+        header('Content-Range: bytes */' . $file_size);
+        return;
+      }
+      $status = 206;
+    }
+
+    $handle = fopen($file_path, 'rb');
+    if (!$handle || fseek($handle, $start) !== 0) {
+      if (is_resource($handle)) {
+        fclose($handle);
+      }
+      error_log('Unable to open or seek a curriculum media file.');
+      http_response_code(404);
+      return;
+    }
+
+    http_response_code($status);
+    header('Content-Type: ' . $mime_type);
+    header('X-Content-Type-Options: nosniff');
+    header('Accept-Ranges: bytes');
+    header('Cache-Control: private, no-store');
+    header('Content-Disposition: inline; filename="' . basename($file_path) . '"');
+    header('Content-Length: ' . ($end - $start + 1));
+    if ($status === 206) {
+      header("Content-Range: bytes {$start}-{$end}/{$file_size}");
+    }
+    if ($_SERVER['REQUEST_METHOD'] === 'HEAD') {
+      fclose($handle);
+      return;
+    }
+
+    $remaining = $end - $start + 1;
+    while ($remaining > 0 && !feof($handle)) {
+      $chunk = fread($handle, min(8192, $remaining));
+      if ($chunk === false) {
+        error_log('Unable to read a curriculum media file.');
+        break;
+      }
+      if ($chunk === '') {
+        break;
+      }
+      echo $chunk;
+      $remaining -= strlen($chunk);
+    }
+    if ($remaining > 0) {
+      error_log('Curriculum media ended before the declared content length.');
+    }
+    fclose($handle);
+  }
+
+  # -----| Course_Details() | -----
+  public function course_details($slug = null) {
     $course = new \Model\Course();
     $course_meta = new \Model\Course_meta();
     $user = new \Model\User();
 
-    $data['uid'] = $user->first(['id'=>Auth::getId()]);
     $data['title'] = "Course Details";
     $data['course'] = $course->first([
       'slug' => $slug,
@@ -2107,6 +2313,12 @@ class Admin extends Controller {
       redirect('admin/lessons');
     }
 
+    if (!Auth::logged_in()) {
+      message('Please log in and enroll in this course to access its lessons.');
+      redirect('course_details/' . $data['course']->slug);
+    }
+
+    $data['uid'] = $user->first(['id'=>Auth::getId()]);
     $enrollment = new \Model\Enrollment();
     $user_id = Auth::getId();
     $is_course_owner = (int)$data['course']->user_id === (int)$user_id;

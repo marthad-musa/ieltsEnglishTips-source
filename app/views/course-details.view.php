@@ -15,6 +15,12 @@
   $course_tags = !empty($row->tags)
     ? array_filter(array_map('trim', explode(',', $row->tags)))
     : [];
+  $read_more_routes = [
+    'ielts-intensive-course' => 'ielts',
+    'headway-curriculum' => 'headway',
+    'computer-science' => 'computer',
+  ];
+  $read_more_route = $read_more_routes[$row->slug ?? ''] ?? null;
 ?>
 
 <!-- ------------- MAIN ------------- -->
@@ -31,6 +37,9 @@
         <h2 data-aos="fade-up" data-aos-delay="100"><?=esc($row->title)?></h2>
         <?php if (!empty($row->subtitle)): ?>
           <p data-aos="fade-up" data-aos-delay="200"><?=esc($row->subtitle)?></p>
+        <?php endif; ?>
+        <?php if ($read_more_route !== null): ?>
+          <a class="btn-get-started mt-3" data-aos="fade-up" data-aos-delay="300" href="<?=ROOT?>/<?=$read_more_route?>">Read more..</a>
         <?php endif; ?>
       </div>
     </section>
@@ -233,17 +242,30 @@
                           $item_type = $lecture->item_type ?? 'video';
                           $item_type_labels = [
                             'video' => 'Video lesson',
+                            'audio' => 'Audio lesson',
+                            'pdf' => 'PDF lesson',
+                            'article' => 'Article',
                             'reading' => 'Reading',
                             'quiz' => 'Quiz',
                             'assignment' => 'Assignment',
                           ];
                           $item_type_label = $item_type_labels[$item_type] ?? 'Course item';
                           $is_preview = (int)($lecture->is_preview ?? 0) === 1;
-                          $lesson_file = $is_preview && !empty($lecture->file) ? get_video($lecture->file) : '';
+                          $has_lesson_file = $is_preview
+                            && !empty($lecture->file)
+                            && is_file($lecture->file)
+                            && is_readable($lecture->file);
+                          $lesson_file = $has_lesson_file
+                            ? ROOT . '/admin/lesson_media/' . (int)$lecture->id
+                            : '';
+                          $article_html = '';
+                          if ($is_preview && $item_type === 'article' && !empty($lecture->content_html)) {
+                            $article_html = \Model\Cms_page_block::sanitizeRichText($lecture->content_html);
+                          }
                         ?>
                         <div class="lesson-item curriculum-item">
                           <div class="lesson-info">
-                            <i class="bi <?=$item_type === 'video' ? 'bi-play-circle' : 'bi-file-text'?>" aria-hidden="true"></i>
+                            <i class="bi <?=in_array($item_type, ['video', 'audio'], true) ? 'bi-play-circle' : 'bi-file-text'?>" aria-hidden="true"></i>
                             <div>
                               <strong><?=esc($lecture->title)?></strong>
                               <?php if ($is_preview && !empty($lecture->description)): ?>
@@ -261,11 +283,32 @@
                             <span class="badge bg-success">Preview</span>
                             <?php if ($item_type === 'video' && $lesson_file): ?>
                               <video class="w-100 mt-2" controls preload="none">
-                                <source src="<?=esc($lesson_file)?>" type="video/mp4">
+                                <source src="<?=esc($lesson_file)?>" type="<?=esc([
+                                  'mp4' => 'video/mp4',
+                                  'webm' => 'video/webm',
+                                  'ogv' => 'video/ogg',
+                                ][strtolower(pathinfo($lecture->file, PATHINFO_EXTENSION))] ?? 'video/mp4')?>">
                                 Your browser does not support video playback.
                               </video>
-                            <?php elseif (!empty($lecture->file)): ?>
-                              <a class="btn btn-sm btn-outline-primary mt-2" href="<?=esc(get_video($lecture->file))?>" target="_blank" rel="noopener">Open preview material</a>
+                            <?php elseif ($item_type === 'audio' && $lesson_file): ?>
+                              <audio class="w-100 mt-2" controls preload="none">
+                                <source src="<?=esc($lesson_file)?>" type="<?=esc([
+                                  'mp3' => 'audio/mpeg',
+                                  'm4a' => 'audio/mp4',
+                                  'wav' => 'audio/wav',
+                                  'ogg' => 'audio/ogg',
+                                  'oga' => 'audio/ogg',
+                                ][strtolower(pathinfo($lecture->file, PATHINFO_EXTENSION))] ?? 'audio/mpeg')?>">
+                                Your browser does not support audio playback.
+                              </audio>
+                            <?php elseif ($item_type === 'pdf' && $lesson_file): ?>
+                              <a class="btn btn-sm btn-outline-primary mt-2" href="<?=esc($lesson_file)?>" target="_blank" rel="noopener">View or download PDF</a>
+                            <?php elseif ($item_type === 'article' && $article_html !== null && $article_html !== ''): ?>
+                              <div class="lesson-article-content mt-2"><?=$article_html?></div>
+                            <?php elseif ($article_html === null && $item_type === 'article' && !empty($lecture->content_html)): ?>
+                              <div class="lesson-article-content mt-2"><?=nl2br(esc(strip_tags($lecture->content_html)))?></div>
+                            <?php elseif ($has_lesson_file): ?>
+                              <a class="btn btn-sm btn-outline-primary mt-2" href="<?=esc($lesson_file)?>" target="_blank" rel="noopener">Open preview material</a>
                             <?php endif; ?>
                           <?php else: ?>
                             <span class="text-muted"><i class="bi bi-lock" aria-hidden="true"></i> Enrolled learners</span>

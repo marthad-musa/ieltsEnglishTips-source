@@ -36,6 +36,7 @@ class Course_lecture extends Model {
     'item_type',
     'duration_minutes',
     'duration_seconds',
+    'content_html',
     'is_preview',
     'disabled',
   ];
@@ -61,6 +62,110 @@ class Course_lecture extends Model {
     return !empty($lecture_column)
       && !empty($course_column)
       && stripos($course_column[0]->Type, 'decimal') === 0;
+  }
+
+  public function article_schema_ready() {
+    $db = new \Database();
+    $column = $db->query("SHOW COLUMNS FROM `courses_lectures` LIKE 'content_html'");
+    return !empty($column);
+  }
+
+  public function store_lesson_upload($file, $item_type) {
+    $rules = [
+      'video' => [
+        'extensions' => ['mp4' => ['video/mp4'], 'webm' => ['video/webm'], 'ogv' => ['video/ogg']],
+        'max_size' => 524288000,
+      ],
+      'audio' => [
+        'extensions' => [
+          'mp3' => ['audio/mpeg'], 'm4a' => ['audio/mp4', 'audio/x-m4a'],
+          'wav' => ['audio/wav', 'audio/x-wav'], 'ogg' => ['audio/ogg', 'application/ogg'],
+          'oga' => ['audio/ogg', 'application/ogg'],
+        ],
+        'max_size' => 104857600,
+      ],
+      'pdf' => [
+        'extensions' => ['pdf' => ['application/pdf']],
+        'max_size' => 26214400,
+      ],
+      'reading' => [
+        'extensions' => ['pdf' => ['application/pdf']],
+        'max_size' => 26214400,
+      ],
+      'assignment' => [
+        'extensions' => ['pdf' => ['application/pdf']],
+        'max_size' => 26214400,
+      ],
+      'quiz' => [
+        'extensions' => ['pdf' => ['application/pdf']],
+        'max_size' => 26214400,
+      ],
+    ];
+
+    if (!isset($rules[$item_type])
+      || !is_array($file)
+      || !isset($file['error'])
+      || !is_scalar($file['error'])
+      || !isset($file['tmp_name'])
+      || !is_string($file['tmp_name'])
+      || !isset($file['name'])
+      || !is_string($file['name'])
+      || !isset($file['size'])
+      || !is_numeric($file['size'])) {
+      return ['path' => null, 'error' => 'This lesson type does not accept an uploaded file.'];
+    }
+    if ((int)$file['error'] !== UPLOAD_ERR_OK) {
+      return ['path' => null, 'error' => 'The lesson file upload failed. Check the file size and try again.'];
+    }
+    if ($file['tmp_name'] === '' || !is_uploaded_file($file['tmp_name'])) {
+      return ['path' => null, 'error' => 'The uploaded lesson file is invalid.'];
+    }
+
+    $original_name = (string)($file['name'] ?? '');
+    $extension = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
+    $size = (int)($file['size'] ?? 0);
+    if (!isset($rules[$item_type]['extensions'][$extension])
+      || $size < 1
+      || $size > $rules[$item_type]['max_size']
+      || filesize($file['tmp_name']) !== $size) {
+      return ['path' => null, 'error' => 'The lesson file format or size is not allowed for this lesson type.'];
+    }
+
+    if (!class_exists('\finfo')) {
+      return ['path' => null, 'error' => 'File MIME validation is unavailable on this server.'];
+    }
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($file['tmp_name']);
+    if (!in_array($mime, $rules[$item_type]['extensions'][$extension], true)) {
+      return ['path' => null, 'error' => 'The uploaded file content does not match its file type.'];
+    }
+    if ($extension === 'pdf') {
+      $handle = fopen($file['tmp_name'], 'rb');
+      $signature = $handle ? fread($handle, 5) : false;
+      if ($handle) {
+        fclose($handle);
+      }
+      if ($signature !== '%PDF-') {
+        return ['path' => null, 'error' => 'The uploaded file is not a valid PDF.'];
+      }
+    }
+
+    $folder = 'uploads/courses/lessons/';
+    if (!is_dir($folder) && !mkdir($folder, 0755, true) && !is_dir($folder)) {
+      return ['path' => null, 'error' => 'The lesson upload folder could not be created.'];
+    }
+    try {
+      $filename = bin2hex(random_bytes(16)) . '.' . $extension;
+    } catch (\Throwable $error) {
+      error_log('Could not generate a safe curriculum upload filename: ' . $error->getMessage());
+      return ['path' => null, 'error' => 'A safe filename could not be generated for the lesson file.'];
+    }
+
+    $destination = $folder . $filename;
+    if (!move_uploaded_file($file['tmp_name'], $destination)) {
+      return ['path' => null, 'error' => 'The lesson file could not be stored.'];
+    }
+    return ['path' => $destination, 'error' => null];
   }
 
   public function measure_video_duration_seconds($file) {

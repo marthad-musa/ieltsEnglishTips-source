@@ -139,7 +139,7 @@ class Course_details extends Controller {
     }
 
     message($row->welcome_message ?: 'You have been enrolled successfully.');
-    redirect('course_details/'.$row->slug);
+    redirect('admin/course-details/'.$row->slug);
   }
   # ---| ./Enroll()\. | ---
 

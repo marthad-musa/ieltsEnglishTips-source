@@ -198,7 +198,7 @@ class Course extends Model {
     }
 
     if ($tab_name === "curriculum") {
-      $allowed_item_types = ['video', 'reading', 'quiz', 'assignment'];
+      $allowed_item_types = ['video', 'audio', 'pdf', 'article', 'reading', 'quiz', 'assignment'];
       foreach ($data as $field => $value) {
         if (preg_match('/^item_type_lecture_[0-9]+_curriculum_[0-9]+$/', $field)
           && !in_array($value, $allowed_item_types, true)) {
