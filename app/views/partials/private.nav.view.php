@@ -3,7 +3,9 @@
 
   <div class="d-flex align-items-center justify-content-between">
     <a href="<?=ROOT?>" class="logo d-flex align-items-center">
-      <span class="d-none d-lg-block"><span style="color: crimson;">IELTS</span> <span style="color: #5578ff;">English</span> <span style="color: orangered;">Tips</span></span>
+      <img src="<?=ROOT?>/assets/img/IET.png" alt="Logo" class="img-fluid">
+      <img src="<?=ROOT?>/assets/img/ieltsEnglishTips.png" alt="Logo" class="img-fluid">
+      <!-- <span class="d-none d-lg-block"><span style="color: crimson;">IELTS</span> <span style="color: #5578ff;">English</span> <span style="color: orangered;">Tips</span></span> -->
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
   </div>

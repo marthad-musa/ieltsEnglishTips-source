@@ -10,9 +10,11 @@
 
     <a href="<?=ROOT?>" class="logo d-flex align-items-center me-auto">
       <h1 class="sitename">
-        <span style="letter-spacing: 6px; color: crimson;">IELTS</span> <span style="letter-spacing: 6px;">English</span> <span style="letter-spacing: 6px; color: orangered;">Tips</span>
+        <img src="<?=ROOT?>/assets/img/IET.png" alt="Logo" class="img-fluid">
+        <img src="<?=ROOT?>/assets/img/ieltsEnglishTips.png" alt="Logo" class="img-fluid">
+        <!-- <span style="letter-spacing: 6px; color: crimson;">IELTS</span> <span style="letter-spacing: 6px;">English</span> <span style="letter-spacing: 6px; color: orangered;">Tips</span>
         <br>
-        <small style="font-size: 13px; letter-spacing: 1px;">Learn English in a simple&comma; calm <span style="color: crimson;">&AMP;</span> friendly way</small>
+        <small style="font-size: 13px; letter-spacing: 1px;">Learn English in a simple&comma; calm <span style="color: crimson;">&AMP;</span> friendly way</small> -->
       </h1>
     </a>
 
@@ -24,6 +26,7 @@
         <li><a href="<?=ROOT?>/faculty" class="<?=active_nav('faculty')?? ''?>">Faculty</a></li>
         <!-- <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li> -->
         <li><a href="<?=ROOT?>/contact" class="<?=active_nav('contact')?? ''?>">Contact</a></li>
+        <li><a href="<?=ROOT?>/faq" class="fw-bold <?=active_nav('faq')?? ''?>">FAQ</a></li>
         <?php if(!Auth::logged_in()):?>
           <li><a href="<?=ROOT?>/login">Login</a></li>
         <?php else:?>
