@@ -15,6 +15,7 @@ class Exam_enroll extends Model {
     'id',
     'user_id',
     'exam_id',
+    'attendance_status',
   ];
 
   public function validate($data) {
@@ -65,4 +66,3 @@ class Exam_enroll extends Model {
   # ---| ./Check If Can Take Exam\. | ---
 
 }
-

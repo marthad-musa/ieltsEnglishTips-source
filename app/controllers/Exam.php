@@ -73,6 +73,50 @@ class Exam extends Controller {
   }
   # ---| ./Index()\. | ---
 
+  public function take($exam_id = null) {
+    if (!\Model\Auth::logged_in()) {
+      message('Please log in to access the exam.');
+      redirect('login');
+      return;
+    }
+
+    $exam_id = (int)$exam_id;
+    if ($exam_id <= 0) {
+      message('Exam not found.');
+      redirect('admin/exams');
+      return;
+    }
+
+    $exam = new \Model\Exam();
+    $question = new \Model\Question();
+    $enroll = new \Model\Exam_enroll();
+    $user_id = \Model\Auth::getId();
+
+    $exam_row = $exam->first(['id' => $exam_id]);
+    if (!$exam_row) {
+      message('Exam not found.');
+      redirect('admin/exams');
+      return;
+    }
+
+    if (!$enroll->exists($user_id, $exam_id)) {
+      message('You must be enrolled in this exam before you can take it.');
+      redirect('admin/exams');
+      return;
+    }
+
+    $questions = $question->where(['exam_id' => $exam_id]);
+    $data = [
+      'title' => 'Student Exam',
+      'exam' => $exam_row,
+      'questions' => is_array($questions) ? $questions : [],
+      'question_model' => $question,
+      'uid' => (new \Model\User())->first(['id' => $user_id]),
+    ];
+
+    $this->view('exam_take', $data);
+  }
+
   # -----| Constructor |-----
   // function __construct() {
   //   echo "Exam Page";

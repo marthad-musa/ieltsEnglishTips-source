@@ -34,41 +34,44 @@
                     <h5 class="card-title"><i class="bi bi-card-checklist fs-5"></i>&nbsp;<?=ucfirst($data['action'])?>&nbsp;<?=ucfirst($data['title'])?></h5>
 
                     <!-- Form with No Lables -->
-                    <form class="row g-3 py-2" method="post">
+                    <form class="row g-3 py-2" method="post" enctype="multipart/form-data">
 
                       <div class="col-md-6">
-                        <label for="question_title" class="ms-2">Qustion Title&colon;</label><br>
+                        <label for="question_type" class="ms-2">Question Type&colon;</label>
+                        <select name="question_type" id="question_type" class="form-select" onchange="toggleQuestionFields(this.value)">
+                          <option value="multiple_choice" <?=($_POST['question_type'] ?? 'multiple_choice') == 'multiple_choice' ? 'selected' : ''?>>Multiple Choice (4 options)</option>
+                          <option value="true_false" <?=($_POST['question_type'] ?? '') == 'true_false' ? 'selected' : ''?>>True / False / Not given</option>
+                          <option value="yes_no" <?=($_POST['question_type'] ?? '') == 'yes_no' ? 'selected' : ''?>>Yes / No / Not given</option>
+                          <option value="audio_completion" <?=($_POST['question_type'] ?? '') == 'audio_completion' ? 'selected' : ''?>>Uploaded Audio + Sentence Completion</option>
+                          <option value="map_picture" <?=($_POST['question_type'] ?? '') == 'map_picture' ? 'selected' : ''?>>Map / Picture</option>
+                          <option value="diagram" <?=($_POST['question_type'] ?? '') == 'diagram' ? 'selected' : ''?>>Diagram</option>
+                          <option value="short_answer" <?=($_POST['question_type'] ?? '') == 'short_answer' ? 'selected' : ''?>>Short Answer</option>
+                          <option value="matching" <?=($_POST['question_type'] ?? '') == 'matching' ? 'selected' : ''?>>Matching / Headings / Info / Sentence ending</option>
+                          <option value="summary_completion" <?=($_POST['question_type'] ?? '') == 'summary_completion' ? 'selected' : ''?>>Summary Completion</option>
+                          <option value="writing_prompt" <?=($_POST['question_type'] ?? '') == 'writing_prompt' ? 'selected' : ''?>>Writing Task / Prompt</option>
+                          <option value="speaking_prompt" <?=($_POST['question_type'] ?? '') == 'speaking_prompt' ? 'selected' : ''?>>Speaking Task / Prompt</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="question_title" class="ms-2">Question Title&colon;</label><br>
                         <input type="text" name="question_title" id="question_title" value="<?=htmlspecialchars($_POST['question_title'] ?? '')?>" class="form-control <?=!empty($errors['question_title']) ? 'border-danger' : '';?>" placeholder="Question Title" autofocus>
-                        <!-- ---- EXAM Title Error ---- -->
                         <?php if(!empty($errors['question_title'])):?>
                           <small class="text-danger"><?=$errors['question_title']?>.</small>
                         <?php endif;?>
-                        <!-- -| ./EXAM Title Error\. |- -->
                       </div>
 
                       <div class="col-md-6">
                         <label for="exam_id" class="ms-2">Exam&colon;</label><br>
                         <input type="text" id="exam_id" class="form-control" value="<?=esc($target_exam->exam_title ?? 'Exam not found')?>" disabled>
-                        <!-- ---- Exam_ID Error ---- -->
                         <?php if(!empty($errors['exam_id'])):?>
                           <small class="text-danger"><?=$errors['exam_id']?>.</small>
                         <?php endif;?>
-                        <!-- -| ./Exam_ID Error\. |- -->
                       </div>
 
-                      <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
-                        <div class="col-md-6">
-                          <label for="option_number_<?=$option_number?>" class="ms-2">Option <?=$option_number?>&colon;</label>
-                          <input type="text" name="option_number_<?=$option_number?>" id="option_number_<?=$option_number?>" class="form-control <?=!empty($errors['option_number_'.$option_number]) ? 'border-danger' : '';?>" value="<?=htmlspecialchars($_POST['option_number_'.$option_number] ?? '')?>" required>
-                          <?php if (!empty($errors['option_number_'.$option_number])): ?>
-                            <small class="text-danger"><?=$errors['option_number_'.$option_number]?></small>
-                          <?php endif; ?>
-                        </div>
-                      <?php endfor; ?>
-
-                      <div class="col-md-12">
+                      <div id="answer-option-block" class="col-md-6">
                         <label for="answer_option" class="ms-2">Correct Answer&colon;</label>
-                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>" required>
+                        <select name="answer_option" id="answer_option" class="form-select <?=!empty($errors['answer_option']) ? 'border-danger' : '';?>>">
                           <option value="">Select the correct option...</option>
                           <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
                             <option value="<?=$option_number?>" <?=($_POST['answer_option'] ?? '') == (string)$option_number ? 'selected' : ''?>>Option <?=$option_number?></option>
@@ -77,6 +80,82 @@
                         <?php if (!empty($errors['answer_option'])): ?>
                           <small class="text-danger"><?=$errors['answer_option']?></small>
                         <?php endif; ?>
+                      </div>
+
+                      <div id="answer-text-block" class="col-md-12">
+                        <label for="answer_text" class="ms-2">Expected Answer / Marking Key&colon;</label>
+                        <textarea name="answer_text" id="answer_text" rows="4" class="form-control <?=!empty($errors['answer_text']) ? 'border-danger' : '';?>" placeholder="Add the expected answer, model answer, or key points here"><?=htmlspecialchars($_POST['answer_text'] ?? '')?></textarea>
+                        <?php if (!empty($errors['answer_text'])): ?>
+                          <small class="text-danger"><?=$errors['answer_text']?></small>
+                        <?php endif; ?>
+                      </div>
+
+                      <div id="audio-file-block" class="col-md-12">
+                        <label for="audio_file" class="ms-2">Audio upload (Listening) &colon;</label>
+                        <input type="file" name="audio_file" id="audio_file" class="form-control" accept=".mp3,.wav,.m4a,.ogg,.aac,audio/mpeg,audio/wav,audio/mp4,audio/ogg">
+                        <small class="text-muted">Allowed: MP3, WAV, M4A, OGG, AAC. Max 15MB.</small>
+                        <textarea name="audio_caption" id="audio_caption" rows="2" class="form-control mt-2" placeholder="Optional audio caption or transcript title"><?=htmlspecialchars($_POST['audio_caption'] ?? '')?></textarea>
+                      </div>
+
+                      <div id="image-file-block" class="col-md-12">
+                        <label for="image_file" class="ms-2">Map / picture upload &colon;</label>
+                        <input type="file" name="image_file" id="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                        <small class="text-muted">Allowed: JPG, PNG, WEBP. Max 8MB.</small>
+                        <textarea name="image_caption" id="image_caption" rows="2" class="form-control mt-2" placeholder="Optional image caption or map label"><?=htmlspecialchars($_POST['image_caption'] ?? '')?></textarea>
+                      </div>
+
+                      <div id="diagram-file-block" class="col-md-12">
+                        <label for="diagram_file" class="ms-2">Diagram upload &colon;</label>
+                        <input type="file" name="diagram_file" id="diagram_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg,image/jpeg,image/png,image/webp,image/svg+xml">
+                        <small class="text-muted">Allowed: JPG, PNG, WEBP, SVG. Max 8MB.</small>
+                        <textarea name="diagram_caption" id="diagram_caption" rows="2" class="form-control mt-2" placeholder="Optional diagram caption"><?=htmlspecialchars($_POST['diagram_caption'] ?? '')?></textarea>
+                      </div>
+
+                      <div id="task-prompt-block" class="col-md-12">
+                        <label for="task_prompt" class="ms-2">Task prompt / question brief&colon;</label>
+                        <textarea name="task_prompt" id="task_prompt" rows="4" class="form-control <?=!empty($errors['task_prompt']) ? 'border-danger' : '';?>" placeholder="Describe the task or prompt, such as a writing question, speaking cue card, or academic diagram question."><?=htmlspecialchars($_POST['task_prompt'] ?? '')?></textarea>
+                        <?php if (!empty($errors['task_prompt'])): ?>
+                          <small class="text-danger"><?=$errors['task_prompt']?></small>
+                        <?php endif; ?>
+                      </div>
+
+                      <div id="rubric-text-block" class="col-md-12">
+                        <label for="rubric_text" class="ms-2">Rubric / marking guide&colon;</label>
+                        <textarea name="rubric_text" id="rubric_text" rows="4" class="form-control <?=!empty($errors['rubric_text']) ? 'border-danger' : '';?>" placeholder="Explain assessment criteria: coherence, lexical resource, grammatical range, task achievement, etc."><?=htmlspecialchars($_POST['rubric_text'] ?? '')?></textarea>
+                        <?php if (!empty($errors['rubric_text'])): ?>
+                          <small class="text-danger"><?=$errors['rubric_text']?></small>
+                        <?php endif; ?>
+                        <div class="row mt-2">
+                          <div class="col-md-6">
+                            <label for="rubric_type" class="ms-2">Rubric type&colon;</label>
+                            <select name="rubric_type" id="rubric_type" class="form-select">
+                              <option value="writing" <?=($_POST['rubric_type'] ?? '') == 'writing' ? 'selected' : ''?>>Writing</option>
+                              <option value="speaking" <?=($_POST['rubric_type'] ?? '') == 'speaking' ? 'selected' : ''?>>Speaking</option>
+                            </select>
+                          </div>
+                          <div class="col-md-6">
+                            <label for="band_score" class="ms-2">Band score&colon;</label>
+                            <input type="number" name="band_score" id="band_score" min="0" max="9" value="<?=htmlspecialchars($_POST['band_score'] ?? '0')?>" class="form-control">
+                          </div>
+                        </div>
+                        <textarea name="rubric_notes" id="rubric_notes" rows="2" class="form-control mt-2" placeholder="Optional rubric notes or examiner guidance"><?=htmlspecialchars($_POST['rubric_notes'] ?? '')?></textarea>
+                      </div>
+
+                      <div id="options-block" class="col-md-12 row g-3">
+                        <?php for ($option_number = 1; $option_number <= 4; $option_number++): ?>
+                          <div class="col-md-6">
+                            <label for="option_number_<?=$option_number?>" class="ms-2">Option <?=$option_number?>&colon;</label>
+                            <input type="text" name="option_number_<?=$option_number?>" id="option_number_<?=$option_number?>" class="form-control <?=!empty($errors['option_number_'.$option_number]) ? 'border-danger' : '';?>" value="<?=htmlspecialchars($_POST['option_number_'.$option_number] ?? '')?>" >
+                            <?php if (!empty($errors['option_number_'.$option_number])): ?>
+                              <small class="text-danger"><?=$errors['option_number_'.$option_number]?></small>
+                            <?php endif; ?>
+                          </div>
+                        <?php endfor; ?>
+                      </div>
+
+                      <div class="col-md-12">
+                        <label for="extra_notes" class="ms-2">Additional guidance or rubric notes&colon;</label>
+                        <textarea name="extra_notes" id="extra_notes" rows="3" class="form-control" placeholder="Optional instructions for markers or teachers"><?=htmlspecialchars($_POST['extra_notes'] ?? '')?></textarea>
                       </div>
 
                       <!-- ---- Hidden Inputs ---- -->
@@ -90,6 +169,82 @@
                         </a>
                       </div>
                     </form>
+
+                    <script>
+                      function toggleQuestionFields(type) {
+                        const optionsBlock = document.getElementById('options-block');
+                        const answerOptionBlock = document.getElementById('answer-option-block');
+                        const answerTextBlock = document.getElementById('answer-text-block');
+                        const optionInputs = document.querySelectorAll('[id^="option_number_"]');
+                        const answerSelect = document.getElementById('answer_option');
+
+                        const multipleChoiceTypes = ['multiple_choice', 'true_false', 'yes_no'];
+                        const answerKeyTypes = ['short_answer', 'sentence_completion', 'summary_completion', 'matching', 'map_picture', 'diagram', 'audio_completion', 'writing_prompt', 'speaking_prompt'];
+                        const writingPromptTypes = ['writing_prompt', 'speaking_prompt'];
+                        const assetTypes = ['audio_completion', 'map_picture', 'diagram'];
+
+                        const isMultipleChoice = multipleChoiceTypes.includes(type);
+                        answerSelect.required = isMultipleChoice;
+                        answerSelect.disabled = !isMultipleChoice;
+
+                        optionInputs.forEach((input) => {
+                          input.required = isMultipleChoice;
+                          input.disabled = !isMultipleChoice;
+                        });
+
+                        if (isMultipleChoice) {
+                          optionsBlock.style.display = 'flex';
+                          answerOptionBlock.style.display = 'block';
+                          if (type === 'true_false' || type === 'yes_no') {
+                            answerSelect.innerHTML = '<option value="">Select the correct option...</option>' +
+                              '<option value="1">Option 1</option><option value="2">Option 2</option><option value="3">Option 3</option>';
+                          } else {
+                            answerSelect.innerHTML = '<option value="">Select the correct option...</option>' +
+                              '<option value="1">Option 1</option><option value="2">Option 2</option><option value="3">Option 3</option><option value="4">Option 4</option>';
+                          }
+                          optionInputs.forEach((input, index) => {
+                            input.closest('.col-md-6').style.display = index < 4 ? 'block' : 'none';
+                          });
+                        } else {
+                          optionsBlock.style.display = 'none';
+                          answerOptionBlock.style.display = 'none';
+                          optionInputs.forEach((input) => {
+                            input.value = '';
+                            input.closest('.col-md-6').style.display = 'none';
+                          });
+                          answerSelect.value = '';
+                        }
+
+                        if (answerKeyTypes.includes(type)) {
+                          answerTextBlock.style.display = 'block';
+                        } else {
+                          answerTextBlock.style.display = 'none';
+                        }
+
+                        if (writingPromptTypes.includes(type)) {
+                          document.getElementById('task-prompt-block').style.display = 'block';
+                          document.getElementById('rubric-text-block').style.display = 'block';
+                        } else {
+                          document.getElementById('task-prompt-block').style.display = 'none';
+                          document.getElementById('rubric-text-block').style.display = 'none';
+                        }
+
+                        if (assetTypes.includes(type)) {
+                          document.getElementById('audio-file-block').style.display = type === 'audio_completion' ? 'block' : 'none';
+                          document.getElementById('image-file-block').style.display = type === 'map_picture' ? 'block' : 'none';
+                          document.getElementById('diagram-file-block').style.display = type === 'diagram' ? 'block' : 'none';
+                        } else {
+                          document.getElementById('audio-file-block').style.display = 'none';
+                          document.getElementById('image-file-block').style.display = 'none';
+                          document.getElementById('diagram-file-block').style.display = 'none';
+                        }
+                      }
+
+                      document.addEventListener('DOMContentLoaded', function() {
+                        const initialType = document.getElementById('question_type').value;
+                        toggleQuestionFields(initialType);
+                      });
+                    </script>
                     <!-- End Form with No Lables -->
                   </div>
                   <!-- -| ./Card-Body\. |- -->

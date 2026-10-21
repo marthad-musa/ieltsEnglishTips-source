@@ -11,7 +11,7 @@
     <a href="<?=ROOT?>" class="logo d-flex align-items-center me-auto">
       <h1 class="sitename">
         <img src="<?=ROOT?>/assets/img/IET.png" alt="Logo" class="img-fluid">
-        <img src="<?=ROOT?>/assets/img/ieltsEnglishTips.png" alt="Logo" class="img-fluid">
+        <img src="<?=ROOT?>/assets/img/ieltsenglishtips.png" alt="Logo" class="img-fluid">
         <!-- <span style="letter-spacing: 6px; color: crimson;">IELTS</span> <span style="letter-spacing: 6px;">English</span> <span style="letter-spacing: 6px; color: orangered;">Tips</span>
         <br>
         <small style="font-size: 13px; letter-spacing: 1px;">Learn English in a simple&comma; calm <span style="color: crimson;">&AMP;</span> friendly way</small> -->

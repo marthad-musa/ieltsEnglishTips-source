@@ -348,7 +348,65 @@
             </div>
           <?php endif; ?>
 
+          <?php if ((int)($uid->role_id ?? 0) === 1): ?>
+            <div class="card mb-4">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-check"></i> Published Exams</h5>
+              </div>
+              <div class="card-body">
+                <?php if (!empty($data['published_exams'])): ?>
+                  <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Exam</th>
+                          <th>Date &amp; Time</th>
+                          <th>Duration</th>
+                          <th>Enrollment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php foreach ($data['published_exams'] as $published_exam): ?>
+                          <?php
+                            $published_exam_id = (int)$published_exam->id;
+                            $request_status = $data['student_exam_requests'][$published_exam_id] ?? '';
+                            $is_enrolled = !empty($data['student_enrolled_exam_ids'][$published_exam_id]);
+                          ?>
+                          <tr>
+                            <td><?= htmlspecialchars($published_exam->exam_title ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($published_exam->exam_datetime ?? 'Not scheduled', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($published_exam->exam_duration ?? '', ENT_QUOTES, 'UTF-8') ?><?= !empty($published_exam->exam_duration) ? ' min' : '' ?></td>
+                            <td>
+                              <?php if ($is_enrolled): ?>
+                                <span class="badge bg-success me-2">Enrolled</span>
+                                <a class="btn btn-sm btn-outline-primary" href="<?=ROOT?>/exam/take/<?=$published_exam_id?>">Take exam</a>
+                              <?php elseif ($request_status === 'Pending'): ?>
+                                <span class="badge bg-warning text-dark">Request pending</span>
+                              <?php elseif ($request_status === 'Approved'): ?>
+                                <span class="badge bg-info text-dark">Request approved</span>
+                              <?php else: ?>
+                                <?php if ($request_status === 'Rejected'): ?>
+                                  <span class="badge bg-secondary me-2">Previously declined</span>
+                                <?php endif; ?>
+                                <button type="button" class="btn btn-sm btn-primary request-enrollment" data-exam-id="<?=$published_exam_id?>">
+                                  Request enrollment
+                                </button>
+                              <?php endif; ?>
+                            </td>
+                          </tr>
+                        <?php endforeach; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                <?php else: ?>
+                  <div class="alert alert-info mb-0">There are no published exams available right now.</div>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
           <!-- Exam Management Card -->
+          <?php if ((int)($uid->role_id ?? 0) !== 1): ?>
           <div class="card">
             <div class="card-header">
               <h5 class="mb-0">
@@ -372,6 +430,7 @@
               <?php endif; ?>
             </div>
           </div>
+          <?php endif; ?>
         <?php endif; ?>
 
       </div>
@@ -381,6 +440,28 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.request-enrollment').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const examId = this.dataset.examId;
+      this.disabled = true;
+      safeFetch('<?=ROOT?>/admin/exams', {
+        exam_id: examId,
+        ajax: 'request_exam_enrollment'
+      }).then(data => {
+        alert(data.message || (data.success ? 'Request submitted.' : 'Could not submit request.'));
+        if (data.success) {
+          location.reload();
+        } else {
+          this.disabled = false;
+        }
+      }).catch(err => {
+        console.error('Enrollment request failed:', err);
+        alert('The enrollment request could not be submitted. Please try again.');
+        this.disabled = false;
+      });
+    });
+  });
+
   // Select exam for viewing requests
   const selectExamEl = document.getElementById('select-exam');
   if (selectExamEl) {

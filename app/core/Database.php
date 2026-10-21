@@ -636,9 +636,12 @@ class Database {
       CREATE TABLE IF NOT EXISTS `question` (
         `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
         `exam_id` int(11) NOT NULL,
+        `question_type` varchar(50) NOT NULL DEFAULT 'multiple_choice',
         `question_title` text NOT NULL,
+        `question_data` mediumtext DEFAULT NULL,
         `answer_option` enum('1','2','3','4') NOT NULL,
         KEY `exam_id` (`exam_id`),
+        KEY `question_type` (`question_type`),
         KEY `question_title` (`question_title`(1024)),
         KEY `answer_option` (`answer_option`)
       ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -661,6 +664,52 @@ class Database {
         KEY `option_number` (`option_number`),
         KEY `option_title` (`option_title`)
       ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * ---------------------------
+     * | QUESTION ASSETS Table |
+     * ---------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `question_assets` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `question_id` int(11) NOT NULL,
+        `asset_type` varchar(30) NOT NULL,
+        `file_name` varchar(255) NOT NULL,
+        `file_path` varchar(1024) NOT NULL,
+        `mime_type` varchar(120) DEFAULT NULL,
+        `caption` varchar(255) DEFAULT NULL,
+        `is_primary` tinyint(1) NOT NULL DEFAULT 0,
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        KEY `question_id` (`question_id`),
+        KEY `asset_type` (`asset_type`),
+        KEY `is_primary` (`is_primary`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+    ";
+
+    $this->query($query);
+
+    /**
+     * ---------------------------
+     * | QUESTION RUBRICS Table |
+     * ---------------------------
+     */
+    $query = "
+      CREATE TABLE IF NOT EXISTS `question_rubrics` (
+        `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        `question_id` int(11) NOT NULL,
+        `rubric_type` varchar(30) NOT NULL DEFAULT 'writing',
+        `band_score` int(11) NOT NULL DEFAULT 0,
+        `criteria` text NOT NULL,
+        `notes` text DEFAULT NULL,
+        `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+        KEY `question_id` (`question_id`),
+        KEY `rubric_type` (`rubric_type`),
+        KEY `band_score` (`band_score`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
     ";
 
     $this->query($query);

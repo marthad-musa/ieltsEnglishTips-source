@@ -41,16 +41,224 @@ class Question extends Model {
   protected $allowedColumns = [
     'id',
     'exam_id',
+    'question_type',
     'question_title',
+    'question_data',
     'answer_option',
   ];
   # ---| ./Properties\. |---
   
   # -----| Validate() |-----
+  public function normalize_question_type($type) {
+    $allowed = [
+      'multiple_choice',
+      'true_false',
+      'yes_no',
+      'short_answer',
+      'sentence_completion',
+      'summary_completion',
+      'matching',
+      'map_picture',
+      'diagram',
+      'audio_completion',
+      'writing_prompt',
+      'speaking_prompt',
+    ];
+
+    $normalized = strtolower((string)($type ?? 'multiple_choice'));
+    return in_array($normalized, $allowed, true) ? $normalized : 'multiple_choice';
+  }
+
+  public function to_question_data(array $data): array {
+    $questionType = $this->normalize_question_type($data['question_type'] ?? 'multiple_choice');
+    $payload = [
+      'question_type' => $questionType,
+      'answer_text' => trim((string)($data['answer_text'] ?? '')),
+      'task_prompt' => trim((string)($data['task_prompt'] ?? '')),
+      'rubric_text' => trim((string)($data['rubric_text'] ?? '')),
+      'word_count_min' => trim((string)($data['word_count_min'] ?? '')),
+      'word_count_max' => trim((string)($data['word_count_max'] ?? '')),
+      'prompt_type' => trim((string)($data['prompt_type'] ?? '')),
+      'extra_notes' => trim((string)($data['extra_notes'] ?? '')),
+      'audio_caption' => trim((string)($data['audio_caption'] ?? '')),
+      'image_caption' => trim((string)($data['image_caption'] ?? '')),
+      'diagram_caption' => trim((string)($data['diagram_caption'] ?? '')),
+      'band_score' => trim((string)($data['band_score'] ?? '')),
+      'rubric_type' => trim((string)($data['rubric_type'] ?? '')),
+    ];
+
+    foreach (range(1, 4) as $option_number) {
+      $field = 'option_number_' . $option_number;
+      if (isset($data[$field]) && is_string($data[$field])) {
+        $payload['options'][$option_number] = trim($data[$field]);
+      }
+    }
+
+    if (isset($data['answer_option']) && $data['answer_option'] !== '') {
+      $payload['answer_option'] = (string)$data['answer_option'];
+    }
+
+    return $payload;
+  }
+
+  public function decode_question_data($row): array {
+    if (empty($row)) {
+      return [];
+    }
+
+    $payload = $row->question_data ?? null;
+    if (is_array($payload)) {
+      return $payload;
+    }
+
+    if (!is_string($payload) || trim($payload) === '') {
+      return [];
+    }
+
+    $decoded = json_decode($payload, true);
+    return is_array($decoded) ? $decoded : [];
+  }
+
+  public function get_question_assets($question_id): array {
+    $db = new \Database();
+    $query = "select * from question_assets where question_id = :question_id order by is_primary desc, id asc";
+    $rows = $db->query($query, ['question_id' => (int)$question_id]);
+    return is_array($rows) ? $rows : [];
+  }
+
+  public function get_question_rubrics($question_id): array {
+    $db = new \Database();
+    $query = "select * from question_rubrics where question_id = :question_id order by id asc";
+    $rows = $db->query($query, ['question_id' => (int)$question_id]);
+    return is_array($rows) ? $rows : [];
+  }
+
+  public function render_question_html($row): string {
+    $payload = $this->decode_question_data($row);
+    $question_type = $this->normalize_question_type($payload['question_type'] ?? ($row->question_type ?? 'multiple_choice'));
+    $html = '<div class="question-render">';
+
+    if ($question_type === 'audio_completion') {
+      $audioAssets = $this->get_question_assets($row->id);
+      $audioPath = '';
+      foreach ($audioAssets as $asset) {
+        if (($asset['asset_type'] ?? '') === 'audio') {
+          $audioPath = $asset['file_path'];
+          break;
+        }
+      }
+      $html .= '<div class="mb-3"><strong>Listening audio</strong></div>';
+      if ($audioPath !== '') {
+        $html .= '<audio controls preload="metadata" style="width:100%"><source src="/' . ltrim($audioPath, '/') . '" type="audio/mpeg"></audio>';
+      }
+      $html .= '<div class="mt-2"><strong>Model answer</strong><div class="border rounded p-2">' . htmlspecialchars($payload['answer_text'] ?? '', ENT_QUOTES, 'UTF-8') . '</div></div>';
+    } elseif ($question_type === 'map_picture' || $question_type === 'diagram') {
+      $mediaAssets = $this->get_question_assets($row->id);
+      $imagePath = '';
+      foreach ($mediaAssets as $asset) {
+        if (in_array($asset['asset_type'] ?? '', ['image', 'diagram'], true)) {
+          $imagePath = $asset['file_path'];
+          break;
+        }
+      }
+      if ($imagePath !== '') {
+        $html .= '<div class="mb-3"><img src="/' . ltrim($imagePath, '/') . '" class="img-fluid border rounded" alt="Question image"></div>';
+      }
+      $html .= '<div class="mt-2"><strong>Answer key</strong><div class="border rounded p-2">' . htmlspecialchars($payload['answer_text'] ?? '', ENT_QUOTES, 'UTF-8') . '</div></div>';
+    } elseif ($question_type === 'writing_prompt' || $question_type === 'speaking_prompt') {
+      $html .= '<div class="mb-2"><strong>Prompt</strong><div class="border rounded p-2">' . nl2br(htmlspecialchars($payload['task_prompt'] ?? '', ENT_QUOTES, 'UTF-8')) . '</div></div>';
+      $html .= '<div class="mb-2"><strong>Rubric</strong><div class="border rounded p-2">' . nl2br(htmlspecialchars($payload['rubric_text'] ?? '', ENT_QUOTES, 'UTF-8')) . '</div></div>';
+      $rubrics = $this->get_question_rubrics($row->id);
+      if (!empty($rubrics)) {
+        foreach ($rubrics as $rubric) {
+          $html .= '<div class="small text-muted">Band ' . (int)($rubric['band_score'] ?? 0) . ': ' . htmlspecialchars($rubric['criteria'] ?? '', ENT_QUOTES, 'UTF-8') . '</div>';
+        }
+      }
+    } else {
+      $html .= '<div class="fw-semibold mb-2">' . htmlspecialchars($row->question_title ?? '', ENT_QUOTES, 'UTF-8') . '</div>';
+      $options = [];
+      $db = new \Database();
+      $optionRows = $db->query('select * from question_option where question_id = :question_id order by option_number asc', ['question_id' => (int)$row->id]);
+      if (is_array($optionRows)) {
+        foreach ($optionRows as $option) {
+          $options[] = '<div class="border rounded p-2 mb-2">Option ' . (int)($option['option_number'] ?? 0) . ': ' . htmlspecialchars($option['option_title'] ?? '', ENT_QUOTES, 'UTF-8') . '</div>';
+        }
+      }
+      $html .= implode('', $options);
+      $html .= '<div class="mt-2"><strong>Correct answer</strong><div class="border rounded p-2">' . htmlspecialchars($payload['answer_text'] ?? ($row->answer_option ?? ''), ENT_QUOTES, 'UTF-8') . '</div></div>';
+    }
+
+    $html .= '</div>';
+    return $html;
+  }
+
+  public function save_uploaded_question_asset(int $question_id, string $asset_type, array $file, string $caption = ''): array {
+    if (!isset($file['name']) || $file['name'] === '') {
+      throw new \InvalidArgumentException('No file was supplied.');
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'] ?? '')) {
+      throw new \InvalidArgumentException('The uploaded file is invalid.');
+    }
+
+    $asset_type = strtolower($asset_type);
+    $allowed_types = [
+      'audio' => ['mp3', 'wav', 'm4a', 'ogg', 'aac'],
+      'image' => ['jpg', 'jpeg', 'png', 'webp'],
+      'diagram' => ['jpg', 'jpeg', 'png', 'webp', 'svg'],
+    ];
+
+    if (!isset($allowed_types[$asset_type])) {
+      throw new \InvalidArgumentException('Unsupported asset type.');
+    }
+
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowed_types[$asset_type], true)) {
+      throw new \InvalidArgumentException('This file type is not allowed for that asset.');
+    }
+
+    $max_size = $asset_type === 'audio' ? 15 * 1024 * 1024 : 8 * 1024 * 1024;
+    if (($file['size'] ?? 0) > $max_size) {
+      throw new \InvalidArgumentException('The uploaded file exceeds the allowed size limit.');
+    }
+
+    $dir = 'uploads/questions/' . $asset_type . '/';
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+      throw new \RuntimeException('The upload folder could not be created.');
+    }
+
+    $safe_name = preg_replace('/[^a-zA-Z0-9._-]+/', '_', basename($file['name']));
+    $target = $dir . time() . '_' . bin2hex(random_bytes(6)) . '_' . $safe_name;
+    if (!move_uploaded_file($file['tmp_name'], $target)) {
+      throw new \RuntimeException('The file could not be saved to disk.');
+    }
+
+    $mime_type = function_exists('mime_content_type') ? mime_content_type($target) : null;
+
+    $asset = new \Model\Question_asset();
+    $asset->insert([
+      'question_id' => (int)$question_id,
+      'asset_type' => $asset_type,
+      'file_name' => $safe_name,
+      'file_path' => $target,
+      'mime_type' => $mime_type,
+      'caption' => trim($caption),
+      'is_primary' => 1,
+    ]);
+
+    return [
+      'file_path' => $target,
+      'file_name' => $safe_name,
+      'mime_type' => $mime_type,
+    ];
+  }
+
   public function validate($data) {
     # -----| Reset Errors Array() |-----
     $this->errors = [];
     # ---| ./Reset Errors Array()\. |---
+
+    $question_type = $this->normalize_question_type($data['question_type'] ?? 'multiple_choice');
 
     # -----| Error Handler |-----
     # ...| TITLE Block
@@ -67,15 +275,40 @@ class Question extends Model {
     }
     # ---| ./IF(Category_ID)
 
-    foreach (range(1, 4) as $option_number) {
-      $field = 'option_number_' . $option_number;
-      if (!isset($data[$field]) || !is_string($data[$field]) || trim($data[$field]) === '') {
-        $this->errors[$field] = "All four answer options are required!";
+    if (in_array($question_type, ['multiple_choice', 'true_false', 'yes_no'], true)) {
+      foreach (range(1, 4) as $option_number) {
+        $field = 'option_number_' . $option_number;
+        if (!isset($data[$field]) || !is_string($data[$field]) || trim($data[$field]) === '') {
+          $this->errors[$field] = "All answer options are required!";
+        }
+      }
+
+      $allowedAnswers = ['1', '2', '3', '4'];
+      if ($question_type === 'true_false' || $question_type === 'yes_no') {
+        $allowedAnswers = ['1', '2', '3'];
+      }
+
+      if (!in_array((string)($data['answer_option'] ?? ''), $allowedAnswers, true)) {
+        $this->errors['answer_option'] = "Select the correct answer option!";
       }
     }
 
-    if (!in_array($data['answer_option'] ?? null, ['1', '2', '3', '4'], true)) {
-      $this->errors['answer_option'] = "Select the correct answer option!";
+    if (in_array($question_type, ['short_answer', 'sentence_completion', 'summary_completion', 'matching', 'diagram', 'audio_completion', 'map_picture', 'writing_prompt', 'speaking_prompt'], true)) {
+      $answerText = trim((string)($data['answer_text'] ?? ''));
+      if ($answerText === '') {
+        $this->errors['answer_text'] = "Add the expected answer or answer key for this question type.";
+      }
+    }
+
+    if (in_array($question_type, ['writing_prompt', 'speaking_prompt'], true)) {
+      $taskPrompt = trim((string)($data['task_prompt'] ?? ''));
+      if ($taskPrompt === '') {
+        $this->errors['task_prompt'] = "Add the prompt or task instructions for this writing/speaking question.";
+      }
+      $rubricText = trim((string)($data['rubric_text'] ?? ''));
+      if ($rubricText === '') {
+        $this->errors['rubric_text'] = "Add the rubric or marking guide for this writing/speaking question.";
+      }
     }
 
     if(empty($this->errors)) {

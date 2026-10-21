@@ -498,15 +498,106 @@ class Admin extends Controller {
     if ($_SERVER['REQUEST_METHOD'] == "POST" && !empty($_POST['ajax'])) {
       $ajax_action = $_POST['ajax'] ?? null;
       header('Content-Type: application/json');
+      $current_user = $user->first(['id' => $user_id]);
+      $current_role_id = (int)($current_user->role_id ?? 0);
 
-      if ($ajax_action == 'load_exam_requests') {
+      if ($ajax_action == 'request_exam_enrollment') {
+        if ($current_role_id !== 1) {
+          echo json_encode(['success' => false, 'message' => 'Only students can request exam enrollment.']);
+          exit;
+        }
+
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        if ($exam_id <= 0) {
+          echo json_encode(['success' => false, 'message' => 'Invalid exam.']);
+          exit;
+        }
+
+        $request_result = $exam->transaction(function () use ($exam, $exam_id, $user_id) {
+          $published_exam = $exam->query(
+            'SELECT id FROM exam WHERE id = :exam_id AND approved = 1 AND published = 1 AND disabled = 0 FOR UPDATE',
+            ['exam_id' => $exam_id]
+          );
+          if (empty($published_exam)) {
+            return ['success' => false, 'message' => 'This exam is not currently available for enrollment.'];
+          }
+
+          $exam_enroll = new \Model\Exam_enroll();
+          if ($exam_enroll->exists((int)$user_id, $exam_id)) {
+            return ['success' => false, 'message' => 'You are already enrolled in this exam.'];
+          }
+
+          $exam_join_request = new \Model\Exam_join_request();
+          $active_request = $exam_join_request->query(
+            "SELECT id, status FROM exam_join_requests
+             WHERE exam_id = :exam_id AND user_id = :user_id AND disabled = 0 AND status IN ('Pending', 'Approved')
+             ORDER BY id DESC LIMIT 1",
+            ['exam_id' => $exam_id, 'user_id' => $user_id]
+          );
+          if (!empty($active_request)) {
+            return [
+              'success' => false,
+              'message' => $active_request[0]->status === 'Approved'
+                ? 'Your enrollment is already approved.'
+                : 'Your enrollment request is already pending.',
+            ];
+          }
+
+          $existing_request = $exam_join_request->query(
+            'SELECT id FROM exam_join_requests
+             WHERE exam_id = :exam_id AND user_id = :user_id AND disabled = 0
+             ORDER BY id DESC LIMIT 1',
+            ['exam_id' => $exam_id, 'user_id' => $user_id]
+          );
+          if (!empty($existing_request)) {
+            $exam_join_request->query(
+              "UPDATE exam_join_requests
+               SET status = 'Pending', requested_at = :requested_at, approved_by = NULL, approved_at = NULL, notes = NULL, disabled = 0
+               WHERE id = :id",
+              ['requested_at' => date('Y-m-d H:i:s'), 'id' => (int)$existing_request[0]->id]
+            );
+          } else {
+            $exam_join_request->insert([
+              'exam_id' => $exam_id,
+              'user_id' => $user_id,
+              'status' => 'Pending',
+              'requested_at' => date('Y-m-d H:i:s'),
+              'disabled' => 0,
+            ]);
+          }
+
+          return ['success' => true, 'message' => 'Your enrollment request has been submitted.'];
+        });
+
+        echo json_encode($request_result);
+        exit;
+      } elseif ($ajax_action == 'load_exam_requests') {
         # ...| Load Exam Enrollment Requests |-----
-        $exam_id = $_POST['exam_id'] ?? null;
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        if (!in_array($current_role_id, [2, 3], true)) {
+          echo json_encode(['success' => false, 'message' => 'You are not authorized to review enrollment requests.']);
+          exit;
+        }
+
+        $managed_exam = $exam->query(
+          'SELECT id FROM exam WHERE id = :exam_id AND (:is_admin = 1 OR created_by = :created_by OR user_id = :user_id) LIMIT 1',
+          [
+            'exam_id' => $exam_id,
+            'is_admin' => $current_role_id === 3 ? 1 : 0,
+            'created_by' => $user_id,
+            'user_id' => $user_id,
+          ]
+        );
+        if (empty($managed_exam)) {
+          echo json_encode(['success' => false, 'message' => 'Exam not found or not available to you.']);
+          exit;
+        }
+
         $exam_join_request = new \Model\Exam_join_request();
         
         $query = "SELECT ejr.*, u.firstname, u.lastname, u.email FROM exam_join_requests ejr 
-                  JOIN users u ON ejr.user_id = u.id 
-                  WHERE ejr.exam_id = :exam_id AND ejr.disabled = 0 
+                  JOIN users u ON ejr.user_id = u.id
+                  WHERE ejr.exam_id = :exam_id AND ejr.disabled = 0
                   ORDER BY ejr.requested_at DESC";
         $requests = $exam_join_request->query($query, ['exam_id' => $exam_id]);
         
@@ -542,34 +633,89 @@ class Admin extends Controller {
         # ---| ./Load Exam Requests\. |---
       } elseif ($ajax_action == 'update_request_status') {
         # ...| Update Enrollment Request Status |-----
-        $exam_id = $_POST['exam_id'] ?? null;
-        $user_id = $_POST['user_id'] ?? null;
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+        $student_id = (int)($_POST['user_id'] ?? 0);
         $status = $_POST['status'] ?? null;
+        if (!in_array($current_role_id, [2, 3], true) || !in_array($status, ['Approved', 'Rejected'], true)) {
+          echo json_encode(['success' => false, 'message' => 'You are not authorized to update this request.']);
+          exit;
+        }
+
+        $managed_exam = $exam->query(
+          'SELECT id FROM exam WHERE id = :exam_id AND (:is_admin = 1 OR created_by = :created_by OR user_id = :user_id) LIMIT 1',
+          [
+            'exam_id' => $exam_id,
+            'is_admin' => $current_role_id === 3 ? 1 : 0,
+            'created_by' => $user_id,
+            'user_id' => $user_id,
+          ]
+        );
+        if (empty($managed_exam) || $student_id <= 0) {
+          echo json_encode(['success' => false, 'message' => 'Exam or student was not found.']);
+          exit;
+        }
+
         $exam_join_request = new \Model\Exam_join_request();
         $exam_enroll = new \Model\Exam_enroll();
+        $pending_request = $exam_join_request->query(
+          "SELECT id FROM exam_join_requests
+           WHERE exam_id = :exam_id AND user_id = :student_id AND status = 'Pending' AND disabled = 0
+           ORDER BY id DESC LIMIT 1",
+          ['exam_id' => $exam_id, 'student_id' => $student_id]
+        );
+        if (empty($pending_request)) {
+          echo json_encode(['success' => false, 'message' => 'No pending enrollment request was found.']);
+          exit;
+        }
 
         if ($status == 'Approved') {
           # ...| Create enrollment record
-          $enrollment_data = ['user_id' => $user_id, 'exam_id' => $exam_id, 'disabled' => 0];
-          if (!$exam_enroll->exists($user_id, $exam_id)) {
+          $enrollment_data = ['user_id' => $student_id, 'exam_id' => $exam_id, 'attendance_status' => 'Absent'];
+          if (!$exam_enroll->exists($student_id, $exam_id)) {
             $exam_enroll->insert($enrollment_data);
           }
         }
 
         # Update request status
         $query = "UPDATE exam_join_requests SET status = :status, approved_by = :approved_by, approved_at = :approved_at 
-                  WHERE exam_id = :exam_id AND user_id = :user_id";
+                  WHERE id = :id";
         $exam_join_request->query($query, [
           'status' => $status,
           'approved_by' => $user_id,
-          'approved_at' => date('Y-m-d H:i:s'),
-          'exam_id' => $exam_id,
-          'user_id' => $user_id
+          'approved_at' => $status === 'Approved' ? date('Y-m-d H:i:s') : null,
+          'id' => (int)$pending_request[0]->id,
         ]);
 
         echo json_encode(['success' => true, 'message' => 'Request ' . strtolower($status) . ' successfully']);
         exit;
         # ---| ./Update Request Status\. |---
+      } elseif ($ajax_action == 'publish_exam') {
+        $exam_id = (int)($_POST['exam_id'] ?? 0);
+
+        if (!Auth::logged_in()) {
+          echo json_encode(['success' => false, 'message' => 'Please log in first.']);
+          exit;
+        }
+
+        $uid = $user->first(['id' => Auth::getId()]);
+        if (!$uid || (int)$uid->role_id !== 3) {
+          echo json_encode(['success' => false, 'message' => 'Only admins can publish exams.']);
+          exit;
+        }
+
+        if ($exam_id <= 0) {
+          echo json_encode(['success' => false, 'message' => 'Invalid exam id']);
+          exit;
+        }
+
+        $exam = new \Model\Exam();
+        $exam->query(
+          "UPDATE exam SET approved = 1, published = 1 WHERE id = :id AND disabled = 0",
+          ['id' => $exam_id]
+        );
+
+        echo json_encode(['success' => true, 'message' => 'Exam published successfully.']);
+        exit;
       } elseif ($ajax_action == 'load_exam_results') {
         # ...| Load Exam Results for Review |-----
         $exam_id = $_POST['exam_id'] ?? null;
@@ -770,10 +916,36 @@ class Admin extends Controller {
       # Load student's enrolled exams
       $student_query = "select distinct e.id, e.exam_title, e.exam_datetime, e.exam_duration from exam_enroll ee 
                         join exam e on ee.exam_id = e.id 
-                        where ee.user_id = :user_id 
+                        where ee.user_id = :user_id and e.approved = 1 and e.published = 1 and e.disabled = 0
                         order by e.exam_datetime asc";
       $student_exams = $exam->query($student_query, ['user_id' => $user_id]);
       $data['student_exams'] = $student_exams;
+
+      if ((int)$role_id === 1) {
+        $request_rows = (new \Model\Exam_join_request())->query(
+          'SELECT exam_id, status FROM exam_join_requests WHERE user_id = :user_id AND disabled = 0 ORDER BY id DESC',
+          ['user_id' => $user_id]
+        );
+        $data['student_exam_requests'] = [];
+        if (is_array($request_rows)) {
+          foreach ($request_rows as $request_row) {
+            if (!array_key_exists((int)$request_row->exam_id, $data['student_exam_requests'])) {
+              $data['student_exam_requests'][(int)$request_row->exam_id] = $request_row->status;
+            }
+          }
+        }
+
+        $enrolled_rows = (new \Model\Exam_enroll())->query(
+          'SELECT exam_id FROM exam_enroll WHERE user_id = :user_id',
+          ['user_id' => $user_id]
+        );
+        $data['student_enrolled_exam_ids'] = [];
+        if (is_array($enrolled_rows)) {
+          foreach ($enrolled_rows as $enrolled_row) {
+            $data['student_enrolled_exam_ids'][(int)$enrolled_row->exam_id] = true;
+          }
+        }
+      }
 
       # Load pending exams for admin approval (only for admins)
       if ($role_id == 3) {
@@ -804,6 +976,8 @@ class Admin extends Controller {
     $exam = new \Model\Exam();
     $question = new \Model\Question();
     $question_option = new \Model\Question_option();
+    $question_asset = new \Model\Question_asset();
+    $question_rubric = new \Model\Question_rubric();
     $user = new \Model\User();
     # ---| ./MODELS\. | ---
 
@@ -837,20 +1011,55 @@ class Admin extends Controller {
       if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($target_exam && (string)$target_id === (string)($_POST['exam_id'] ?? '') && ($_POST['add_question'] ?? '') === 'save') {
           if ($question->validate($_POST)) {
+            $question_payload = $question->to_question_data($_POST);
             $question->insert([
               'exam_id' => (int)$target_id,
+              'question_type' => $question_payload['question_type'],
               'question_title' => trim($_POST['question_title']),
-              'answer_option' => $_POST['answer_option'],
+              'question_data' => json_encode($question_payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+              'answer_option' => (string)($question_payload['answer_option'] ?? '1'),
             ]);
 
             $question_id = (int)$question->lastInsertId();
             if ($question_id > 0) {
-              for ($option_number = 1; $option_number <= 4; $option_number++) {
-                $question_option->insert([
-                  'question_id' => $question_id,
-                  'option_number' => $option_number,
-                  'option_title' => trim($_POST['option_number_' . $option_number]),
-                ]);
+              $option_count = in_array($question_payload['question_type'], ['true_false', 'yes_no'], true) ? 3 : 4;
+              for ($option_number = 1; $option_number <= $option_count; $option_number++) {
+                if (isset($question_payload['options'][$option_number])) {
+                  $question_option->insert([
+                    'question_id' => $question_id,
+                    'option_number' => $option_number,
+                    'option_title' => trim($question_payload['options'][$option_number]),
+                  ]);
+                }
+              }
+
+              $asset_fields = [
+                'audio' => 'audio_file',
+                'image' => 'image_file',
+                'diagram' => 'diagram_file',
+              ];
+
+              foreach ($asset_fields as $asset_type => $field_name) {
+                if (!empty($_FILES[$field_name]['name']) && ($_FILES[$field_name]['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+                  try {
+                    $question->save_uploaded_question_asset($question_id, $asset_type, $_FILES[$field_name], $_POST['audio_caption'] ?? ($_POST['image_caption'] ?? ($_POST['diagram_caption'] ?? '')));
+                  } catch (\Throwable $e) {
+                    $question->errors['file_' . $asset_type] = $e->getMessage();
+                  }
+                }
+              }
+
+              if (in_array($question_payload['question_type'], ['writing_prompt', 'speaking_prompt'], true)) {
+                $rubric_text = trim((string)($question_payload['rubric_text'] ?? ''));
+                if ($rubric_text !== '') {
+                  $question_rubric->insert([
+                    'question_id' => $question_id,
+                    'rubric_type' => trim((string)($_POST['rubric_type'] ?? ($question_payload['question_type'] === 'writing_prompt' ? 'writing' : 'speaking'))),
+                    'band_score' => (int)($_POST['band_score'] ?? 0),
+                    'criteria' => $rubric_text,
+                    'notes' => trim((string)($_POST['rubric_notes'] ?? '')),
+                  ]);
+                }
               }
 
               message('Question added successfully!');
