@@ -45,7 +45,7 @@
           <div class="accordion" id="accordionInfo">
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                   What does IELTS mean&quest;
                 </button>
               </h4>
@@ -81,7 +81,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
                   What is IELTS UKVI&quest;&nbsp;
                 </button>
               </h4>
@@ -105,7 +105,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
                   Which skills do I take on the same day&quest;
                 </button>
               </h4>
@@ -129,7 +129,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
                   Can I use a pen in my IELTS Test&quest;
                 </button>
               </h4>
@@ -153,7 +153,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
                   Can I wear a watch in my IELTS test&quest;
                 </button>
               </h4>
@@ -177,7 +177,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
                   General Training IELTS – what are the differences&quest;
                 </button>
               </h4>
@@ -201,7 +201,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
                   What are the advantages to taking online IELTS&quest;
                 </button>
               </h4>
@@ -225,7 +225,7 @@
             </div>
             <div class="accordion-item">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
                   Is the online IELTS test different to the test you take in an IELTS center&quest;
                 </button>
               </h4>
@@ -270,7 +270,7 @@
           <div class="accordion" id="accordionTestChanges">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseA" aria-expanded="false" aria-controls="collapseA">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseA" aria-expanded="false" aria-controls="collapseA">
                   How long does it take for my test results to arrive&quest;
                 </button>
               </h4>
@@ -294,7 +294,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseC" aria-expanded="false" aria-controls="collapseC">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseC" aria-expanded="false" aria-controls="collapseC">
                   Can I get my IELTS test remarked&quest;
                 </button>
               </h4>
@@ -323,7 +323,7 @@
           <div class="accordion" id="accordionListening">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE" aria-expanded="false" aria-controls="collapseE">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE" aria-expanded="false" aria-controls="collapseE">
                   How many sections are there&quest;
                 </button>
               </h4>
@@ -347,7 +347,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseG" aria-expanded="false" aria-controls="collapseG">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseG" aria-expanded="false" aria-controls="collapseG">
                   How many questions are there&quest;
                 </button>
               </h4>
@@ -371,7 +371,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseI" aria-expanded="false" aria-controls="collapseI">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseI" aria-expanded="false" aria-controls="collapseI">
                   How many times will I be able to listen to the recording&quest;
                 </button>
               </h4>
@@ -395,7 +395,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseK" aria-expanded="false" aria-controls="collapseK">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseK" aria-expanded="false" aria-controls="collapseK">
                   Will I be able to see the questions while I listen to the recording?&quest;
                 </button>
               </h4>
@@ -420,7 +420,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseM" aria-expanded="false" aria-controls="collapseM">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseM" aria-expanded="false" aria-controls="collapseM">
                   What about transferring answers in the computer test&quest;
                 </button>
               </h4>
@@ -444,7 +444,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseO" aria-expanded="false" aria-controls="collapseO">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseO" aria-expanded="false" aria-controls="collapseO">
                   Can I prepare for the computer based listening test using paper listening tests, such as in the IELTS Cambridge Test books&quest;
                 </button>
               </h4>
@@ -471,7 +471,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQ" aria-expanded="false" aria-controls="collapseQ">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQ" aria-expanded="false" aria-controls="collapseQ">
                   Do I lose a point if my answer is wrong&quest;
                 </button>
               </h4>
@@ -495,7 +495,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseS" aria-expanded="false" aria-controls="collapseS">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseS" aria-expanded="false" aria-controls="collapseS">
                   Can I write on the listening question paper&quest;
                 </button>
               </h4>
@@ -519,7 +519,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseU" aria-expanded="false" aria-controls="collapseU">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseU" aria-expanded="false" aria-controls="collapseU">
                   Will I see the transcript&quest;
                 </button>
               </h4>
@@ -543,7 +543,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseW" aria-expanded="false" aria-controls="collapseW">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseW" aria-expanded="false" aria-controls="collapseW">
                   Are capital letters important&quest;
                 </button>
               </h4>
@@ -567,7 +567,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseY" aria-expanded="false" aria-controls="collapseY">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseY" aria-expanded="false" aria-controls="collapseY">
                   Do questions come in order&quest;
                 </button>
               </h4>
@@ -591,7 +591,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-A" aria-expanded="false" aria-controls="collapse-A">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-A" aria-expanded="false" aria-controls="collapse-A">
                   What accents will there be in the listening test&quest;
                 </button>
               </h4>
@@ -615,7 +615,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-C" aria-expanded="false" aria-controls="collapse-C">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-C" aria-expanded="false" aria-controls="collapse-C">
                   How can I improve my listening&quest;
                 </button>
               </h4>
@@ -639,7 +639,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-E" aria-expanded="false" aria-controls="collapse-E">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-E" aria-expanded="false" aria-controls="collapse-E">
                   What does “two words and/or number” mean&quest;
                 </button>
               </h4>
@@ -663,7 +663,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-G" aria-expanded="false" aria-controls="collapse-G">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-G" aria-expanded="false" aria-controls="collapse-G">
                   Should I spelling numbers or write a digit, for example twenty or 20&quest;
                 </button>
               </h4>
@@ -687,7 +687,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-I" aria-expanded="false" aria-controls="collapse-I">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-I" aria-expanded="false" aria-controls="collapse-I">
                   How can I write a date&quest;&nbsp;<span class="fontClarity">25th</span>&nbsp;march or&nbsp;<span class="fontClarity">25</span>&nbsp;march&quest;
                 </button>
               </h4>
@@ -711,7 +711,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-K" aria-expanded="false" aria-controls="collapse-K">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-K" aria-expanded="false" aria-controls="collapse-K">
                   If I write Northroad instead of North Road, is the answer correct&quest;
                 </button>
               </h4>
@@ -735,7 +735,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-M" aria-expanded="false" aria-controls="collapse-M">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-M" aria-expanded="false" aria-controls="collapse-M">
                   Can I paraphrase my answer, for example,” educate” instead of “teach”? Or can I write a similar word, such as “colour” instead of “colouring”?
                 </button>
               </h4>
@@ -759,7 +759,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-O" aria-expanded="false" aria-controls="collapse-O">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-O" aria-expanded="false" aria-controls="collapse-O">
                   Does a date of birth, such as 11/08/1998 count as one number?
                 </button>
               </h4>
@@ -790,7 +790,7 @@
           <div class="accordion" id="accordion-ReadingListening">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-Q" aria-expanded="false" aria-controls="collapse-Q">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-Q" aria-expanded="false" aria-controls="collapse-Q">
                   If I use all capital letters in listening, do I need to do the same for reading?
                 </button>
               </h4>
@@ -806,7 +806,7 @@
           <div class="accordion" id="accordion-Read">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-R" aria-expanded="false" aria-controls="collapse-R">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-R" aria-expanded="false" aria-controls="collapse-R">
                   How long is the IELTS reading test?
                 </button>
               </h4>
@@ -830,7 +830,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-T" aria-expanded="false" aria-controls="collapse-T">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-T" aria-expanded="false" aria-controls="collapse-T">
                   Does everyone take the same reading test?
                 </button>
               </h4>
@@ -854,7 +854,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-V" aria-expanded="false" aria-controls="collapse-V">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-V" aria-expanded="false" aria-controls="collapse-V">
                   What kind of passages are there for the general training paper?
                 </button>
               </h4>
@@ -878,7 +878,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-X" aria-expanded="false" aria-controls="collapse-X">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-X" aria-expanded="false" aria-controls="collapse-X">
                   How are the scores calculated?
                 </button>
               </h4>
@@ -902,7 +902,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-Z" aria-expanded="false" aria-controls="collapse-Z">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-Z" aria-expanded="false" aria-controls="collapse-Z">
                   Do I lose a point if my answer is wrong?
                 </button>
               </h4>
@@ -926,7 +926,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-b" aria-expanded="false" aria-controls="collapse-b">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-b" aria-expanded="false" aria-controls="collapse-b">
                   How long should I spend on each passage?
                 </button>
               </h4>
@@ -950,7 +950,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-d" aria-expanded="false" aria-controls="collapse-d">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-d" aria-expanded="false" aria-controls="collapse-d">
                   Can I write on the reading question paper?
                 </button>
               </h4>
@@ -974,7 +974,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-f" aria-expanded="false" aria-controls="collapse-f">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-f" aria-expanded="false" aria-controls="collapse-f">
                   Can I use a highlighter pen in the paper reading test?
                 </button>
               </h4>
@@ -998,7 +998,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-h" aria-expanded="false" aria-controls="collapse-h">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-h" aria-expanded="false" aria-controls="collapse-h">
                   Should I use a pen or pencil?
                 </button>
               </h4>
@@ -1022,7 +1022,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-j" aria-expanded="false" aria-controls="collapse-j">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-j" aria-expanded="false" aria-controls="collapse-j">
                   Can I write T instead of True for the True False Not Given questions?
                 </button>
               </h4>
@@ -1052,7 +1052,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-l" aria-expanded="false" aria-controls="collapse-l">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-l" aria-expanded="false" aria-controls="collapse-l">
                   Do all answers come in order?
                 </button>
               </h4>
@@ -1076,7 +1076,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-n" aria-expanded="false" aria-controls="collapse-n">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-n" aria-expanded="false" aria-controls="collapse-n">
                   Can I do the sections in a different order?
                 </button>
               </h4>
@@ -1100,7 +1100,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-p" aria-expanded="false" aria-controls="collapse-p">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-p" aria-expanded="false" aria-controls="collapse-p">
                   Can I have a few extra seconds or minutes if I haven’t finished writing an answer?
                 </button>
               </h4>
@@ -1116,7 +1116,7 @@
           <div class="accordion" id="accordion-Writing">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-q" aria-expanded="false" aria-controls="collapse-q">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-q" aria-expanded="false" aria-controls="collapse-q">
                   How many parts to the writing test are there?
                 </button>
               </h4>
@@ -1140,7 +1140,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-s" aria-expanded="false" aria-controls="collapse-s">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-s" aria-expanded="false" aria-controls="collapse-s">
                   How many words should I write for task 1 and task 2?
                 </button>
               </h4>
@@ -1166,7 +1166,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-u" aria-expanded="false" aria-controls="collapse-u">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-u" aria-expanded="false" aria-controls="collapse-u">
                   Can I have extra paper for planning and making notes?
                 </button>
               </h4>
@@ -1190,7 +1190,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-w" aria-expanded="false" aria-controls="collapse-w">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-w" aria-expanded="false" aria-controls="collapse-w">
                   Do I need to use 20 mins for task 1 and 40 mins for task 2 or is the time flexible?
                 </button>
               </h4>
@@ -1220,7 +1220,7 @@
           <div class="accordion" id="accordion-Writing-1">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-y" aria-expanded="false" aria-controls="collapse-y">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-y" aria-expanded="false" aria-controls="collapse-y">
                   <span class="" id="" tabindex="0" title="How many types of task 1 are there?">How many types of task 1 are there?</span>
                 </button>
               </h4>
@@ -1244,7 +1244,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1" aria-expanded="false" aria-controls="collapse-1">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1" aria-expanded="false" aria-controls="collapse-1">
                   <span class="" id="" tabindex="0" title="What's the difference between the academic paper and the general training paper in task 1?">What's the difference between the academic paper and the general training paper in task 1?</span>
                 </button>
               </h4>
@@ -1268,7 +1268,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
                   <span class="" id="" tabindex="0" title="Will I get a chart or letter in task 1?">Will I get a chart or letter in task 1?</span>
                 </button>
               </h4>
@@ -1292,7 +1292,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-5" aria-expanded="false" aria-controls="collapse-5">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-5" aria-expanded="false" aria-controls="collapse-5">
                   &nbsp;<span class="" id="" tabindex="0" title="How can I organise the information in my task 1 academic?">How can I organise the information in my task 1 academic?</span>
                 </button>
               </h4>
@@ -1321,7 +1321,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-7" aria-expanded="false" aria-controls="collapse-7">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-7" aria-expanded="false" aria-controls="collapse-7">
                   &nbsp;<span class="" id="" tabindex="0" title="How can I write the introduction for task 1 academic?">How can I write the introduction for task 1 academic?</span>
                 </button>
               </h4>
@@ -1345,7 +1345,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-9" aria-expanded="false" aria-controls="collapse-9">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-9" aria-expanded="false" aria-controls="collapse-9">
                   <span class="" id="" tabindex="0" title="How can I score my own writing task 1?">How can I score my own writing task 1?</span>
                 </button>
               </h4>
@@ -1372,7 +1372,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-11" aria-expanded="false" aria-controls="collapse-11">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-11" aria-expanded="false" aria-controls="collapse-11">
                   <span class="" id="" tabindex="0" title="Should I put only two key features in my overview for academic task 1?">Should I put only two key features in my overview for academic task 1?</span>
                 </button>
               </h4>
@@ -1396,7 +1396,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-13" aria-expanded="false" aria-controls="collapse-13">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-13" aria-expanded="false" aria-controls="collapse-13">
                   <span class="" id="" tabindex="0" title="Can I make information up for my letter in GT?">Can I make information up for my letter in GT?</span>
                 </button>
               </h4>
@@ -1420,7 +1420,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-15" aria-expanded="false" aria-controls="collapse-15">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-15" aria-expanded="false" aria-controls="collapse-15">
                   <span class="" id="" tabindex="0" title="Do I need to add the date and address at the top of the letter?">Do I need to add the date and address at the top of the letter?</span>
                 </button>
               </h4>
@@ -1436,7 +1436,7 @@
           <div class="accordion" id="accordion-Writing-2">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-16" aria-expanded="false" aria-controls="collapse-16">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-16" aria-expanded="false" aria-controls="collapse-16">
                   <span class="" id="" tabindex="0" title="What is IELTS Writing Task 2?">What is IELTS Writing Task 2?</span>
                 </button>
               </h4>
@@ -1460,7 +1460,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-18" aria-expanded="false" aria-controls="collapse-18">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-18" aria-expanded="false" aria-controls="collapse-18">
                   <span class="" id="" tabindex="0" title="Can I spend more than 40 mins on my essay?">Can I spend more than 40 mins on my essay?</span>
                 </button>
               </h4>
@@ -1484,7 +1484,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-20" aria-expanded="false" aria-controls="collapse-20">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-20" aria-expanded="false" aria-controls="collapse-20">
                   <span class="" id="" tabindex="0" title="What is the difference between the General Training writing task 2 and the academic task 2?">What is the difference between the General Training writing task 2 and the academic task 2?</span>
                 </button>
               </h4>
@@ -1508,7 +1508,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-22" aria-expanded="false" aria-controls="collapse-22">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-22" aria-expanded="false" aria-controls="collapse-22">
                   <span class="" id="" tabindex="0" title="What kind of essays are there in writing task 2?">What kind of essays are there in writing task 2?</span>
                 </button>
               </h4>
@@ -1532,7 +1532,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-24" aria-expanded="false" aria-controls="collapse-24">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-24" aria-expanded="false" aria-controls="collapse-24">
                   <span class="" id="" tabindex="0" title="Do I need to give my opinion in the essay?">Do I need to give my opinion in the essay?</span>
                 </button>
               </h4>
@@ -1556,7 +1556,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-26" aria-expanded="false" aria-controls="collapse-26">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-26" aria-expanded="false" aria-controls="collapse-26">
                   <span class="" id="" tabindex="0" title="What happens if I write under 250 words?">What happens if I write under 250 words?</span>
                 </button>
               </h4>
@@ -1580,7 +1580,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-28" aria-expanded="false" aria-controls="collapse-28">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-28" aria-expanded="false" aria-controls="collapse-28">
                   <span class="" id="" tabindex="0" title="Do I need a conclusion?">Do I need a conclusion?</span>
                 </button>
               </h4>
@@ -1604,7 +1604,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-30" aria-expanded="false" aria-controls="collapse-30">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-30" aria-expanded="false" aria-controls="collapse-30">
                   <span class="" id="" tabindex="0" title="Should I write the title of the essay on my answer sheet? ">Should I write the title of the essay on my answer sheet? </span>
                 </button>
               </h4>
@@ -1628,7 +1628,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-32" aria-expanded="false" aria-controls="collapse-32">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-32" aria-expanded="false" aria-controls="collapse-32">
                   <span class="" id="" tabindex="0" title="Is punctuation important?">Is punctuation important?</span>
                 </button>
               </h4>
@@ -1652,7 +1652,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-34" aria-expanded="false" aria-controls="collapse-34">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-34" aria-expanded="false" aria-controls="collapse-34">
                   <span class="" id="" tabindex="0" title="What's the difference between an opinion essay and an argumentative essay?">What's the difference between an opinion essay and an argumentative essay?</span>
                 </button>
               </h4>
@@ -1676,7 +1676,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-36" aria-expanded="false" aria-controls="collapse-36">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-36" aria-expanded="false" aria-controls="collapse-36">
                   <span class="" id="" tabindex="0" title="Can I get extra writing paper if I run out of space on my answer sheet?">Can I get extra writing paper if I run out of space on my answer sheet?</span>
                 </button>
               </h4>
@@ -1704,7 +1704,7 @@
           <div class="accordion" id="accordion-Speaking">
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-38" aria-expanded="false" aria-controls="collapse-38">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-38" aria-expanded="false" aria-controls="collapse-38">
                   <span class="" id="" tabindex="0" title="How many parts are there to the IELTS speaking test?">How many parts are there to the IELTS speaking test?</span>
                 </button>
               </h4>
@@ -1728,7 +1728,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-40" aria-expanded="false" aria-controls="collapse-40">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-40" aria-expanded="false" aria-controls="collapse-40">
                   <span class="" id="" tabindex="0" title="Is the speaking test face to face with an examiner or by computer?">Is the speaking test face to face with an examiner or by computer?</span>
                 </button>
               </h4>
@@ -1752,7 +1752,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-42" aria-expanded="false" aria-controls="collapse-42">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-42" aria-expanded="false" aria-controls="collapse-42">
                   <span class="" id="" tabindex="0" title="When will my speaking test be marked? Does the examiner listen to the recording to decide the marks?">When will my speaking test be marked? Does the examiner listen to the recording to decide the marks?</span>
                 </button>
               </h4>
@@ -1776,7 +1776,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-44" aria-expanded="false" aria-controls="collapse-44">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-44" aria-expanded="false" aria-controls="collapse-44">
                   <span class="" id="" tabindex="0" title="How many questions will I be asked?">How many questions will I be asked?</span>
                 </button>
               </h4>
@@ -1800,7 +1800,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-46" aria-expanded="false" aria-controls="collapse-46">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-46" aria-expanded="false" aria-controls="collapse-46">
                   <span class="" id="" tabindex="0" title="Do I need to talk for 2 minutes in part 2?">Do I need to talk for 2 minutes in part 2?</span>
                 </button>
               </h4>
@@ -1824,7 +1824,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-48" aria-expanded="false" aria-controls="collapse-48">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-48" aria-expanded="false" aria-controls="collapse-48">
                   <span class="" id="" tabindex="0" title="Can I choose my topic to talk about in part 2?">Can I choose my topic to talk about in part 2?</span>
                 </button>
               </h4>
@@ -1848,7 +1848,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-50" aria-expanded="false" aria-controls="collapse-50">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-50" aria-expanded="false" aria-controls="collapse-50">
                   <span class="" id="" tabindex="0" title="Do I need to follow the prompts on the cue card in speaking part 2?">Do I need to follow the prompts on the cue card in speaking part 2?</span>
                 </button>
               </h4>
@@ -1872,7 +1872,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-52" aria-expanded="false" aria-controls="collapse-52">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-52" aria-expanded="false" aria-controls="collapse-52">
                   <span class="" id="" tabindex="0" title="Can I look at the cue card during my 2 min talk in Speaking Part 2?">Can I look at the cue card during my 2 min talk in Speaking Part 2?</span>
                 </button>
               </h4>
@@ -1896,7 +1896,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-54" aria-expanded="false" aria-controls="collapse-54">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-54" aria-expanded="false" aria-controls="collapse-54">
                   <span class="" id="" tabindex="0" title="Do I need to take a pencil into the speaking test for part 2?">Do I need to take a pencil into the speaking test for part 2?</span>
                 </button>
               </h4>
@@ -1920,7 +1920,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-56" aria-expanded="false" aria-controls="collapse-56">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-56" aria-expanded="false" aria-controls="collapse-56">
                   <span class="" id="" tabindex="0" title="What's the difference between part 1 and part 3 in the IELTS speaking test?">What's the difference between part 1 and part 3 in the IELTS speaking test?</span>
                 </button>
               </h4>
@@ -1944,7 +1944,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-58" aria-expanded="false" aria-controls="collapse-58">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-58" aria-expanded="false" aria-controls="collapse-58">
                   <span class="" id="" tabindex="0" title="What can I do if I don't understand the question?">What can I do if I don't understand the question?</span>
                 </button>
               </h4>
@@ -1968,7 +1968,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-60" aria-expanded="false" aria-controls="collapse-60">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-60" aria-expanded="false" aria-controls="collapse-60">
                   <span class="" id="" tabindex="0" title="What can I do if I don't have any ideas for the answer in part 3?">What can I do if I don't have any ideas for the answer in part 3?</span>
                 </button>
               </h4>
@@ -1992,7 +1992,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-62" aria-expanded="false" aria-controls="collapse-62">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-62" aria-expanded="false" aria-controls="collapse-62">
                   <span class="" id="" tabindex="0" title="Why did the examiner interrupt my answer?">Why did the examiner interrupt my answer?</span>
                 </button>
               </h4>
@@ -2004,7 +2004,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-63" aria-expanded="false" aria-controls="collapse-63">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-63" aria-expanded="false" aria-controls="collapse-63">
                   <span class="" id="" tabindex="0" title="Can I ask the examiner for his or her opinion?">Can I ask the examiner for his or her opinion?</span>
                 </button>
               </h4>
@@ -2016,7 +2016,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-64" aria-expanded="false" aria-controls="collapse-64">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-64" aria-expanded="false" aria-controls="collapse-64">
                   <span class="" id="" tabindex="0" title="Where can I get a practice speaking test from?">Where can I get a practice speaking test from?</span>
                 </button>
               </h4>
@@ -2040,7 +2040,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-66" aria-expanded="false" aria-controls="collapse-66">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-66" aria-expanded="false" aria-controls="collapse-66">
                   <span class="" id="" tabindex="0" title="How should I greet the examiner?">How should I greet the examiner?</span>
                 </button>
               </h4>
@@ -2064,7 +2064,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-68" aria-expanded="false" aria-controls="collapse-68">
+                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-68" aria-expanded="false" aria-controls="collapse-68">
                   <span class="" id="" tabindex="0" title="What happens if my answer includes the answer to the next question on the examiner's list?">What happens if my answer includes the answer to the next question on the examiner's list?</span>
                 </button>
               </h4>

@@ -307,7 +307,9 @@
                   <?php endif; ?>
                   <p class="description"><?=esc($row->description)?></p>
                   <?php if ($read_more_route !== null): ?>
-                    <a class="read-more" href="<?=ROOT?>/<?=$read_more_route?>">Read more..</a>
+                    <p class="btn btn-md btn-primary rounded-pill">
+                      <a class="read-more text-white" href="<?=ROOT?>/<?=$read_more_route?>">Read more..</a>
+                    </p>
                   <?php endif; ?>
                 </div>
               </div>
