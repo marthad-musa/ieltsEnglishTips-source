@@ -105,15 +105,6 @@
     <?php // endif;?>
     <!-- End Dashboard Page Nav -->
 
-    <?php if ((int)$uid->role_id === 3): ?>
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="<?=ROOT?>/admin/cms-pages">
-          <i class="bi bi-file-earmark-richtext"></i>
-          <span>CMS Pages</span>
-        </a>
-      </li>
-    <?php endif; ?>
-
     <!-- ---------| This should be PUBLIC |--------- -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="<?=ROOT?>/admin/profile">
@@ -229,10 +220,26 @@
 
     <?php // if(user_can('edit_slider_images')):?>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="<?=ROOT?>/admin/slider-images">
-          <i class="bi bi-images"></i>
-          <span>Slider Images</span>
+        <a class="nav-link collapsed" data-bs-target="#cms-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-file-earmark-richtext"></i><span>CMS System</span><i class="bi bi-chevron-down ms-auto"></i>
         </a>
+        <ul id="cms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+          <?php if ((int)$uid->role_id === 3): ?>
+            <li class="nav-item">
+              <a class="nav-link" href="<?=ROOT?>/admin/cms-pages">
+                <i class="bi bi-file-earmark-richtext"></i>
+                <span>CMS Pages</span>
+              </a>
+            </li>
+          <?php endif; ?>
+
+          <li class="nav-item">
+            <a class="nav-link" href="<?=ROOT?>/admin/slider-images">
+              <i class="bi bi-images"></i>
+              <span>Slider Images</span>
+            </a>
+          </li>  
+        </ul>
       </li>  
     <?php // endif; ?>
     <!-- End SLIDER Page Nav -->

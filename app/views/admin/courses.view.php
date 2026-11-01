@@ -916,7 +916,11 @@
     var course_image_uploading = false;
     var ajax_course_image = null;
 
-    function upload_course_image(file) {
+    function upload_course_image(file, input) {
+      if (!file || !input) {
+        return;
+      }
+
       if(course_image_uploading) {
         // ...| TRUE Block
         alert('Please, wait while the other image uploads!');
@@ -936,8 +940,17 @@
       }
       // ---| ./IF() | Validating Extensions & Accepting IMAGE\.
 
+      var uploadForm = input.closest('form');
+      var csrfInput = uploadForm ? uploadForm.querySelector('input[name="csrf_code"]') : null;
+      if (!csrfInput || !csrfInput.value) {
+        alert("The security token is missing. Refresh the course editor and try again.");
+        input.value = '';
+        return;
+      }
+
       /* ----| Display Image Preview |---- */
       var img = document.querySelector(".js-image-upload-preview");
+      var previousImageSrc = img.src;
       var link = URL.createObjectURL(file);
       img.src = link;
       /* --| ./Display Image Preview\. |-- */
@@ -956,16 +969,26 @@
 
       ajax_course_image.addEventListener('readystatechange',function(){
         if (ajax_course_image.readyState == 4){
-          // ...| TRUE Block
-          if (ajax_course_image.status == 200){
-            // ...| TRUE Block | Success!
-            // alert("Upload Complete!");
-            // window.location.reload();
-            // alert(ajax_course_image.responseText);
+          if (ajax_course_image.status === 0) {
+            return;
+          }
+
+          var result;
+          try {
+            result = JSON.parse(ajax_course_image.responseText);
+          } catch (error) {
+            result = {success: false, message: "The server returned an invalid image upload response."};
+          }
+
+          if (ajax_course_image.status == 200 && result.success && result.image){
+            img.src = result.image;
             dirty = tab;
             disable_save_button(true);
+          } else {
+            img.src = previousImageSrc;
+            alert(result.message || "The course image could not be uploaded.");
           }
-          // ---| ./IF(AJAX.Status)
+          URL.revokeObjectURL(link);
 
           course_image_uploading = false;
           document.querySelector(".js-image-upload-info").classList.add("hide");
@@ -982,6 +1005,8 @@
         document.querySelector(".js-image-upload-input").classList.remove("hide");
         document.querySelector(".js-image-upload-cancel-button").classList.add("hide");
         document.querySelector(".js-image-upload-progress-container").classList.add("hide");
+        img.src = previousImageSrc;
+        URL.revokeObjectURL(link);
         alert("Oh, NO! An error Occurred.");
       });
 
@@ -991,6 +1016,8 @@
         document.querySelector(".js-image-upload-input").classList.remove("hide");
         document.querySelector(".js-image-upload-cancel-button").classList.add("hide");
         document.querySelector(".js-image-upload-progress-container").classList.add("hide");
+        img.src = previousImageSrc;
+        URL.revokeObjectURL(link);
         alert("Upload aborted!");
       });
 
@@ -1004,7 +1031,7 @@
       myform.append('data_type','upload_course_image');
       myform.append('tab_name',tab);
       myform.append('image',file);
-      myform.append('csrf_code',document.querySelector(".js-csrf_code").value);
+      myform.append('csrf_code',csrfInput.value);
       // ----| ./Uploading\. |----
 
       ajax_course_image.open('post','',true);

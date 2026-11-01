@@ -553,7 +553,6 @@
             <!-- End Pricing Card -->
 
             <!-- Course Info -->
-            <?php if (!empty($row->category_row->category) || !empty($row->primary_subject) || !empty($row->sub_category_row->level) || !empty($row->language_row->language)): ?>
             <div class="course-info-card">
               <h4 class="fontClarity text-primary fs-4">Course Information</h4>
               <?php if (!empty($row->category_row->category)): ?>
@@ -568,12 +567,10 @@
                   <span class="value"><?=esc($row->primary_subject)?></span>
                 </div>
               <?php endif; ?>
-              <?php if (!empty($row->sub_category_row->level)): ?>
-                <div class="info-item">
-                  <span class="label">Subcategory:</span>
-                  <span class="value"><?=esc($row->sub_category_row->level)?></span>
-                </div>
-              <?php endif; ?>
+              <div class="info-item">
+                <span class="label">Subcategory:</span>
+                <span class="value"><?=esc($row->sub_category_row->level ?? 'UA')?></span>
+              </div>
               <?php if (!empty($row->language_row->language)): ?>
                 <div class="info-item">
                   <span class="label">Language:</span>
@@ -581,7 +578,6 @@
                 </div>
               <?php endif; ?>
             </div>
-            <?php endif; ?>
             <!-- End Course Info -->
 
             <?php if (!empty($course_tags)): ?>

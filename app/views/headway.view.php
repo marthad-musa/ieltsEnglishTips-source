@@ -436,7 +436,7 @@
                   <div class="feature">
                     <i class="bi bi-cast"></i>
                     <em>Course Subcategory</em>
-                    <span><?=esc(ucfirst($rows[1]->level_row->level))?></span>
+                    <span><?=esc(ucfirst($rows[1]->level_row->level ?? 'NA'))?></span>
                   </div>
                   <div class="feature">
                     <i class="bi bi-people"></i>

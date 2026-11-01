@@ -139,7 +139,7 @@
       <div class="col-sm-8">
         <h5 class="h5 fw-bold">Course Image:</h5>
         <p class="fontClarity">Upload your course image here. It must meet our <span class="text-primary">course image quality standards</span> to be accepted. Important guidelines: 750x422 pixels; .jpg, .jpeg, .gif, or .png. No text on the image.</p>
-        <input onchange="upload_course_image(this.files[0])" class="js-image-upload-input" type="file" name="course_image">
+        <input onchange="upload_course_image(this.files[0], this)" class="js-image-upload-input" type="file" name="course_image" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
         <div class="progress my-4 js-image-upload-progress-container hide">
           <div class="progress-bar progress-bar-image" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
