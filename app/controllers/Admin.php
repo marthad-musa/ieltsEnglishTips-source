@@ -2052,37 +2052,77 @@ class Admin extends Controller {
           echo json_encode($info);
         } else
         if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_image") {
-          # ...| TRUE Block
-          $folder = "uploads/courses/";
-          if (!file_exists($folder)) {
-            # ...| TURE Block
-            mkdir($folder,0777,true);
-            // file_put_contents($folder."index.php", "<?php //Silence");
-            // file_put_contents("uploads/index.php", "<?php //Silence");
+          header('Content-Type: application/json; charset=utf-8');
+          $csrf_code = $_POST['csrf_code'] ?? '';
+          if (!is_string($csrf_code) || $csrf_code === ''
+            || !hash_equals((string)($_SESSION['csrf_code'] ?? ''), $csrf_code)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Security check failed. Refresh the course editor and try again.']);
+            die;
           }
-          # ---| ./IF(Folder)
 
-          $errors = [];
-          if (!empty($_FILES['image']['name'])) {
-            # ...| TRUE Block
-            $destination = $folder . time() . $_FILES['image']['name'];
-            move_uploaded_file($_FILES['image']['tmp_name'], $destination);
-
-            /* -----| DELETE OLD tmp FILE |----- */
-            if (file_exists($row->course_image_tmp)) {
-              # ...| TRUE Block
-              unlink($row->course_image_tmp);
-            }
-            # ---| ./IF(TMP)
-            
-            /* -----| SAVE NEW tmp FILE |----- */
-            $course->update($id,['course_image_tmp'=>$destination,'csrf_code'=>$_POST['csrf_code']]);
-            // echo "Upload Complete!";
+          $image = $_FILES['image'] ?? null;
+          if (!is_array($image)
+            || ($image['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+            || !is_string($image['tmp_name'] ?? null)
+            || !is_uploaded_file($image['tmp_name'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Select a valid JPG or PNG course image.']);
+            die;
           }
-          # ---| ./IF(Image)
 
-          // show($_FILES);
-          // show($_POST);
+          $image_info = getimagesize($image['tmp_name']);
+          $allowed_image_types = [
+            IMAGETYPE_JPEG => 'jpg',
+            IMAGETYPE_PNG => 'png',
+          ];
+          if (!$image_info || !isset($allowed_image_types[$image_info[2]])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Only JPG and PNG course images are allowed.']);
+            die;
+          }
+
+          $folder = 'uploads/courses/';
+          if (!is_dir($folder) && !mkdir($folder, 0775, true) && !is_dir($folder)) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The course image upload folder could not be created.']);
+            die;
+          }
+
+          $destination = $folder . 'course_' . (int)$id . '_pending_' . bin2hex(random_bytes(12)) . '.' . $allowed_image_types[$image_info[2]];
+          if (!move_uploaded_file($image['tmp_name'], $destination)) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The course image could not be saved.']);
+            die;
+          }
+
+          $old_temp_image = (string)($row->course_image_tmp ?? '');
+          try {
+            $course->update($id, [
+              'course_image_tmp' => $destination,
+              'csrf_code' => $csrf_code,
+            ]);
+          } catch (\PDOException $error) {
+            unlink($destination);
+            error_log('Course image upload could not be registered: ' . $error->getMessage());
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The course image was uploaded but could not be attached to the course. Please retry.']);
+            die;
+          }
+
+          $managed_upload_root = realpath($folder);
+          $old_temp_realpath = $old_temp_image !== '' ? realpath($old_temp_image) : false;
+          if ($managed_upload_root && $old_temp_realpath
+            && dirname($old_temp_realpath) === $managed_upload_root
+            && is_file($old_temp_realpath)) {
+            unlink($old_temp_realpath);
+          }
+
+          echo json_encode([
+            'success' => true,
+            'image' => get_image($destination),
+            'message' => 'Course image uploaded. Save the course to apply it.',
+          ]);
         } else
         if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_video") {
           # ...| TRUE Block
