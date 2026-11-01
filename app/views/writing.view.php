@@ -156,7 +156,7 @@
         </div>
 
         <div class="col-xl-12 col-md-12 d-flex align-items-stretch shadow" data-aos="fade-up" data-aos-delay="500">
-          <div class="card border-0">
+          <div class="card border-0 container">
             <div class="card-body m-4">
               <h5 class="card-title fw-bold fs-3" style="color: #5578ff">3.5 The 4 Assessment Criteria (25% Each)</h5>
               <ol>
