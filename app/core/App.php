@@ -47,12 +47,15 @@ class App {
       }
     }
 
-    // $filename = "../app/controllers/".ucfirst($arr[0]).".php";
-    $filename = __DIR__ . '/../controllers/' . ucfirst($arr[0]) . '.php';
+    // Preserve the established camel-case controller filename on case-sensitive servers.
+    $controller_file = strtolower((string)($arr[0] ?? '')) === 'whattolearn'
+      ? 'WhatToLearn'
+      : ucfirst((string)($arr[0] ?? ''));
+    $filename = __DIR__ . '/../controllers/' . $controller_file . '.php';
     if (file_exists($filename)) {
       # ...| TRUE Block
       require $filename;
-      $this->controller = $arr[0];
+      $this->controller = $controller_file;
       self::$page = $arr[0];
       unset($arr[0]);
     } else {
