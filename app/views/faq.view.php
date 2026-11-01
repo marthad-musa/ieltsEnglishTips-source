@@ -2,6 +2,18 @@
 <?php $this->view('partials/public.navbar', $data) ?>
 <!-- ----------| ./INCLUDES\. |---------- -->
 
+<style>
+  #events .accordion .accordion-button,
+  #events .accordion .accordion-button:not(.collapsed) {
+    background-color: #c0d3e6;
+  }
+
+  #events .accordion .accordion-collapse {
+    background-color: #f8f9fa;
+  }
+
+</style>
+
 <!-- ------------- MAIN ------------- -->
 <main class="main">
 
@@ -2004,7 +2016,7 @@
             </div>
             <div class="accordion-item fontAlido">
               <h4 class="accordion-header">
-                <button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-63" aria-expanded="false" aria-controls="collapse-63">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-63" aria-expanded="false" aria-controls="collapse-63">
                   <span class="" id="" tabindex="0" title="Can I ask the examiner for his or her opinion?">Can I ask the examiner for his or her opinion?</span>
                 </button>
               </h4>

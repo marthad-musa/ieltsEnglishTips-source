@@ -1402,6 +1402,28 @@ class Admin extends Controller {
           } else
           if ($_POST['tab_name'] == "course-landing-page") {
             # ...| Course Landing Page Block
+            $promo_video_model = new \Model\Course_promo_video();
+            $promo_video_schema_ready = $promo_video_model->schemaReady();
+            $promo_video_captions = array_fill(1, 5, '');
+            $promo_video_titles = array_fill(1, 5, '');
+            $promo_video_rows = [];
+            if ($promo_video_schema_ready) {
+              try {
+                foreach ($promo_video_model->forCourse((int)$id) as $promo_video_row) {
+                  $promo_video_slot = (int)$promo_video_row->video_slot;
+                  if ($promo_video_slot >= 1 && $promo_video_slot <= 5) {
+                    $promo_video_captions[$promo_video_slot] = $promo_video_row->caption ?? '';
+                    $promo_video_titles[$promo_video_slot] = $promo_video_row->video_title ?? '';
+                    if ($promo_video_slot >= 2) {
+                      $promo_video_rows[$promo_video_slot] = $promo_video_row;
+                    }
+                  }
+                }
+              } catch (\PDOException $error) {
+                error_log('Course promotional video editor data unavailable: ' . $error->getMessage());
+                $promo_video_schema_ready = false;
+              }
+            }
             include views_path('course-edit-tabs/course-landing-page');
           } else
           if ($_POST['tab_name'] == "course-duration") {
@@ -1954,7 +1976,32 @@ class Admin extends Controller {
                   }
                 }
 
-                $info['data'] = "Course saved successfully!";
+                $promo_video_model = new \Model\Course_promo_video();
+                if ($promo_video_model->schemaReady()) {
+                  $captions = is_array($_POST['promo_video_caption'] ?? null)
+                    ? $_POST['promo_video_caption']
+                    : [];
+                  $titles = is_array($_POST['promo_video_title'] ?? null)
+                    ? $_POST['promo_video_title']
+                    : [];
+                  try {
+                    $promo_video_model->transaction(function () use ($promo_video_model, $captions, $titles, $id) {
+                      for ($slot = 1; $slot <= 5; $slot++) {
+                        if (array_key_exists($slot, $captions) || array_key_exists($slot, $titles)) {
+                          $caption = trim((string)($captions[$slot] ?? ''));
+                          $video_title = trim((string)($titles[$slot] ?? ''));
+                          $promo_video_model->saveDetails((int)$id, $slot, $video_title, $caption);
+                        }
+                      }
+                    });
+                    $info['data'] = "Course and promotional video titles and text saved successfully!";
+                  } catch (\PDOException $error) {
+                    error_log('Course promotional video titles and captions could not be saved: ' . $error->getMessage());
+                    $info['data'] = "Course details saved, but promotional video titles and text could not be saved. Please try again.";
+                  }
+                } else {
+                  $info['data'] = "Course saved. Promotional video titles and text are unavailable until the promotional video title migration is applied.";
+                }
                 $info['data_type'] = "save";
               } else
               if ($_POST['tab_name'] == "course-duration") {
@@ -2056,6 +2103,97 @@ class Admin extends Controller {
               $course->update($id,['course_promo_video'=>$destination,'csrf_code'=>$_POST['csrf_code']]);
             }
           }
+        } else
+        if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_additional_video") {
+          header('Content-Type: application/json; charset=utf-8');
+          $csrf_code = $_POST['csrf_code'] ?? '';
+          if (empty($csrf_code) || !hash_equals($_SESSION['csrf_code'] ?? '', $csrf_code)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Security check failed.']);
+            die;
+          }
+
+          $video_slot = (int)($_POST['video_slot'] ?? 0);
+          if (empty($row) || $video_slot < 2 || $video_slot > 5) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Course or promotional video slot was not found.']);
+            die;
+          }
+
+          $promo_video_model = new \Model\Course_promo_video();
+          if (!$promo_video_model->schemaReady()) {
+            http_response_code(409);
+            echo json_encode([
+              'success' => false,
+              'message' => 'Apply database/migrations/20261027_create_course_promo_videos.sql before uploading additional promotional videos.',
+            ]);
+            die;
+          }
+
+          $video = $_FILES['video'] ?? null;
+          if (!$video || ($video['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($video['tmp_name'] ?? '')) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Select a valid MP4 video to upload.']);
+            die;
+          }
+
+          $extension = strtolower(pathinfo($video['name'] ?? '', PATHINFO_EXTENSION));
+          $mime_type = function_exists('mime_content_type') ? mime_content_type($video['tmp_name']) : '';
+          if ($extension !== 'mp4' || $mime_type !== 'video/mp4') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Only MP4 promotional videos are allowed.']);
+            die;
+          }
+
+          if (($video['size'] ?? 0) <= 0 || ($video['size'] ?? 0) > 100 * 1024 * 1024) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Promotional videos must be smaller than 100 MB.']);
+            die;
+          }
+
+          $folder = 'uploads/courses/promo/';
+          if (!is_dir($folder) && !mkdir($folder, 0775, true) && !is_dir($folder)) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The promotional video upload folder could not be created.']);
+            die;
+          }
+
+          $destination = $folder . 'course_' . (int)$id . '_slot_' . $video_slot . '_' . bin2hex(random_bytes(12)) . '.mp4';
+          if (!move_uploaded_file($video['tmp_name'], $destination)) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The promotional video could not be saved.']);
+            die;
+          }
+
+          try {
+            $old_video_rows = $promo_video_model->forCourse((int)$id);
+            $old_video_path = '';
+            foreach ($old_video_rows as $old_video_row) {
+              if ((int)$old_video_row->video_slot === $video_slot) {
+                $old_video_path = (string)($old_video_row->video_path ?? '');
+                break;
+              }
+            }
+            $promo_video_model->saveVideo((int)$id, $video_slot, $destination);
+          } catch (\PDOException $error) {
+            unlink($destination);
+            error_log('Additional course promotional video could not be registered: ' . $error->getMessage());
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'The video was uploaded but could not be added to the course. Please retry.']);
+            die;
+          }
+
+          $managed_video_root = realpath($folder);
+          $old_video_realpath = $old_video_path !== '' ? realpath($old_video_path) : false;
+          if ($managed_video_root && $old_video_realpath && dirname($old_video_realpath) === $managed_video_root && is_file($old_video_realpath)) {
+            unlink($old_video_realpath);
+          }
+
+          echo json_encode([
+            'success' => true,
+            'video' => get_video($destination),
+            'message' => 'Promotional video uploaded successfully.',
+          ]);
         } else
         if (!empty($_POST['data_type']) && $_POST['data_type'] == "upload_course_hero_image") {
           header('Content-Type: application/json; charset=utf-8');

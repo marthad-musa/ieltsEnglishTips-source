@@ -37,6 +37,17 @@ class Course_details extends Controller {
 
     # ...| READ The Course Data
     $data['row'] = $row = $course->first(['slug'=>$slug]);
+    $data['promo_videos'] = [];
+    if (!empty($row->id)) {
+      $promo_video_model = new \Model\Course_promo_video();
+      if ($promo_video_model->schemaReady()) {
+        try {
+          $data['promo_videos'] = $promo_video_model->forCourse((int)$row->id);
+        } catch (\PDOException $error) {
+          error_log('Course promotional videos unavailable; rendering the existing course preview: ' . $error->getMessage());
+        }
+      }
+    }
 
     $data['cms_blocks'] = [];
     if (!empty($row->id)) {

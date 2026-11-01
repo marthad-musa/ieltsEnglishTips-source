@@ -889,6 +889,9 @@
             obj[key] = input.value;
           }
         });
+        content.querySelectorAll('[name^="promo_video_title["], [name^="promo_video_caption["]').forEach(function(input) {
+          obj[input.name] = input.value;
+        });
       } else {
         for (var i = 0; i < inputs.length; i++) {
           var key = inputs[i].name;
@@ -1191,6 +1194,93 @@
       ajax_course_video.abort();
     }
     // ---| ./AJAX_Course_Video_Cancel()
+
+    function upload_additional_course_video(input, videoSlot) {
+      var file = input.files && input.files[0];
+      if (!file) {
+        return;
+      }
+
+      var editor = input.closest('.promo-video-editor');
+      var info = editor.querySelector('.js-additional-video-info');
+      var progressContainer = editor.querySelector('.js-additional-video-progress-container');
+      var progressBar = editor.querySelector('.js-additional-video-progress');
+      var preview = editor.querySelector('.js-additional-video-preview');
+      var emptyMessage = editor.querySelector('.js-additional-video-empty');
+      var uploadForm = editor.closest('form');
+      var csrfInput = uploadForm ? uploadForm.querySelector('input[name="csrf_code"]') : null;
+      var extension = file.name.split('.').pop().toLowerCase();
+
+      if (!csrfInput || !csrfInput.value) {
+        alert('The security token is missing. Refresh the course editor and try again.');
+        input.value = '';
+        return;
+      }
+
+      if (extension !== 'mp4' || (file.type && file.type !== 'video/mp4')) {
+        alert('Please select a valid MP4 video.');
+        input.value = '';
+        return;
+      }
+      if (file.size > 100 * 1024 * 1024) {
+        alert('Promotional videos must be smaller than 100 MB.');
+        input.value = '';
+        return;
+      }
+
+      var form = new FormData();
+      form.append('data_type', 'upload_course_additional_video');
+      form.append('tab_name', tab);
+      form.append('video_slot', videoSlot);
+      form.append('video', file);
+      form.append('csrf_code', csrfInput.value);
+
+      input.disabled = true;
+      progressContainer.hidden = false;
+      info.textContent = 'Uploading ' + file.name;
+
+      var request = new XMLHttpRequest();
+      request.open('POST', '', true);
+      request.upload.addEventListener('progress', function(event) {
+        if (event.lengthComputable) {
+          var percent = Math.round((event.loaded / event.total) * 100);
+          progressBar.style.width = percent + '%';
+          progressBar.textContent = percent + '%';
+          progressBar.setAttribute('aria-valuenow', percent);
+        }
+      });
+
+      request.addEventListener('load', function() {
+        var result;
+        try {
+          result = JSON.parse(request.responseText);
+        } catch (error) {
+          result = {success: false, message: 'The server returned an invalid upload response.'};
+        }
+
+        input.disabled = false;
+        progressContainer.hidden = true;
+        info.textContent = result.message || '';
+        if (request.status >= 200 && request.status < 300 && result.success && result.video) {
+          preview.innerHTML = '<source src="' + result.video + '" type="video/mp4">';
+          preview.hidden = false;
+          preview.load();
+          emptyMessage.hidden = true;
+          input.value = '';
+        } else {
+          alert(result.message || 'The promotional video upload failed.');
+        }
+      });
+
+      request.addEventListener('error', function() {
+        input.disabled = false;
+        progressContainer.hidden = true;
+        info.textContent = '';
+        alert('The promotional video upload failed because of a network error.');
+      });
+
+      request.send(form);
+    }
 
     function show_name() {
       alert(document.querySelector("#test-card").name);

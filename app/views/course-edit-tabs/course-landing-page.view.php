@@ -194,6 +194,51 @@
         <button type="button" onclick="ajax_course_video_cancel()" class="js-video-upload-cancel-button btn btn-sm btn-outline-danger hide"><i class="bi bi-x-circle"></i></button>
       </div>
     </div>
+    <?php if (!empty($promo_video_schema_ready)): ?>
+      <div class="mb-4">
+        <label for="promo-video-title-1" class="form-label fw-bold">Course promotion video title:</label>
+        <input id="promo-video-title-1" name="promo_video_title[1]" class="form-control mb-3" type="text" maxlength="255" value="<?=esc($promo_video_titles[1] ?? '')?>" placeholder="Title shown in the promotional video list">
+        <label for="promo-video-caption-1" class="form-label fw-bold">Course promotion video text:</label>
+        <textarea id="promo-video-caption-1" name="promo_video_caption[1]" class="form-control" rows="2" maxlength="2000" placeholder="Text displayed underneath this video"><?=esc($promo_video_captions[1] ?? '')?></textarea>
+      </div>
+
+      <?php for ($promo_slot = 2; $promo_slot <= 5; $promo_slot++): ?>
+        <?php $promo_video_row = $promo_video_rows[$promo_slot] ?? null; ?>
+        <div class="promo-video-editor my-4 p-3 border rounded" data-video-slot="<?=$promo_slot?>">
+          <h5 class="h6 fw-bold">Additional promotional video <?=$promo_slot - 1?></h5>
+          <div class="row align-items-start">
+            <div class="col-sm-4">
+              <video class="js-additional-video-preview w-100" controls preload="metadata" style="max-height: 240px;" <?=!empty($promo_video_row->video_path) && is_file($promo_video_row->video_path) ? '' : 'hidden'?>>
+                <?php if (!empty($promo_video_row->video_path) && is_file($promo_video_row->video_path)): ?>
+                  <source src="<?=esc(get_video($promo_video_row->video_path))?>" type="video/mp4">
+                <?php endif; ?>
+                Your browser does not support video playback.
+              </video>
+              <p class="js-additional-video-empty text-muted mb-0" <?=!empty($promo_video_row->video_path) && is_file($promo_video_row->video_path) ? 'hidden' : ''?>>No video uploaded yet.</p>
+            </div>
+            <div class="col-sm-8">
+              <label class="form-label" for="promo-video-upload-<?=$promo_slot?>">Upload MP4 video (maximum 100 MB)</label>
+              <input id="promo-video-upload-<?=$promo_slot?>" class="form-control js-additional-video-input" type="file" accept="video/mp4,.mp4" onchange="upload_additional_course_video(this, <?=$promo_slot?>)">
+              <div class="progress mt-3 js-additional-video-progress-container" hidden>
+                <div class="progress-bar js-additional-video-progress" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+              </div>
+              <div class="small mt-2 js-additional-video-info" role="status"></div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label for="promo-video-title-<?=$promo_slot?>" class="form-label">Video title</label>
+            <input id="promo-video-title-<?=$promo_slot?>" name="promo_video_title[<?=$promo_slot?>]" class="form-control mb-3" type="text" maxlength="255" value="<?=esc($promo_video_titles[$promo_slot] ?? '')?>" placeholder="Title shown in the promotional video list">
+            <label for="promo-video-caption-<?=$promo_slot?>" class="form-label">Text displayed underneath this video</label>
+            <textarea id="promo-video-caption-<?=$promo_slot?>" name="promo_video_caption[<?=$promo_slot?>]" class="form-control" rows="2" maxlength="2000" placeholder="Add a short description for this video"><?=esc($promo_video_captions[$promo_slot] ?? '')?></textarea>
+          </div>
+        </div>
+      <?php endfor; ?>
+    <?php else: ?>
+      <div class="alert alert-warning" role="alert">
+        The promotional video title and text fields are unavailable until the course promo-video table
+        is created and <code>database/migrations/20261028_add_course_promo_video_titles.sql</code> is applied.
+      </div>
+    <?php endif; ?>
     <!-- -| ./Course Promotion Video\. |- -->
   </div>
 </form>

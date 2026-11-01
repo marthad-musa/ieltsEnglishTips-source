@@ -12,6 +12,36 @@
   $promo_video = !empty($row->course_promo_video) && file_exists($row->course_promo_video)
     ? get_video($row->course_promo_video)
     : null;
+  $promo_video_items = [];
+  $promo_video_captions = [];
+  $promo_video_titles = [];
+  foreach (($data['promo_videos'] ?? []) as $promo_video_row) {
+    $promo_slot = (int)($promo_video_row->video_slot ?? 0);
+    if ($promo_slot >= 1 && $promo_slot <= 5) {
+      $promo_video_captions[$promo_slot] = (string)($promo_video_row->caption ?? '');
+      $promo_video_titles[$promo_slot] = trim((string)($promo_video_row->video_title ?? ''));
+    }
+  }
+  if ($promo_video) {
+    $promo_video_items[] = [
+      'slot' => 1,
+      'url' => $promo_video,
+      'title' => $promo_video_titles[1] ?? '',
+      'caption' => $promo_video_captions[1] ?? '',
+    ];
+  }
+  foreach (($data['promo_videos'] ?? []) as $promo_video_row) {
+    $promo_slot = (int)($promo_video_row->video_slot ?? 0);
+    $video_path = (string)($promo_video_row->video_path ?? '');
+    if ($promo_slot >= 2 && $promo_slot <= 5 && $video_path !== '' && is_file($video_path)) {
+      $promo_video_items[] = [
+        'slot' => $promo_slot,
+        'url' => get_video($video_path),
+        'title' => $promo_video_titles[$promo_slot] ?? '',
+        'caption' => $promo_video_captions[$promo_slot] ?? '',
+      ];
+    }
+  }
   $course_tags = !empty($row->tags)
     ? array_filter(array_map('trim', explode(',', $row->tags)))
     : [];
@@ -127,13 +157,49 @@
           </div>
           <!-- End Course Header -->
 
-          <?php if ($promo_video): ?>
+          <?php if (!empty($promo_video_items)): ?>
             <div class="course-content mb-4" data-aos="fade-up" data-aos-delay="250">
               <h3>Course preview</h3>
-              <video controls preload="metadata" class="w-100" style="max-height: 420px;">
-                <source src="<?=esc($promo_video)?>" type="video/mp4">
+              <video id="course-promo-video" controls preload="metadata" class="w-100" style="max-height: 420px;">
+                <source src="<?=esc($promo_video_items[0]['url'])?>" type="video/mp4">
                 Your browser does not support video playback.
               </video>
+              <p
+                id="course-promo-caption"
+                class="mt-2 mb-0"
+                style="white-space: pre-line;<?=trim($promo_video_items[0]['caption']) === '' ? 'display: none;' : ''?>"
+              ><?=esc($promo_video_items[0]['caption'])?></p>
+
+              <?php if (count($promo_video_items) > 1): ?>
+                <div class="course-curriculum mt-4">
+                  <div class="curriculum-section">
+                    <div class="section-header">
+                      <h4>Promotional videos</h4>
+                      <span class="lessons-count"><?=count($promo_video_items)?> videos</span>
+                    </div>
+                    <div class="lessons">
+                      <?php foreach ($promo_video_items as $promo_video_item): ?>
+                        <button
+                          type="button"
+                          class="lesson-item curriculum-item promo-video-option js-course-promo-video<?=$promo_video_item['slot'] === 1 ? ' active' : ''?>"
+                          data-video-slot="<?=esc($promo_video_item['slot'])?>"
+                          data-video-url="<?=esc($promo_video_item['url'])?>"
+                          data-video-caption="<?=esc($promo_video_item['caption'])?>"
+                          aria-pressed="<?=$promo_video_item['slot'] === 1 ? 'true' : 'false'?>"
+                        >
+                          <span class="lesson-info">
+                            <i class="bi bi-play-circle" aria-hidden="true"></i>
+                            <span>
+                              <strong><?=esc($promo_video_item['title'] !== '' ? $promo_video_item['title'] : 'Promotional video ' . $promo_video_item['slot'])?></strong>
+                              <small class="d-block text-muted">Video lesson</small>
+                            </span>
+                          </span>
+                        </button>
+                      <?php endforeach; ?>
+                    </div>
+                  </div>
+                </div>
+              <?php endif; ?>
             </div>
           <?php endif; ?>
 
@@ -644,6 +710,53 @@
 
 </main>
 <!-- ----------| ./MAIN\. |---------- -->
+
+<style>
+  .course-details .promo-video-option {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .course-details .promo-video-option:hover,
+  .course-details .promo-video-option.active {
+    background-color: color-mix(in srgb, var(--accent-color), transparent 95%);
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.js-course-promo-video').forEach(function(button) {
+    button.addEventListener('click', function() {
+      var video = document.getElementById('course-promo-video');
+      var source = video ? video.querySelector('source') : null;
+      var caption = document.getElementById('course-promo-caption');
+      if (!video || !source || !caption) {
+        return;
+      }
+
+      video.pause();
+      source.src = button.dataset.videoUrl;
+      video.load();
+      caption.textContent = button.dataset.videoCaption || '';
+      caption.style.display = caption.textContent.trim() === '' ? 'none' : '';
+
+      document.querySelectorAll('.js-course-promo-video').forEach(function(item) {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
+      });
+      button.classList.add('active');
+      button.setAttribute('aria-pressed', 'true');
+      var firstVideo = document.querySelector('.js-course-promo-video[data-video-slot="1"]');
+      var videoList = firstVideo ? firstVideo.parentElement : null;
+      if (videoList && button.dataset.videoSlot !== '1') {
+        videoList.insertBefore(firstVideo, videoList.firstElementChild);
+      }
+    });
+  });
+</script>
 
 <!-- ------------- INCLUDES ------------- -->
 <?php $this->view('partials/public.footer',$data) ?>
