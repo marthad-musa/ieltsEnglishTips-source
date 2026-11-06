@@ -33,7 +33,7 @@ class Course_details extends Controller {
     $data['title'] = "Course Details";
  
     # ...| READ ALL Courses
-    $data['rows'] = $course->where(['approved'=>1,'published'=>1], 'desc', 10);
+    $data['rows'] = array_reverse($course->where(['approved'=>1,'published'=>1], 'desc', 10));
 
     # ...| READ The Course Data
     $data['row'] = $row = $course->first(['slug'=>$slug]);
@@ -62,7 +62,7 @@ class Course_details extends Controller {
     }
 
     # ...| READ ALL Courses Metas
-    $coursesMetas = $course_meta->where(['disabled'=>0,'course_id'=>$row->id ?? null], 'desc');
+    $coursesMetas = array_reverse($course_meta->where(['disabled'=>0,'course_id'=>$row->id ?? null], 'desc'));
     if ($coursesMetas) {
       # ...| TRUE Block
       $data['coursesMeta'] = $coursesMetas;

@@ -41,7 +41,7 @@
         <li><a href="<?=ROOT?>/courses" class="<?=$is_courses_active ? 'active' : (active_nav('courses') ?? '')?>">Courses</a></li>
         <li><a href="<?=ROOT?>/faq" class="fw-bold <?=active_nav('faq')?? ''?>">FAQ</a></li>
         <li><a href="<?=ROOT?>/whattolearn" class="<?=active_nav('whattolearn')?? ''?>">What to Learn</a></li>
-        <li class="dropdown"><a href="#" class="<?=$is_four_skills_active ? 'active' : ''?>">4-Skills</a>
+        <li class="dropdown"><a href="" class="<?=$is_four_skills_active ? 'active' : ''?>">4-Skills</a>
           <ul>
             <li><a href="<?=ROOT?>/listening" class="<?=active_nav('listening')?? ''?>">Listening</a></li>
             <li><a href="<?=ROOT?>/reading" class="<?=active_nav('reading')?? ''?>">Reading</a></li>
@@ -50,13 +50,20 @@
           </ul>
         </li>
         <li><a href="<?=ROOT?>/faculty" class="<?=active_nav('faculty')?? ''?>">Faculty</a></li>
-        <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li>
+        <li class="dropdown"><a href="" class="<?=$is_four_skills_active ? 'active' : ''?>">Events</a>
+          <ul>
+            <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li>
+            <li><a href="<?=ROOT?>/explore" class="<?=active_nav('explore')?? ''?>">Explore Our Success</a></li>
+            <li><a href="<?=ROOT?>/community" class="<?=active_nav('community')?? ''?>">Grow with our Community</a></li>
+            <li><a href="<?=ROOT?>/testimony" class="<?=active_nav('testimony')?? ''?>">What our students say</a></li>
+          </ul>
+        </li>
         <li><a href="<?=ROOT?>/contact" class="<?=active_nav('contact')?? ''?>">Contact</a></li>
         <?php if(!Auth::logged_in()):?>
           <li><a href="<?=ROOT?>/login">Login</a></li>
         <?php else:?>
           <!-- ---- USER_DATA ---- -->
-          <li class="dropdown"><a href="#"><span>Hi, <?=esc($uid->firstname)?></span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+          <li class="dropdown"><a href=""><span>Hi, <?=esc($uid->firstname)?></span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="<?=ROOT?>/admin/dashboard">Dashboard</a></li>
               <li><a href="<?=ROOT?>/admin/profile">Profile</a></li>

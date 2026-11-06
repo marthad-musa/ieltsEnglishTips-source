@@ -57,28 +57,28 @@
         </div> -->
 
         <div class="col-lg-6 order-1 order-lg-1 content" data-aos="fade-up" data-aos-delay="100">
-          <h3>1. Why is English important?</h3>
+          <h3 class="text-primary">1. Why is English important?</h3>
           <p class="fst-italic">
             English is more than just a language; it is a gateway to global communication, education and employment. It allows you to connect with people from different cultures, access international knowledge and pursue opportunities around the world.
           </p>
         </div>
 
-        <div class="col-lg-6 order-2 order-lg-1 content" data-aos="fade-up" data-aos-delay="300">
-          <h3>2. Why do internationally recognised certificates matter?</h3>
-          <p class="fst-italic">
-            Qualifications such as IELTS and TOEFL provide recognised evidence of your English proficiency. They can help you access international universities, apply for scholarships, explore career opportunities and achieve your academic or immigration goals.
-          </p>
-        </div>
-
         <div class="col-lg-6 order-1 order-lg-1 content" data-aos="fade-up" data-aos-delay="500">
-          <h3>3. Why are computer skills essential?</h3>
+          <h3 class="text-primary">3. Why are computer skills essential?</h3>
           <p class="fst-italic">
             In today's digital world, computer literacy is no longer optional. From preparing professional documents and analysing information to communicating online and using modern technology, digital skills are essential for productivity and professional growth.
           </p>
         </div>
 
+        <div class="col-lg-6 order-2 order-lg-1 content" data-aos="fade-up" data-aos-delay="300">
+          <h3 class="text-primary">2. Why do internationally recognised certificates matter?</h3>
+          <p class="fst-italic">
+            Qualifications such as IELTS and TOEFL provide recognised evidence of your English proficiency. They can help you access international universities, apply for scholarships, explore career opportunities and achieve your academic or immigration goals.
+          </p>
+        </div>
+
         <div class="col-lg-6 order-2 order-lg-1 content" data-aos="fade-up" data-aos-delay="700">
-          <h3>4. Is having these three skills enough?</h3>
+          <h3 class="text-primary">4. Is having these three skills enough?</h3>
           <p class="fst-italic">
             They provide a strong foundation, but continuous learning is equally important. Critical thinking, problem-solving, creativity, confidence and effective communication help individuals turn their knowledge into real achievements.
           </p>
@@ -129,60 +129,60 @@
       </div>
 
       <div class="row gy-4 align-items-stretch">
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="100">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-translate fs-1"></i>
-            <h4>English Proficiency</h4>
+            <h4 class="text-primary fw-bold">English Proficiency</h4>
             <p class="mb-0 fs-5">
               Global communication
             </p>
           </div>
         </div>
 
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="300">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="300">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-award fs-1"></i>
-            <h4>International qualification</h4>
+            <h4 class="text-primary fw-bold">International qualification</h4>
             <p class="mb-0 fs-5">
               IELTS, TOEFL and more
             </p>
           </div>
         </div>
 
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="500">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="500">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-cast fs-1"></i>
-            <h4>Digital competence</h4>
+            <h4 class="text-primary fw-bold">Digital competence</h4>
             <p class="mb-0 fs-5">
               Computer and AI skills
             </p>
           </div>
         </div>
 
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="700">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="700">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-chat-square-dots fs-1"></i>
-            <h4>Communication</h4>
+            <h4 class="text-primary fw-bold">Communication</h4>
             <p class="mb-0 fs-5">
               Confidence and teamwork
             </p>
           </div>
         </div>
 
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="900">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="900">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-lightbulb fs-1"></i>
-            <h4>Critical thinking</h4>
+            <h4 class="text-primary fw-bold">Critical thinking</h4>
             <p class="mb-0 fs-5">
               Creativity and problem-solving
             </p>
           </div>
         </div>
 
-        <div class="col-xl-2 col-md-12 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="1200">
+        <div class="col-xl-4 col-md-12 d-flex p-5 border-0 shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="1200">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
             <i class="bi bi-briefcase fs-1"></i>
-            <h4>Career readiness</h4>
+            <h4 class="text-primary fw-bold">Career readiness</h4>
             <p class="mb-0 fs-5">
               Employment and professional growth
             </p>
@@ -192,6 +192,40 @@
     </div>
   </section>
 
+  <style>
+    .about-community-banner {
+      padding: 32px 0 64px;
+    }
+
+    .about-community-banner .container {
+      max-width: 1120px;
+    }
+
+    .about-community-banner img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid rgba(16, 36, 79, .08);
+      border-radius: 20px;
+      box-shadow: 0 18px 48px rgba(16, 36, 79, .12);
+    }
+
+    @media (max-width: 767.98px) {
+      .about-community-banner {
+        padding: 20px 0 42px;
+      }
+
+      .about-community-banner img {
+        border-radius: 14px;
+      }
+    }
+  </style>
+
+  <section class="about-community-banner" data-aos="fade-up" aria-label="Our vision for a better future">
+    <div class="container">
+      <img src="<?=ROOT?>/assets/img/about-community-banner.png" alt="Beyond English. Beyond Certificates. Towards a Better Future. Learn. Qualify. Develop. Succeed.">
+    </div>
+  </section>
 
 </main>
 <!-- ----------| ./MAIN\. |---------- -->

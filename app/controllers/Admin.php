@@ -1361,7 +1361,7 @@ class Admin extends Controller {
       # ---| ./Action=>DELETE\. |---
     } elseif ($action == 'status') {
       # ...| STATUS Block
-      $data['row'] = $row = $course->first(['id'=>$id]);
+      $data['row'] = $row = array_reverse($course->first(['id'=>$id]));
 
       if ($_SERVER['REQUEST_METHOD'] == "POST" && $row) {
         $status = $_POST['status'] ?? '';
@@ -2296,22 +2296,22 @@ class Admin extends Controller {
       # ---| ./Action=>EDIT\. |---
     } elseif ($action == 'course') {
       # ...| Single-COURSE Block
-      $data['rows'] = $course->findAll();
+      $data['rows'] = array_reverse(array_reverse($course->findAll()));
     } elseif ($action == 'lecture') {
       # ...| Single-COURSE Block
-      $data['rows'] = $course->findAll();
+      $data['rows'] = array_reverse($course->findAll());
     } else {
       # ...| ALL My Courses Block
       $course->limit = 100;
 
       if ($uid->role_id == 3) {
-        $data['approved_courses'] = $course->where(['approved'=>1,'published'=>1]);
-        $data['rows'] = $course->findAll();
+        $data['approved_courses'] = array_reverse($course->where(['approved'=>1,'published'=>1]));
+        $data['rows'] = array_reverse($course->findAll());
       } elseif ($uid->role_id == 2) {
-        $data['approved_courses'] = $course->where(['user_id'=>$user_id,'approved'=>1,'published'=>1]);
-        $data['rows'] = $course->where(['user_id'=>$user_id,'approved'=>0,'published'=>0]);
+        $data['approved_courses'] = array_reverse($course->where(['user_id'=>$user_id,'approved'=>1,'published'=>1]));
+        $data['rows'] = array_reverse($course->where(['user_id'=>$user_id,'approved'=>0,'published'=>0]));
       } else {
-        $data['approved_courses'] = $course->where(['approved'=>1,'published'=>1]);
+        $data['approved_courses'] = array_reverse($course->where(['approved'=>1,'published'=>1]));
         $data['rows'] = [];
       }
       # ---| ./COURSES MAIN PAGE\. |---

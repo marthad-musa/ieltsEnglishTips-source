@@ -49,8 +49,8 @@
       <div class="row gy-4 align-items-stretch">
         <div class="col-xl-3 col-md-6 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="100">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-chat-dots fs-1"></i>
-            <h4>IELTS Speaking</h4>
+            <i class="bi bi-chat-dots fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">IELTS Speaking</h4>
             <ul class="mb-0 ps-3">
               <li>Part 1: Simple, natural answers</li>
               <li>Part 2: Cue cards and model answers</li>
@@ -63,8 +63,8 @@
 
         <div class="col-xl-3 col-md-6 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="400">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-headphones fs-1"></i>
-            <h4>IELTS Listening</h4>
+            <i class="bi bi-headphones fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">IELTS Listening</h4>
             <ul class="mb-0 ps-3">
               <li>Understand the four parts</li>
               <li>Multiple choice, maps and form completion</li>
@@ -77,8 +77,8 @@
 
         <div class="col-xl-3 col-md-6 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="650">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-book fs-1"></i>
-            <h4>IELTS Reading</h4>
+            <i class="bi bi-book fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">IELTS Reading</h4>
             <ul class="mb-0 ps-3">
               <li>Skimming and scanning</li>
               <li>True / False / Not Given</li>
@@ -91,8 +91,8 @@
 
         <div class="col-xl-3 col-md-6 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="900">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-pencil-square fs-1"></i>
-            <h4>IELTS Writing</h4>
+            <i class="bi bi-pencil-square fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">IELTS Writing</h4>
             <ul class="mb-0 ps-3">
               <li>Academic Task 1: graphs, charts, tables, maps and processes</li>
               <li>General Training Task 1: letters</li>
@@ -115,8 +115,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="100">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-translate fs-1"></i>
-            <h4>Vocabulary and Grammar</h4>
+            <i class="bi bi-translate fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">Vocabulary and Grammar</h4>
             <ul class="mb-0 ps-3">
               <li>Topic vocabulary for work, education, technology and the environment</li>
               <li>Useful collocations and natural expressions</li>
@@ -130,8 +130,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="400">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-display fs-1"></i>
-            <h4>Computer-Based vs Paper-Based IELTS</h4>
+            <i class="bi bi-display fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">Computer-Based vs Paper-Based IELTS</h4>
             <ul class="mb-0 ps-3">
               <li>Explain the differences in test format, navigation, typing, handwriting, highlighting, note-taking and time management. Help students choose the format that suits their preferences and abilities</li>
             </ul>
@@ -140,8 +140,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="400">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-pencil-square fs-1"></i>
-            <h4>Exercises and Mock Tests</h4>
+            <i class="bi bi-pencil-square fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">Exercises and Mock Tests</h4>
             <ul class="mb-0 ps-3">
               <li>Short quizzes after lessons</li>
               <li>Listening and reading practice with answer explanations</li>
@@ -154,8 +154,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="650">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-calendar-check fs-1"></i>
-            <h4>Exam-Day Tips and Strategies</h4>
+            <i class="bi bi-calendar-check fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">Exam-Day Tips and Strategies</h4>
             <ul class="mb-0 ps-3">
               <li>What to do before test day</li>
               <li>What to bring and what to expect</li>
@@ -169,8 +169,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-2" style="background-color: #a6c7e7;" data-aos="fade-up" data-aos-delay="650">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-card-checklist fs-1"></i>
-            <h4>Band Score Improvement</h4>
+            <i class="bi bi-card-checklist fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">Band Score Improvement</h4>
             <ul class="mb-0 ps-3">
               <li>How to move from Band 5 to 6</li>
               <li>How to improve from Band 6 to 7</li>
@@ -183,8 +183,8 @@
 
         <div class="col-xl-6 col-md-6 d-flex p-5 border shadow-4" style="background-color: #f8f9fa;" data-aos="fade-up" data-aos-delay="900">
           <div class="icon-box d-flex flex-column align-items-start w-100 h-100">
-            <i class="bi bi-type fs-1"></i>
-            <h4>General English for IELTS Learners</h4>
+            <i class="bi bi-patch-check fs-1 text-primary"></i>
+            <h4 class="text-primary fw-bold">General English for IELTS Learners</h4>
             <ul class="mb-0 ps-3">
               <li>Listening to everyday English</li>
               <li>Natural conversations and pronunciation</li>
