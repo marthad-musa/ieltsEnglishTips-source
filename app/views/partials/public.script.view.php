@@ -8,4 +8,4 @@
 <!-- -| ./Vendor JavaScript Scripts\. |. -->
 
 <!-- Main JS File -->
-<script src="<?=ROOT?>/assets/js/public-main.js"></script>
+<script src="<?=ROOT?>/assets/js/public-main.js?v=20261108"></script>

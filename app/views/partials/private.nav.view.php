@@ -1,4 +1,41 @@
 <!-- ---------| HEADER |--------- -->
+<style>
+  @media (max-width: 767.98px) {
+    .header {
+      padding-right: 12px;
+    }
+
+    .header > .row.ms-5 {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      left: 0;
+      width: auto;
+      margin: 0 !important;
+      z-index: 998;
+    }
+
+    .header > .row.ms-5 > .col-md-6 {
+      width: 100%;
+      padding: 0 12px;
+    }
+
+    .header-nav {
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+
+    .header-nav .profile {
+      min-width: min(240px, calc(100vw - 16px));
+      max-width: calc(100vw - 16px);
+    }
+
+    .header-nav .profile .dropdown-header {
+      white-space: normal;
+    }
+  }
+</style>
+
 <header id="header" class="header fixed-top d-flex align-items-center">
 
   <div class="d-flex align-items-center justify-content-between">
@@ -39,9 +76,10 @@
 
       <li class="nav-item dropdown pe-3">
 
-        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">
           <img src="<?=get_image($uid->image)?>" alt="<?=esc($uid->firstname . ' ' . $uid->lastname)?> Profile" class="rounded-circle">
           <span class="d-none d-md-block dropdown-toggle ps-2"><?=ucfirst($uid->firstname . ' ' . $uid->lastname)?></span>
+          <i class="bi bi-chevron-down d-md-none ms-1" aria-hidden="true"></i>
         </a>
         <!-- End Profile Iamge Icon -->
 

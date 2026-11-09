@@ -42,6 +42,9 @@
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
     navmenu.addEventListener('click', () => {
       if (document.querySelector('.mobile-nav-active')) {
+        if (window.innerWidth < 1200 && navmenu.matches('.dropdown > a')) {
+          return;
+        }
         mobileNavToogle();
       }
     });
@@ -51,12 +54,22 @@
   /**
    * Toggle mobile nav dropdowns
    */
-  document.querySelectorAll('.navmenu .toggle-dropdown').forEach(navmenu => {
+  document.querySelectorAll('.navmenu .dropdown > a').forEach(navmenu => {
     navmenu.addEventListener('click', function(e) {
+      if (window.innerWidth >= 1200) {
+        return;
+      }
+
       e.preventDefault();
-      this.parentNode.classList.toggle('active');
-      this.parentNode.nextElementSibling.classList.toggle('dropdown-active');
-      e.stopImmediatePropagation();
+      const submenu = this.nextElementSibling;
+      if (!submenu) {
+        return;
+      }
+
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', String(!isExpanded));
+      this.classList.toggle('active', !isExpanded);
+      submenu.classList.toggle('dropdown-active', !isExpanded);
     });
   });
 

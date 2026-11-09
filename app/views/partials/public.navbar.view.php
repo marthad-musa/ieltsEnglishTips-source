@@ -41,7 +41,7 @@
         <li><a href="<?=ROOT?>/courses" class="<?=$is_courses_active ? 'active' : (active_nav('courses') ?? '')?>">Courses</a></li>
         <li><a href="<?=ROOT?>/faq" class="fw-bold <?=active_nav('faq')?? ''?>">FAQ</a></li>
         <li><a href="<?=ROOT?>/whattolearn" class="<?=active_nav('whattolearn')?? ''?>">What to Learn</a></li>
-        <li class="dropdown"><a href="" class="<?=$is_four_skills_active ? 'active' : ''?>">4-Skills</a>
+        <li class="dropdown"><a href="#" class="<?=$is_four_skills_active ? 'active' : ''?>" aria-expanded="false">4-Skills <i class="bi bi-chevron-down toggle-dropdown" aria-hidden="true"></i></a>
           <ul>
             <li><a href="<?=ROOT?>/listening" class="<?=active_nav('listening')?? ''?>">Listening</a></li>
             <li><a href="<?=ROOT?>/reading" class="<?=active_nav('reading')?? ''?>">Reading</a></li>
@@ -50,7 +50,7 @@
           </ul>
         </li>
         <li><a href="<?=ROOT?>/faculty" class="<?=active_nav('faculty')?? ''?>">Faculty</a></li>
-        <li class="dropdown"><a href="" class="<?=$is_four_skills_active ? 'active' : ''?>">Events</a>
+        <li class="dropdown"><a href="#" class="<?=in_array(strtolower((string)App::$page), ['events', 'explore', 'community', 'testimony'], true) ? 'active' : ''?>" aria-expanded="false">Events <i class="bi bi-chevron-down toggle-dropdown" aria-hidden="true"></i></a>
           <ul>
             <li><a href="<?=ROOT?>/events" class="<?=active_nav('events')?? ''?>">Events</a></li>
             <li><a href="<?=ROOT?>/explore" class="<?=active_nav('explore')?? ''?>">Explore Our Success</a></li>
